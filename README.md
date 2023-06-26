@@ -93,4 +93,5 @@ Browser(BrowserIndex).IsFlat  = 0;
 BrowserIndex = BrowserIndex + 1; 				% increment the BrowserIndex with the amount of libraries that you have added so any other blocksets can be properly initialized aswell
 ```
 
-This blockset with template project is not finalized yet. There are some small improvements we need to do and the license headers needs to be updated. Please let us know when interface blocks are not working properly. You can contact us by support@gocontroll.com
+Please let us know when interface blocks are not working properly. You can contact us by support@gocontroll.com
+Or make a pull request with changes to fix issues that you are experiencing.
