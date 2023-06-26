@@ -1,0 +1,126 @@
+%%***************************************************************************************
+%% file         sfcn_gocontroll_input_module_10.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2023 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%%
+%%***************************************************************************************
+%implements  sfcn_gocontroll_input_module_10 "C"
+
+%% add required include files
+%<LibAddToCommonIncludes("GocontrollInputModule.h")>
+
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization
+%%
+%function Start(block, system) Output
+  %%
+
+	%% Mechanism to create a global declared structure for piping
+
+	%openfile tmpBuf
+	_inputModule inputModule%<block.RTWdata.moduleSlot>;
+	%closefile tmpBuf
+
+	%assign srcFile = LibGetModelDotCFile()
+	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
+
+	inputModule%<block.RTWdata.moduleSlot>.moduleSlot = %<block.RTWdata.moduleSlot>-1;
+	inputModule%<block.RTWdata.moduleSlot>.moduleType = INPUTMODULE10CHANNEL;
+
+	inputModule%<block.RTWdata.moduleSlot>.sensorSupply1 			= %<block.RTWdata.SensSup1>;
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[0] 		= %<block.RTWdata.C1func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[0] 			= (resistorMatrix[(%<block.RTWdata.C1pu>)-1] | (resistorMatrix[(%<block.RTWdata.C1pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[1] 		= %<block.RTWdata.C2func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[1] 			=  (resistorMatrix[(%<block.RTWdata.C2pu>)-1] | (resistorMatrix[(%<block.RTWdata.C2pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[2] 		= %<block.RTWdata.C3func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[2] 			=  (resistorMatrix[(%<block.RTWdata.C3pu>)-1] | (resistorMatrix[(%<block.RTWdata.C3pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[3]		 	= %<block.RTWdata.C4func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[3]				=  (resistorMatrix[(%<block.RTWdata.C4pu>)-1] | (resistorMatrix[(%<block.RTWdata.C4pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[4] 		= %<block.RTWdata.C5func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[4] 			=  (resistorMatrix[(%<block.RTWdata.C5pu>)-1] | (resistorMatrix[(%<block.RTWdata.C5pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[5] 		= %<block.RTWdata.C6func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[5] 			=  (resistorMatrix[(%<block.RTWdata.C6pu>)-1] | (resistorMatrix[(%<block.RTWdata.C6pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[6] 		= %<block.RTWdata.C3func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[6] 			=  (resistorMatrix[(%<block.RTWdata.C7pu>)-1] | (resistorMatrix[(%<block.RTWdata.C7pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[7]		 	= %<block.RTWdata.C4func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[7]				=  (resistorMatrix[(%<block.RTWdata.C8pu>)-1] | (resistorMatrix[(%<block.RTWdata.C8pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[8] 		= %<block.RTWdata.C5func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[8] 			=  (resistorMatrix[(%<block.RTWdata.C9pu>)-1] | (resistorMatrix[(%<block.RTWdata.C9pd>)-1] << 2));
+
+	inputModule%<block.RTWdata.moduleSlot>.configuration[9] 		= %<block.RTWdata.C6func>;
+	inputModule%<block.RTWdata.moduleSlot>.interface[9] 			=  (resistorMatrix[(%<block.RTWdata.C10pu>)-1] | (resistorMatrix[(%<block.RTWdata.C10pd>)-1] << 2));
+
+	/* Send configuration to the module */
+	InputModule_Configuration(&inputModule%<block.RTWdata.moduleSlot>);
+
+  %%
+%endfunction
+
+%% Function: Output ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function Outputs(block, system) Output
+	%%
+    /* read from input module */
+	InputModule_ReceiveValues(&inputModule%<block.RTWdata.moduleSlot>);
+
+	/* Push data to the block outputs */
+    %<LibBlockOutputSignal(0, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[0];
+	%<LibBlockOutputSignal(1, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[1];
+	%<LibBlockOutputSignal(2, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[2];
+	%<LibBlockOutputSignal(3, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[3];
+	%<LibBlockOutputSignal(4, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[4];
+	%<LibBlockOutputSignal(5, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[5];
+	%<LibBlockOutputSignal(6, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[6];
+	%<LibBlockOutputSignal(7, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[7];
+	%<LibBlockOutputSignal(8, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[8];
+	%<LibBlockOutputSignal(9, "", "", 0)> =  inputModule%<block.RTWdata.moduleSlot>.value[9];
+  %%
+%endfunction
+
+
+
+%%******************************* end of sfcn_gocontroll_input_module_10.tlc ***************************
+
+
+
+
+

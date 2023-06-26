@@ -1,0 +1,121 @@
+%% SYSTLC: Linux Embedded Coder TMF: ert_linux_target.tmf MAKE: make_rtw \
+%%    EXTMODE: no_ext_comm
+%%
+%% Copyright 1994-2011 The MathWorks, Inc.
+%% Adapted by Jason van Kolfschoten, 2017
+%% Adapted by GOcontroll, 2023
+%% Abstract: Embedded real-time system target file for Linux OS.
+%%
+%selectfile NULL_FILE
+
+%%----------------------------
+%% TLC Configuration Variables Section
+%%----------------------------
+%% Assign code format, language, target type.
+%%
+%assign CodeFormat = "Embedded-C"
+%assign Language   = "C"
+%assign TargetType = "RT"
+
+%assign RateBasedStepFcn = 1 	/% Generate only rate-based step functions %/
+
+%% The model_SetEventsForThisBaseRate function is not required for the
+%% VxWorks environment, i.e., when using an operating system.
+%assign SuppressSetEventsForThisBaseRateFcn = (TargetOS == "VxWorksExample")
+%if !EXISTS("InlineSetEventsForThisBaseRateFcn")
+  %assign InlineSetEventsForThisBaseRateFcn  = TLC_TRUE
+%endif
+%if !EXISTS("SuppressMultiTaskScheduler")
+  %assign SuppressMultiTaskScheduler = TLC_TRUE
+%endif
+
+%assign TargetRegistMutexOp   = 1
+%assign TargetRegistSynchroOp = 1
+%%include "commontargetlib.tlc"
+
+%%----------------------------
+%% TLC Program Entry Point
+%%----------------------------
+%% Call entry point function.
+%include "codegenentry.tlc"
+
+%%----------------------------
+%% (OPTIONAL) Generate Files for Build Process
+%%----------------------------
+%%include "ert_linux_genfiles.tlc"
+
+%%----------------------------
+%% RTW_OPTIONS Section
+%%----------------------------
+/%
+  BEGIN_RTW_OPTIONS
+
+  rtwoptions(1).prompt        = 'HANcoder options';
+  rtwoptions(1).type          = 'Category';
+  rtwoptions(1).enable        = 'on';
+  rtwoptions(1).default       = 6;   % number of items under this category
+                                     % excluding this one.
+  rtwoptions(1).popupstrings  = '';  % At the first item, user has to
+  rtwoptions(1).tlcvariable   = '';  % initialize all supported fields
+  rtwoptions(1).tooltip       = '';
+  rtwoptions(1).callback      = '';
+  rtwoptions(1).makevariable  = '';
+
+  rtwoptions(2).prompt        = 'Linux RT priority';
+  rtwoptions(2).type          = 'Edit';
+  rtwoptions(2).default       = '40';
+  rtwoptions(2).tlcvariable   = 'tlcLinuxPriority';
+  rtwoptions(2).tooltip       = ['Here you can set the priority of this task'];
+
+  rtwoptions(3).prompt        = 'XCP TCP address';
+  rtwoptions(3).type          = 'Edit';
+  rtwoptions(3).default       = '192.168.19.85';
+  rtwoptions(3).tlcvariable   = 'tlcXcpTcpAddress';
+  rtwoptions(3).tooltip       = ['Choose the preffered address to use with XCP'];
+
+  rtwoptions(4).prompt        = 'XCP TCP port';
+  rtwoptions(4).type          = 'Edit';
+  rtwoptions(4).default       = '50002';
+  rtwoptions(4).tlcvariable   = 'tlcXcpTcpPort';
+  rtwoptions(4).tooltip       = ['Choose the port to use with XCP'];
+
+  rtwoptions(5).prompt        = 'Auto upload';
+  rtwoptions(5).type          = 'Popup';
+  rtwoptions(5).default       = 'Auto upload';
+  rtwoptions(5).popupstrings  = 'Auto upload|Do not upload';
+  rtwoptions(5).tlcvariable   = 'tlcAutoUpload';
+  rtwoptions(5).tooltip       = ['Select this option to upload model automatically after succesfull build'];
+
+  rtwoptions(6).prompt        = 'Target';
+  rtwoptions(6).type          = 'Popup';
+  rtwoptions(6).default       = 'i.MX8';
+  rtwoptions(6).popupstrings  = 'i.MX6|i.MX8|Raspberry Pi';
+  rtwoptions(6).tlcvariable   = 'tlcLinuxTarget';
+  rtwoptions(6).tooltip       = ['Select the Target you want to build the project for'];
+
+
+  %----------------------------------------%
+  % Configure code generation settings %
+  %----------------------------------------%
+  if(strcmp(get_param(model,'tlcLinuxTarget'), 'i.MX8'))
+  set_param(model, 'TemplateMakefile', 'ert_linux_target_64.tmf');
+  elseif(strcmp(get_param(model,'tlcLinuxTarget'), 'i.MX6'))
+  set_param(model, 'TemplateMakefile', 'ert_linux_target_32.tmf');
+  end
+
+  %% Callback for when the active configuration changes in Configuration Parameters
+  rtwgensettings.SelectCallback = 'ert_linux_select_callback_handler(hDlg, hSrc)';
+  %% Callback for after user presses apply in Configuration Parameters
+  rtwgensettings.PostApplyCallback = 'ert_linux_postapply_callback_handler(hDlg,hSrc)';
+
+  %%----------------------------
+  %% rtwgensettings Structure
+  %%----------------------------
+  rtwgensettings.DerivedFrom = 'ert.tlc';
+  %% Define suffix text for naming build folder here.
+  rtwgensettings.BuildDirSuffix = '_generated_code';
+  %% Callback compatibility declaration
+  rtwgensettings.Version = '1';
+
+  END_RTW_OPTIONS
+ %/

@@ -1,0 +1,150 @@
+%%***************************************************************************************
+%% file         sfcn_gocontroll_output_module_10.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2023 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%%
+%%***************************************************************************************
+%implements  sfcn_gocontroll_output_module_10 "C"
+
+%% add required include files
+%<LibAddToCommonIncludes("GocontrollOutputModule.h")>
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Purpose:
+%%      Code generation for configuration
+%%
+%function BlockTypeSetup(block, system) void
+
+%endfunction
+
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization
+%%
+%function Start(block, system) Output
+  %%
+
+  	%% Mechanism to create a global declared structure for piping
+
+	%openfile tmpBuf
+	_outputModule outputModule10ch%<block.RTWdata.moduleSlot>;
+	%closefile tmpBuf
+
+	%assign srcFile = LibGetModelDotCFile()
+	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
+
+	outputModule10ch%<block.RTWdata.moduleSlot>.moduleSlot = %<block.RTWdata.moduleSlot> - 1;
+	outputModule10ch%<block.RTWdata.moduleSlot>.moduleType = OUTPUTMODULE10CHANNEL;
+
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[0] = %<block.RTWdata.C12freq> | (%<block.RTWdata.C1func> <<4); %% LSB nibble contains the frequence of each channel
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[1] = %<block.RTWdata.C12freq> | (%<block.RTWdata.C2func> <<4);
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[2] = %<block.RTWdata.C34freq> | (%<block.RTWdata.C3func> <<4);
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[3] = %<block.RTWdata.C34freq> | (%<block.RTWdata.C4func> <<4);
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[4] = %<block.RTWdata.C56freq> | (%<block.RTWdata.C5func> <<4);
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[5] = %<block.RTWdata.C56freq> | (%<block.RTWdata.C6func> <<4);
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[6] = %<block.RTWdata.C78freq> | (%<block.RTWdata.C7func> <<4);
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[7] = %<block.RTWdata.C78freq> | (%<block.RTWdata.C8func> <<4);
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[8] = %<block.RTWdata.C910freq> | (%<block.RTWdata.C9func> <<4);
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[9] = %<block.RTWdata.C910freq> | (%<block.RTWdata.C10func> <<4);
+
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[0] = %<block.RTWdata.C1peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[1] = %<block.RTWdata.C2peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[2] = %<block.RTWdata.C3peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[3] = %<block.RTWdata.C4peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[4] = %<block.RTWdata.C5peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[5] = %<block.RTWdata.C6peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[6] = %<block.RTWdata.C7peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[7] = %<block.RTWdata.C8peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[8] = %<block.RTWdata.C9peakDuty>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[9] = %<block.RTWdata.C10peakDuty>;
+
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[0] = %<block.RTWdata.C1peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[1] = %<block.RTWdata.C2peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[2] = %<block.RTWdata.C3peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[3] = %<block.RTWdata.C4peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[4] = %<block.RTWdata.C5peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[5] = %<block.RTWdata.C6peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[6] = %<block.RTWdata.C7peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[7] = %<block.RTWdata.C8peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[8] = %<block.RTWdata.C9peakTime>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[9] = %<block.RTWdata.C10peakTime>;
+
+	OutputModule_Configuration(&outputModule10ch%<block.RTWdata.moduleSlot>);
+  %%
+%endfunction
+
+%% Function: Output ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function Outputs(block, system) Output
+	%%
+
+    /* send data to 6 channel output module */
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[0] = %<LibBlockInputSignal(0, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[1] = %<LibBlockInputSignal(1, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[2] = %<LibBlockInputSignal(2, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[3] = %<LibBlockInputSignal(3, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[4] = %<LibBlockInputSignal(4, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[5] = %<LibBlockInputSignal(5, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[6] = %<LibBlockInputSignal(6, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[7] = %<LibBlockInputSignal(7, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[8] = %<LibBlockInputSignal(8, "", "", 0)>;
+	outputModule10ch%<block.RTWdata.moduleSlot>.value[9] = %<LibBlockInputSignal(9, "", "", 0)>;
+
+	OutputModule_SendValues(&outputModule10ch%<block.RTWdata.moduleSlot>);
+  %%
+%endfunction
+
+
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function Terminate (block, system) Output
+  %%
+  /* If program receives the SIGTERM command, the output modules are forced to let the outputs float*/
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[0] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[1] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[2] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[3] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[4] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[5] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[6] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[7] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[8] = 0;
+	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[9] = 0;
+
+	OutputModule_Configuration(&outputModule10ch%<block.RTWdata.moduleSlot>);
+  %%
+%endfunction
+%%******************************* end of sfcn_gocontroll_output_module_10.tlc ***************************

@@ -1,0 +1,91 @@
+%%***************************************************************************************
+%% file         sfcn_can_receive.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2013 (c) by HAN Automotive     http://www.han.nl     All rights reserved
+%%  Copyright 2023 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% This file is part of the HANcoder Target Matlab/Simulink Blockset environment. For the
+%% licensing terms, please contact HAN Automotive.
+%%
+%% This software has been carefully tested, but is not guaranteed for any particular
+%% purpose. HAN Automotive does not offer any warranties and does not guarantee the
+%% accuracy, adequacy, or completeness of the software and is not responsible for any
+%% errors or omissions or the results obtained from use of the software.
+%%
+%%***************************************************************************************
+%implements  sfcn_can_receive "C"
+
+
+%% add required include files
+%<LibAddToCommonIncludes("CANdriver.h")>
+
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Purpose:
+%%      Code generation for configuration
+%%
+%function BlockInstanceSetup(block, system) void
+
+%endfunction
+
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization
+%%
+%function Start(block, system) Output
+	CANsocket(%<block.RTWdata.canBus>); /* Initialize CAN socket */
+%endfunction
+
+
+%% Function: Outputs ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function Outputs(block, system) Output
+	{ /* CAN receive code */
+	bool newFlag;
+	struct can_frame *msg;
+	static canid_t oldCANid = 0;
+
+	/* Check if ID has changed, if so adapt ID in the receive filter */
+	if(%<LibBlockInputSignal(0, "", "", 0)> != oldCANid){
+		updateCANreceiveFilter(oldCANid,%<block.RTWdata.canBus>,(canid_t)%<LibBlockInputSignal(0, "", "", 0)>);
+		updateCANreceiveBuffer(oldCANid,%<block.RTWdata.canBus>,(canid_t)%<LibBlockInputSignal(0, "", "", 0)>);
+		oldCANid = %<LibBlockInputSignal(0, "", "", 0)>;
+		}
+	/* Get can_frame from buffer */
+	getCANbuffer((canid_t)%<LibBlockInputSignal(0, "", "", 0)>,%<block.RTWdata.canBus>, &msg, &newFlag);
+	/* Write data to outputs only if there is new data */
+	if(newFlag){
+	%foreach counter = block.RTWdata.outputNumber
+      %if ISEQUAL(CAST("Number",block.RTWdata.byteOrder), 1) && CAST("Number",block.RTWdata.dataType) > 2
+        /* swap the data on request */
+      %endif
+      %<LibBlockOutputSignal(counter + 1, "", "", 0)> = msg->data[%<counter>];
+    %endforeach
+	}else{
+	%<LibBlockOutputSignal(1, "", "", 0)> = 0;
+	}
+	/* Update the new flag output */
+	%<LibBlockOutputSignal(0, "", "", 0)> = newFlag;
+	}
+%endfunction
+
+
+%%******************************* end of sfcn_can_receive.tlc ***************************
+
+
+
+
+
