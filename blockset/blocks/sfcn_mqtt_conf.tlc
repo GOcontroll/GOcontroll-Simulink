@@ -1,0 +1,72 @@
+%%***************************************************************************************
+%% file         sfcn_mqtt_conf.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2023 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%% endinternal
+%%
+%%***************************************************************************************
+
+%implements sfcn_mqtt_conf "C"
+
+%<LibAddToCommonIncludes("mqtt.h")>
+%<LibAddToCommonIncludes("json.h")>
+%<LibAddToCommonIncludes("GocontrollMqtt.h")>
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Purpose:
+%%      Code generation for configuration
+%%
+%function BlockTypeSetup(block, system) void
+
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization
+%%
+%function Start(block, system) Output
+	//struct reconnect_state_t reconnect_state; %% init this one in the first mqtt publish subscribe block.
+    extern struct json_tokener *tokener;
+    extern pthread_t mqtt_thread
+    tokener = json_tokener_new();
+    reconnect_state.hostname = "addr"; %%ip as a string
+    reconnect_state.port = "port"; %%port as a string
+    uint8_t sendbuf[8192];
+    uint8_t recvbuf[1024];
+    reconnect_state.sendbuf = sendbuf;
+    reconnect_state.sendbufsz = sizeof(sendbuf);
+    reconnect_state.recvbuf = recvbuf;
+    reconnect_state.recvbufsz = sizeof(recvbuf);
+
+    struct mqtt_client client;
+
+    mqtt_init_reconnect(&client, reconnect_client, &reconnect_state, publish_callback);
+
+    if(pthread_create())
+%endfunction

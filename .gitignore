@@ -1,0 +1,9 @@
+/GOcontroll_Linux_generated_code/*
+/blockset_*
+/slprj/*
+~*
+*.elf
+*.a2l
+*.slx.autosave
+*.zip
+.vscode/settings.json

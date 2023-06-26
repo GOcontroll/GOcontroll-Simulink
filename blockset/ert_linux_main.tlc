@@ -1,0 +1,221 @@
+
+%assign ::numSampleTimes = CompiledModel.NumSynchronousSampleTimes
+
+%% parse sample times and offsets
+%assign j = 0
+%foreach i = CompiledModel.NumSampleTimes
+    %if CompiledModel.SampleTime[i].Asynchronous == "no"
+        %assign ::sampleTime%<j> = CompiledModel.SampleTime[i].PeriodAndOffset[0]
+        %assign ::offset%<j> = CompiledModel.SampleTime[i].PeriodAndOffset[1]
+        %assign j = j+1
+    %endif
+%endforeach
+
+
+
+%% GENERATEDECLARATIONS
+%%  This function generates main function declarations.
+%%
+%function generateDeclarations() Output
+
+  /* Multirate - Multitasking case main file */
+  #define _DEFAULT_SOURCE		         /* For usleep() */
+%%#define _GNU_SOURCE					 /* For CPU_ZERO() & CPU_SET() */
+  #include <stdio.h>                     /* This ert_main.c example uses printf/fflush */
+  #include <pthread.h>                   /* Thread library header file */
+  #include <sched.h>                     /* OS scheduler header file */
+  #include <semaphore.h>                 /* Semaphores library header file */
+  #include <time.h>
+  #include <stdlib.h>
+  #include <stdbool.h>
+  #include <unistd.h>
+  #include <sys/mman.h>                  /* For mlockall() */
+  #include "%<modelName>.h"              /* Model's header file */
+  #include "rtwtypes.h"                  /* MathWorks types */
+  #include "XcpStack.h"                	/* XCP slave module */
+  #include "XcpTargetSpecific.h"
+  #include <string.h>									/* Needed to display errno			*/
+  #include <errno.h>									/* For errno						*/
+  #include <CANdriver.h>
+  #include "GocontrollProcessorboard.h"
+  #include "GocontrollProcessorboardSupply.h"	/*For adc thread functionality */
+  //#include "GocontrollMqtt"
+
+  #ifndef TRUE
+  #define TRUE true
+  #define FALSE false
+  #endif
+
+  /* includes for threading and timer */
+#include <signal.h>
+#include <sys/time.h>
+
+ /* declarations for threading and timer */
+static pthread_mutex_t mutex     = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  condition = PTHREAD_COND_INITIALIZER;
+
+pthread_t model_step_thread;
+pthread_t xcp_thread;
+pthread_t adc_thread;
+//extern pthread_t mqtt_thread;
+
+#define MODEL %<modelName>
+#define DEBUG 0
+%endfunction
+
+
+
+%% GENERATEMAIN
+%%  This function generates code of the main function function.
+%%
+%function generateMain() Output
+
+/* Model has %<numSampleTimes> */
+/* CompiledModel information: %<CompiledModel.SampleTime> */
+
+/****************************************************************************************
+** \brief     Model stop function, gets called to clean up the model
+** \return    void
+****************************************************************************************/
+
+void killModel(void) {
+	//shut down threads before terminating, otherwise there might be a race condition that enables the outputs just before the model exits
+	pthread_cancel(model_step_thread);
+	pthread_cancel(xcp_thread);
+	pthread_cancel(adc_thread);
+	//pthread_cancel(mqtt_thread);
+	pthread_join(model_step_thread, NULL);
+	pthread_join(xcp_thread, NULL);
+	pthread_join(adc_thread, NULL);
+	//pthread_join(mqtt_thread, NULL);
+	//run block terminate functions
+	%<modelName>_terminate();
+}
+
+/****************************************************************************************
+** \brief     Model step thread function, here the thread for model execution starts
+** \param     arg a pointer to a argument
+** \return    pointer to the return argument
+**
+****************************************************************************************/
+static void * model_step(void *arg)
+{
+	sigset_t *set = arg;
+	struct timespec timeout;
+	int result;
+	struct sched_param sp; /* Structure to hold priority for thread */
+	cpu_set_t cpuSet;
+
+	/* Initialize mutex and condition */
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&condition, NULL);
+
+	sp.sched_priority = 40;/* Set priority high (99 is top prio)*/
+	if(pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)){
+		fprintf(stderr,"WARNING, failed to set priority of model_step thread\n");
+	}
+
+	/* Next we set the CPU affinity to make sure the thread won't be switched to CPU's with other tasks */
+	CPU_ZERO(&cpuSet); /* Clear affinity first no CPU selected */
+	CPU_SET(2, &cpuSet); /* Set mask affinity to second cpu */
+	if(sched_setaffinity(0,sizeof(cpu_set_t), &cpuSet)){
+		fprintf(stderr,"WARNING, failed to set CPU affinity of model_step thread\n");
+	}
+
+	/* Setting a timeout so the program doesn't wait endlessly */
+	timeout.tv_sec = 5; /* Set sigtimedwait() timeout to 5 seconds */
+	timeout.tv_nsec = 0;
+
+	for(;;)
+	{
+		result = sigtimedwait(set, NULL, &timeout);
+		if(result==-1)
+			fprintf(stderr,"Error with sigwait:%s\n",strerror(errno));
+		//pthread_mutex_lock(&mutex);
+		serveCANconnection();
+		/* Run model code */
+		%<modelName>_step();
+		//pthread_mutex_unlock(&mutex);
+		XcpDataTransmission();
+		if(DEBUG == 1)
+			fprintf(stdout,"Some DEBUG text can be placed here");
+	}
+
+	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&condition);
+
+	return NULL;
+}
+
+/****************************************************************************************
+** \brief     Main function
+** \param     argc number of arguments
+** \param     argv pointer to the array of arguments
+** \return    int
+**
+****************************************************************************************/
+int_T main(int_T argc, const char_T *argv[])
+  {
+	sigset_t set;	/* Signal set to hold signal mask */
+	int result;		/* General variable to check function returns */
+	/* Declare thread for model step and XCP*/
+	model_step_thread = (pthread_t) NULL;
+	xcp_thread = (pthread_t) NULL;
+	adc_thread = (pthread_t) NULL;
+
+	/* Lock memory to prevent swapping pages */
+	if(mlockall(MCL_FUTURE|MCL_CURRENT))
+		fprintf(stderr,"WARNING: failed to lock memory%s\n",strerror(errno));
+
+	/* Register the terminate function so it can be called during a SIGTERM command */
+	GocontrollProcessorboard_ExitProgram(killModel);
+
+	/* Initialize the processorboard pheriphals */
+	GocontrollProcessorboard_Initialize();
+
+    /* Initialize model */
+    %<modelName>_initialize();
+
+	/* Make a struct for the timer setup */
+	struct itimerval timer_setup = { .it_interval = {0, %<CompiledModel.SampleTime[0].ClockTickStepSize * 1000000> },	/* Automatically updated from the base sample time of the model */
+	                                    .it_value = {0, 100000 } };		/* Start in 1 seconds(&0us) to give time for other functions to finish */
+
+	/* Start timer */
+	setitimer(ITIMER_REAL, &timer_setup, NULL); /* set kind of timer, set new_value, no need to store old value */
+
+	/* Block signal SIGALRM used to time the modelStep() in all threads created by main thread */
+	sigemptyset(&set);
+	sigaddset(&set, SIGALRM);
+	result = pthread_sigmask(SIG_BLOCK, &set, NULL);
+	if(result != 0)
+		fprintf(stderr, "WARNING, unable to block signal SIG_ALRM%s\n",strerror(errno));
+
+	/* Create model step thread */
+	pthread_create(&model_step_thread, NULL, &model_step, (void *) &set);
+
+	/* Create xcp thread */
+	pthread_create(&xcp_thread, NULL, &XcpInitialize, NULL);
+
+	/* Create a dedicated thread to read the ADC values from the voltage supply ADC convertor */
+	pthread_create(&adc_thread, NULL, GocontrollProcessorboardSupply_ReadAdcThread, NULL);
+
+	/* suspend current thread until model_step_thread returns */
+	pthread_join(model_step_thread, NULL);
+
+	/* suspend current thread until xcp_thread returns */
+	pthread_join(xcp_thread, NULL);
+
+	/* suspend current thread until adc_thread returns */
+	pthread_join(adc_thread, NULL);
+
+	/* Terminate function for the model */
+	/* This function is called by the SIGTERM detection */
+    %<modelName>_terminate();
+
+	/* Get outta here */
+	return 0;
+  }
+
+
+
+%endfunction
