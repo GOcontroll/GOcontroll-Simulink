@@ -30,8 +30,12 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v2.26.2';
+version = 'GOcontroll v3.0.0';
 
+%% V3.0.0 Update 26-6-2023:
+%% First open source release
+%% License headers fixed for open source validity
+%%
 %% V2.26.2 Update 25-6-2023:
 %% Small fix on 4-20 mA block to enable both 16V supplies
 %%
