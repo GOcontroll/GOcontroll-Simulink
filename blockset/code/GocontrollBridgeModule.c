@@ -58,7 +58,7 @@ void BridgeModule_Configuration(_bridgeModule *bridgeModule)
 	*(uint16_t*) &bridgeModuleDataTx[12+(channel*2)]	= 4000; //bridgeModule->maxCurrent[channel];
 	}
 
-	GocontrollProcessorboard_SendSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2d,0x01,0x00,0x00, bridgeModule->moduleSlot, &bridgeModuleDataTx[0],0);
+	GocontrollProcessorboard_SendSpi(1, BRIDGEMODULEMESSAGELENGTH, 1,21,2,1, bridgeModule->moduleSlot, &bridgeModuleDataTx[0],0);
 }
 
 /****************************************************************************************/
@@ -71,7 +71,7 @@ void BridgeModule_SendValues(_bridgeModule *bridgeModule)
 	*(uint32_t*) &bridgeModuleDataTx[(channel*6)+8]		= bridgeModule->syncCounter[channel];
 	}
 
-	if(GocontrollProcessorboard_SendReceiveSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2e,0x01,0x00,0x00, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], &bridgeModuleDataRx[0]))
+	if(GocontrollProcessorboard_SendReceiveSpi(1, BRIDGEMODULEMESSAGELENGTH, 1,21,3,1, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], &bridgeModuleDataRx[0]))
 	{
 		if( *(uint16_t*) &bridgeModuleDataRx[2] == 303)
 		{

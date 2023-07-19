@@ -61,7 +61,7 @@ void OutputModule_Configuration(_outputModule *outputModule)
 		}
 
 
-		GocontrollProcessorboard_SendSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 101,0,0,0, outputModule->moduleSlot, &outputModuleDataTx[0],0);
+		GocontrollProcessorboard_SendSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 1,22,2,1, outputModule->moduleSlot, &outputModuleDataTx[0],0);
 
 		for(uint8_t channel = 0; channel <6; channel++)
 		{
@@ -70,7 +70,7 @@ void OutputModule_Configuration(_outputModule *outputModule)
 		}
 
 		/* The second initialization message is delayed by 500 us because the module needs to handle the first message */
-		GocontrollProcessorboard_SendSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 111,0,0,0, outputModule->moduleSlot, &outputModuleDataTx[0],500);
+		GocontrollProcessorboard_SendSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 1,22,2,2, outputModule->moduleSlot, &outputModuleDataTx[0],500);
 	}
 	else if(outputModule->moduleType == OUTPUTMODULE10CHANNEL)
 	{
@@ -111,7 +111,7 @@ void OutputModule_SendValues(_outputModule *outputModule)
 		*(uint32_t*) &outputModuleDataTx[(channel*6)+8]		= outputModule->syncCounter[channel];
 		}
 
-		if(GocontrollProcessorboard_SendReceiveSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 102,0,0,0, outputModule->moduleSlot, &outputModuleDataTx[0], &outputModuleDataRx[0]))
+		if(GocontrollProcessorboard_SendReceiveSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 1,22,3,1, outputModule->moduleSlot, &outputModuleDataTx[0], &outputModuleDataRx[0]))
 		{
 			if( *(uint32_t*) &outputModuleDataRx[2] == 103)
 			{

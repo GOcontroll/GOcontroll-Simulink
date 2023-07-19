@@ -72,7 +72,7 @@ void InputModule_Configuration(_inputModule *inputModule)
 			inputModuleDataTx[43] = inputModule->sensorSupply2;
 			inputModuleDataTx[44] = inputModule->sensorSupply3;
 
-			GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 1,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+			GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 1,11,2,1, inputModule->moduleSlot, &inputModuleDataTx[0],0);
 		}
 		else if(inputModule->moduleType == INPUTMODULE10CHANNEL)
 		{
@@ -97,7 +97,7 @@ void InputModule_ReceiveValues(_inputModule *inputModule)
 {
 	if(inputModule->moduleType == INPUTMODULE6CHANNEL)
 	{
-		if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE6CHMESSAGELENGTH, 2,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]))
+		if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE6CHMESSAGELENGTH, 2,11,3,1, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]))
 		{
 			for (uint8_t pointer = 0; pointer <6; pointer++)
 			{
@@ -138,7 +138,7 @@ void InputModule_ResetPulsCounter(_inputModule *inputModule, uint8_t channel, in
 
 	if(inputModule->moduleType == INPUTMODULE6CHANNEL)
 	{
-		GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 3,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+		GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 1,11,3,2, inputModule->moduleSlot, &inputModuleDataTx[0],0);
 	}
 	else if(inputModule->moduleType == INPUTMODULE10CHANNEL)
 	{
