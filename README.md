@@ -1,6 +1,12 @@
 # GOcontroll-Simulink
 A base project containing the GOcontroll blockset to start developing a Simulink model
 
+## Important notice for users upgrading to this blockset with an older controller
+
+For licensing reasons one library required for building the model must be dynamically linked in, this means that ./blockset/lib/IIO/libiio.so.0 must be uploaded to the target controller to /usr/lib/ \
+If your controller is running release 0.5.0 or higher you are not affected and can ignore this. \
+To check what release your controller is running see /etc/controller_update/current-release.txt or run the identify command and look for the repo release field (all on the controller).
+
 ## GOcontroll Moduline IV toolchain setup
 
 To compile the Linux bases blockset for GOcontroll Moduline IV, some initial steps needs to be made:

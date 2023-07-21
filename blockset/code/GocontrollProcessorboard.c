@@ -874,6 +874,14 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
+	else if(strcmp (tempValue, "Moduline Screen V1.04")==0)
+	{
+	printf(tempValue);
+	hardwareConfig.moduleNumber = 2;
+	hardwareConfig.ledControl = NOT_INSTALLED;
+	hardwareConfig.adcControl = ADC_MCP3004;
+	}
+
 printf("\n");
 }
 
