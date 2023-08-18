@@ -79,8 +79,8 @@ example:
 OS = computer();
 if OS=="GLNXA64" % for Linux hosts
     addpath(sprintf('%s', pwd));        %add the blockset_ rootfolder
-    addpath(sprintf('%s//blocks',pwd)); %add the matlab files for the blockset
-    addpath(sprintf('%s//code',pwd));   %add the source code folder
+    addpath(sprintf('%s/blocks',pwd)); %add the matlab files for the blockset
+    addpath(sprintf('%s/code',pwd));   %add the source code folder
 else % for Windows hosts
     addpath(sprintf('%s', pwd));
     addpath(sprintf('%s\\blocks',pwd));
@@ -97,6 +97,59 @@ Browser(BrowserIndex).Library = 'NameOfTheLibraryFile';  	% you could have block
 Browser(BrowserIndex).Name    = 'DisplayNameOfTheLibrary';	% any name you wish
 Browser(BrowserIndex).IsFlat  = 0;
 BrowserIndex = BrowserIndex + 1; 				% increment the BrowserIndex with the amount of libraries that you have added so any other blocksets can be properly initialized aswell
+```
+
+### the makeHook.m script
+
+This script lets you do something after the .tlc files have been processed, but before make. For example a header file with some model dependent parameters can be constructed to compile your blockset. For example you want to set some buffer size in your code in simulink.
+This script will get run in the "generated_code" folder of your project.
+example:
+```
+fprintf('\n### Adding data to UDP_config.h...\n');
+%% get the modelname from the folder name
+OS = computer();
+if OS=="GLNXA64" % if the host is Linux
+    splitPath = split(pwd, "/");
+else % if the host is Windows
+    splitPath = split(pwd, "\\");
+end
+dirName = splitPath(length(splitPath));
+dirNameSplit = split(dirName, "_generated_code");
+modelName = char(dirNameSplit{1});
+
+%% get the necessary information from the model
+nrOfUDPReceiveBlocks = searchUDPreceive(modelName);
+UDPBuffSize = getUDPBuffSize(modelName);
+%% Open file in write mode 'w'
+file = fopen('UDP_config.h', 'w');
+if file == -1
+     error('### failed to open UDP_config.h');
+end
+fprintf(file, '#ifndef __UDP_CONFIG_H__ \n#define __UDP_CONFIG_H__\n');
+fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBlocks);
+fprintf(file, '#define UDPBUFFSIZE                     %s\n', UDPBuffSize);
+fprintf(file, '#endif');
+fclose(file);
+    
+%% Search for UPDReceive blocks %%
+%% This function searches for UDP receive blocks and adds a define to the
+%% UDP_config.h file with the number of blocks found %
+
+function nrOfUDPReceiveBlocks = searchUDPreceive(modelName)
+    % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
+    blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'UDP receive');
+    % only perform check if at least 1 or more HANcoder Target blocks were used
+    nrOfUDPReceiveBlocks = length(blockArray);
+end
+
+function UDPBuffSize = getUDPBuffSize(modelName)
+    config = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'Configure UDP socket');
+    if length(config)
+        UDPBuffSize = get_param(config{1}, "buffer_length");
+    else
+        UDPBuffSize = "0";
+    end
+end
 ```
 
 Please let us know when interface blocks are not working properly. You can contact us at support@gocontroll.com \

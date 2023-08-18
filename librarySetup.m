@@ -41,9 +41,9 @@ clear RESTOREDEFAULTPATH_EXECUTED
 % add Linux Target blockset related directories to the MATLAB path
 OS = computer();
 if OS=="GLNXA64" % if the host is Linux
-    addpath(sprintf('%s//blockset', pwd));
-    addpath(sprintf('%s//blockset//blocks',pwd));
-    addpath(sprintf('%s//blockset//code',pwd)); 
+    addpath(sprintf('%s/blockset', pwd));
+    addpath(sprintf('%s/blockset/blocks',pwd));
+    addpath(sprintf('%s/blockset/code',pwd)); 
     path1 = getenv('LD_LIBRARY_PATH');
     path = ['/lib/x86_64-linux-gnu' ':' path1];
     setenv('LD_LIBRARY_PATH',path);
@@ -62,11 +62,15 @@ folders = {d.name};
 for i = 1:length(folders)
     name=folders(1,i);
     if OS=="GLNXA64"
-        setupScript = sprintf("%s//%s//librarySetup",pwd,char(name));
+        setupScript = sprintf("%s/%s/librarySetup.m",pwd,char(name));
     else
-        setupScript = sprintf("%s\\%s\\librarySetup",pwd,char(name));
+        setupScript = sprintf("%s\\%s\\librarySetup.m",pwd,char(name));
     end
-    run(setupScript);
+    if isfile(setupScript)
+    	run(setupScript);
+    else
+    	warndlg(sprintf('No library setup script found for %s', char(name)),'Warning');
+    end
 end
 
 clear setupScript
@@ -76,12 +80,6 @@ clear folders
 clear name
 clear path
 clear path1
-
-
-%% load .mat file for this model
-%load(strcat(bdroot,'.mat'));
-
-%checkGnuArmToolchain('suppressOutput');
 
 warning off Simulink:SL_LoadMdlParameterizedLink;
 warning off Simulink:Commands:LoadMdlParameterizedLink;

@@ -158,20 +158,40 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     if file == -1
          error('### failed to open SYS_config.h');
     end
-    if numel(stationID) > 255
-        msg = sprintf('Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n');
-             % Display error message in the matlab command window.
-             fprintf(msg);
-             % Abort and display pop-up window with error message.
-             error(msg);
-    end
-    fprintf(file, '#if defined ( __SYS_CONFIG_H__ )\n#else\n#define __SYS_CONFIG_H__\n');
-    fprintf(file, '#define kXcpStationIdString            "%s"\n', stationID);
-    fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
-    fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
+	if numel(stationID) > 255
+		msg = sprintf('Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n');
+			% Display error message in the matlab command window.
+			fprintf(msg);
+			% Abort and display pop-up window with error message.
+			error(msg);
+	end
+	fprintf(file, '#ifndef __SYS_CONFIG_H__ \n#define __SYS_CONFIG_H__\n');
+	fprintf(file, '#define kXcpStationIdString            "%s"\n', stationID);
+	fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
+	fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
 	fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
-    fprintf(file, '#endif');
-    fclose(file);
+	fprintf(file, '#endif');
+	fclose(file);
+
+    d = dir("../blockset_*");
+    folders = {d.name};
+    for i = 1:length(folders)
+        name=folders(1,i);
+        if OS=="GLNXA64"
+            make_hook_script_orig = sprintf("%s/../%s/makeHook.m",pwd,char(name));
+            make_hook_script_dest = sprintf("%s/makeHook.m", pwd);
+        else
+            make_hook_script_orig = sprintf("%s\\..\\%s\\makeHook.m",pwd,char(name));
+            make_hook_script_dest = sprintf("%s\\makeHook.m", pwd);
+        end
+        if isfile(make_hook_script_orig)
+		copyfile(make_hook_script_orig, make_hook_script_dest);
+		run(sprintf(make_hook_script_dest));
+		delete(make_hook_script_dest);
+		else
+			fprintf('No makeHook script found for %s\n',char(name));
+		end
+    end
 
    case 'before_make'
     % Called after code generation is complete, and just prior to kicking
@@ -190,7 +210,7 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     else
         MAPfile = sprintf('..\\%s.map',modelName);
     end
-disp(ASAP2file);
+	disp(ASAP2file);
 	disp(MAPfile);
 	% Get XCP port
     XCPport = get_param(modelName,'tlcXcpTcpPort');

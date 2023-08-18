@@ -190,6 +190,7 @@ void 		GocontrollProcessorboard_ExitProgram(void* Terminate);
 ** \param 	  _iv_ent initialisation vector for the encryption
 ** \param 	  _file_in pointer to a string describing the path to the encrypted license file
 ** \param 	  _file_check pointer to a string describing te path to the file containing the decrypted license
+** \param     keyLen the length of the key
 ** \return    none or exits if it fails
 ****************************************************************************************/
 void 		GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char *_file_in, char *_file_check, unsigned long keyLen);

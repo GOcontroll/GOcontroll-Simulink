@@ -79,6 +79,7 @@ pthread_t adc_thread;
 ****************************************************************************************/
 
 void killModel(void) {
+	printf("Killing the model\n");
 	//shut down threads before terminating, otherwise there might be a race condition that enables the outputs just before the model exits
 	pthread_cancel(model_step_thread);
 	pthread_cancel(xcp_thread);
@@ -210,7 +211,7 @@ int_T main(int_T argc, const char_T *argv[])
 
 	/* Terminate function for the model */
 	/* This function is called by the SIGTERM detection */
-    %<modelName>_terminate();
+    killModel();
 
 	/* Get outta here */
 	return 0;

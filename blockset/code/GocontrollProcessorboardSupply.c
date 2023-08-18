@@ -112,22 +112,24 @@ int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t* value)
 int GocontrollProcessorboardSupply_ReadAdc(uint8_t supply, uint16_t* value) {
 	if (hardwareConfig.adcControl==ADC_MCP3004) {
 		char buf[100];
+		ssize_t res;
 		size_t bufSize = sizeof buf;
 		switch (supply) {
 			//read raw (voltage) attributes
 			case 1:
-			iio_channel_attr_read(adcChannels[2], "raw", buf, bufSize);
+			res = iio_channel_attr_read(adcChannels[2], "raw", buf, bufSize);
 			break;
 			case 2:
-			iio_channel_attr_read(adcChannels[3], "raw", buf, bufSize);
+			res = iio_channel_attr_read(adcChannels[3], "raw", buf, bufSize);
 			break;
 			case 3:
-			iio_channel_attr_read(adcChannels[0], "raw", buf, bufSize);
+			res = iio_channel_attr_read(adcChannels[0], "raw", buf, bufSize);
 			break;
 			case 4:
-			iio_channel_attr_read(adcChannels[1], "raw", buf, bufSize);
+			res = iio_channel_attr_read(adcChannels[1], "raw", buf, bufSize);
 			break;
 		}
+		// printf("Read adc result: %ld\n", res);
 		//convert to milivolts and store it
 		*value = (uint16_t)((float)(strtof(buf, NULL) * 25.54)); //25.54 = ((3.35/1023)/1.5)*11700
 		return 0;
