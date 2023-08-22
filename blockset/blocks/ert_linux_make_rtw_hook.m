@@ -142,7 +142,9 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     % Called just after to invoking TLC Compiler (actual code generation.)
     % Valid arguments at this stage are hookMethod, modelName, and
     % buildArgs
-		% Get number of CAN receive blocks
+	%% get the necessary information from the model
+    nrOfUDPReceiveBlocks = searchUDPreceive(modelName);
+    UDPBuffSize = getUDPBuffSize(modelName);
 	nrOfCANreceiveBlocks = searchCANreceive(modelName);
 		% Add software version to the SYS_config.h file.
     fprintf('\n### Adding data to SYS_config.h...\n');
@@ -170,6 +172,8 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 	fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
 	fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
 	fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
+    fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBlocks);
+    fprintf(file, '#define UDPBUFFSIZE                    %s\n', UDPBuffSize);
 	fprintf(file, '#endif');
 	fclose(file);
 
@@ -236,7 +240,7 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 
     ert_linux_target_upload(modelName);
   end
-
+end
 %%******************************* end of ert_linux_make_rtw_hook.m ****************************
 
 
@@ -244,7 +248,38 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 % This function searches for CAN receive blocks and adds a define to the
 % SYS_config.h file with the number of blocks found %
 function nrOfCANreceiveBlocks = searchCANreceive(modelName)
-% build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
-blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'CAN receive');
+    % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
+    blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'CAN receive');
     % only perform check if at least 1 or more HANcoder Target blocks were used
     nrOfCANreceiveBlocks = length(blockArray);
+end
+
+%% Search for UPDReceive blocks %%
+%% This function searches for UDP receive blocks and adds a define to the
+%% SYS_config.h file with the hightest id + 1 %
+
+function nrOfUDPReceiveBlocks = searchUDPreceive(modelName)
+    % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
+    blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'UDP receive');
+    % only perform check if at least 1 or more HANcoder Target blocks were used
+    highest_id = 0;
+    for i = 1:length(blockArray)
+        if str2num(get_param(blockArray{i}, "id")) > highest_id
+            highest_id = str2num(get_param(blockArray{i}, "id"));
+        end
+    end
+    nrOfUDPReceiveBlocks = highest_id+1;
+end
+
+%% Search for UPDConfig blocks %%
+%% This function searches for UDP config blocks and adds a define to the
+%% SYS_config.h file with buffer size %
+
+function UDPBuffSize = getUDPBuffSize(modelName)
+    config = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'Configure UDP socket');
+    if length(config)
+        UDPBuffSize = get_param(config{1}, "buffer_length");
+    else
+        UDPBuffSize = "0";
+    end
+end

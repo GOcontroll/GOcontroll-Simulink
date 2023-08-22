@@ -143,13 +143,21 @@ BIN_PATH     = $(RELATIVE_PATH_TO_ANCHOR)
 ifeq ($(HOST), GLNXA64)
 SRC_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code
 XCP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/XCP
+MQTT_PATH 	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/MQTT
+UDP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/UDP
 OAES_PATH    = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/OAES
 IIO_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/IIO
+JSON_C_PATH  = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/JSON-C
+
 else
 SRC_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\code
 XCP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\code\XCP
+MQTT_PATH 	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\code\MQTT
+UDP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\code\UDP
 OAES_PATH    = $(RELATIVE_PATH_TO_ANCHOR)\blockset\lib\OAES
 IIO_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\lib\IIO
+JSON_C_PATH  = $(RELATIVE_PATH_TO_ANCHOR)\blockset\lib\JSON-C
+
 endif
 #|---------------------------------------------------------------------------------------|
 #| Compiler binaries                                                                     |
@@ -192,7 +200,10 @@ HANcoder_INCLUDES = \
     -I"$(OAES_PATH)" \
 	-I"$(XCP_PATH)" \
 	-I"$(SRC_PATH)" \
-	-I"$(IIO_PATH)"
+	-I"$(IIO_PATH)" \
+	-I"$(JSON_C_PATH)" \
+	-I"$(MQTT_PATH)" \
+	-I"$(UDP_PATH)"
 
 ifeq ($(HOST), GLNXA64)
 MATLAB_INCLUDES = \
@@ -275,12 +286,15 @@ OD_FLAGS         = -D -t -z
 # HANcoder target specific libraries
 # LIBS += $(LIB_PATH)/HANcoder_LINUX_RTL.a
 
+# GOcontroll added libraries
 ifeq ($(HOST), GLNXA64)
 LIBS += $(OAES_PATH)/liboaes_lib.a
 LIBS += $(IIO_PATH)/libiio.so.0
+LIBS += $(JSON_C_PATH)/libjson-c.a
 else
 LIBS += $(OAES_PATH)\liboaes_lib.a
 LIBS += $(IIO_PATH)\libiio.so.0
+LIBS += $(JSON_C_PATH)\libjson-c.a
 endif
 # Other libraries (specified from Simulink)
 |>START_PRECOMP_LIBRARIES<|
@@ -300,7 +314,9 @@ HANcoder_LIB_SRCS =
 ADD_SRCS = \
 	GocontrollLin.c XcpStack.c XcpTargetSpecific.c CANdriver.c ert_main.c GocontrollProcessorboard.c \
 	GocontrollInputModule.c GocontrollOutputModule.c GocontrollBridgeModule.c MemoryEmulation.c \
-	MemoryDiagnostic.c GocontrollProcessorboardSupply.c Gocontroll420maInputModule.c
+	MemoryDiagnostic.c GocontrollProcessorboardSupply.c Gocontroll420maInputModule.c UDP.c \
+
+	# GocontrollMqtt.c mqtt_pal.c mqtt.c
 
 ifeq ($(HOST), GLNXA64)
 -include $(BIN_PATH)/blockset_*/Makefile
@@ -355,6 +371,14 @@ $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(
 
 %.obj : $(XCP_PATH)/%.c
 	echo ### Compiling xcp path $(notdir $<) -o $(notdir $@)
+	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
+
+%.obj : $(MQTT_PATH)/%.c
+	echo ### Compiling mqtt path $(notdir $<) -o $(notdir $@)
+	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
+
+%.obj : $(UDP_PATH)/%.c
+	echo ### Compiling UDP path $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 %.obj : $(LIB_PATH)/%.c

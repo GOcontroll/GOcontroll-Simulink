@@ -30,8 +30,14 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.0.0';
+version = 'GOcontroll v3.1.0';
 
+%% V3.1.0 Update 22-8-2023:
+%% Added UDP to the main library under GOcontroll_Moduline_target/Network/UDP/
+%% Added The possibility for new block sets to include a hook into the make process to generate a just pre compile time header file for example
+%% Improved librarySetup.m and slblocks.m scripts that warn users with their own blockset if there is initialization files missing
+%% Work started on MQTT implementation for simulink, however this is not available for use yet
+%%
 %% V3.0.0 Update 26-6-2023:
 %% First open source release
 %% License headers fixed for open source validity

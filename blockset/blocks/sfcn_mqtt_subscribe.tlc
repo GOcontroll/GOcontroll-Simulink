@@ -1,5 +1,5 @@
 %%***************************************************************************************
-%% file         sfcn_mqtt_conf.tlc
+%% file         sfcn_mqtt_subscribe.tlc
 %% brief        Target Language Compiler file that contains the code generation specifics
 %%              for an S-function with the same name.
 %%
@@ -48,27 +48,31 @@
 %% Function: Start ==========================================================
 %%
 %% Purpose:
-%%      Code generation for initialization
+%%      initialize the reconnect_state struct
 %%
 %function Start(block, system) Output
-	//struct reconnect_state_t reconnect_state; %% init this one in the first mqtt publish subscribe block.
-    extern struct json_tokener *tokener;
-    extern pthread_t mqtt_thread
-    tokener = json_tokener_new();
-    reconnect_state.hostname = "addr"; %%ip as a string
-    reconnect_state.port = "port"; %%port as a string
-    uint8_t sendbuf[8192];
-    uint8_t recvbuf[8192];
-    reconnect_state.sendbuf = sendbuf;
-    reconnect_state.sendbufsz = sizeof(sendbuf);
-    reconnect_state.recvbuf = recvbuf;
-    reconnect_state.recvbufsz = sizeof(recvbuf);
+	#ifndef RECONNECT_STATE_INIT
+    #define RECONNECT_STATE_INIT
+    struct reconnect_state_t reconnect_state;
+    uint8_t subnum = 0;
+    #endif
 
-    struct mqtt_client client;
+    reconnect_state.client[subnum]->topic = "%<block.RTWdata.topic";
+    reconnect_state.client[subnum]->qos = %<block.RTWdata.qos>;
+    reconnect_state.client[subnum]->newMessage = 0;
+    reconnect_state.client[subnum]->message = NULL;
+    subnum ++;
 
-    mqtt_init_reconnect(&client, reconnect_client, &reconnect_state, publish_callback);
+%endfunction
 
-    if(pthread_create(&mqtt_thread, NULL, mqtt_thread_worker, &client)) {
-        fprintf("stderr, Failed to start mqtt thread.\n");
-    }
+%% Function: Output ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function Outputs(block, system) Output
+    struct json_object *message = mqtt_get_recv_buffer("%<block.RTWdata.topic", NULL);
+	%foreach counter = block.RTWdata.output
+    %<LibBlockOutputSignal(counter + 1, "", "", 0)> = json_object_get_`get the datatype from the block`(json_object_object_get(message, "get the key from the matlab block"));
+    %endforeach
 %endfunction

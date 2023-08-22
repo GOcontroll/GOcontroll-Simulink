@@ -78,6 +78,8 @@ void reconnect_client(struct mqtt_client* client, void **reconnect_state_vptr){
     for (uint8_t i = 0; i < reconnect_state->numclients; i++){
         mqtt_subscribe(client, reconnect_state->client[i]->topic, reconnect_state->client[i]->qos);
     }
+
+    mqtt_publish_helper(client, NULL, NULL, 0);
 }
 
 
@@ -87,7 +89,7 @@ void publish_callback(void** unused, struct mqtt_response_publish *published){
 
 /****************************************************************************************/
 
-void mqtt_put_buffer(struct mqtt_response_publish *published, void** reconnect_state_vptr) {
+void mqtt_put_recv_buffer(struct mqtt_response_publish *published, void** reconnect_state_vptr) {
     static struct reconnect_state_t *reconnect_state = NULL;
     struct json_object *message;
 
@@ -102,6 +104,7 @@ void mqtt_put_buffer(struct mqtt_response_publish *published, void** reconnect_s
     for (uint8_t i = 0; i < reconnect_state->numclients; i++){
         if (memcmp(published->topic_name, reconnect_state->client[i]->topic, published->topic_name_size) == 0){
             reconnect_state->client[i]->message = message;
+            reconnect_state->client[i]->newMessage = 1;
             return;
         }
     }
@@ -109,7 +112,7 @@ void mqtt_put_buffer(struct mqtt_response_publish *published, void** reconnect_s
 
 /****************************************************************************************/
 
-struct json_object *mqtt_get_buffer(char* topic, void** reconnect_state_vptr) {
+struct json_object *mqtt_get_recv_buffer(char* topic, void** reconnect_state_vptr) {
     static struct reconnect_state_t *reconnect_state = NULL;
     struct json_object *message;
 
@@ -120,11 +123,30 @@ struct json_object *mqtt_get_buffer(char* topic, void** reconnect_state_vptr) {
     }
 
     for (uint8_t i = 0; i < reconnect_state->numclients; i++){
-        if (strcmp(topic, reconnect_state->client[i]->topic) == 0){
-            return reconnect_state->client[i]->message;
+        if (reconnect_state->client[i]->newMessage =! 0){
+            if (strcmp(topic, reconnect_state->client[i]->topic) == 0){
+                reconnect_state->client[i]->newMessage = 0;
+                return reconnect_state->client[i]->message;
+            }
         }
     }
     return NULL;
+}
+
+/****************************************************************************************/
+
+void mqtt_publish_helper(struct mqtt_client *client, char *topic, struct json_object *message, uint8_t publish_flags) {
+    static struct mqtt_client *retained_client = NULL;
+
+    /*store the client for using during the model step*/
+    if (client != NULL) {
+        retained_client = client;
+        return;
+    }
+
+    const char * str_message = json_object_to_json_string_ext(message, JSON_C_TO_STRING_PLAIN);
+
+    mqtt_publish(retained_client, topic, str_message, strlen(str_message),publish_flags);
 }
 
 /****************************************************************************************/

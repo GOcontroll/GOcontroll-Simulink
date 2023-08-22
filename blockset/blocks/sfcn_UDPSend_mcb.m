@@ -1,5 +1,5 @@
 %%***************************************************************************************
-%% file         sfcn_mqtt_conf.tlc
+%% file         sfcn_UDPSend_mcb.m
 %% brief        Target Language Compiler file that contains the code generation specifics
 %%              for an S-function with the same name.
 %%
@@ -29,46 +29,12 @@
 %% endinternal
 %%
 %%***************************************************************************************
+function [] = sfcn_UDPSend_mcb(port, ip)
 
-%implements sfcn_mqtt_conf "C"
+modelRTWFields = struct('port', num2str(port), 'ip', ip);
 
-%<LibAddToCommonIncludes("mqtt.h")>
-%<LibAddToCommonIncludes("json.h")>
-%<LibAddToCommonIncludes("GocontrollMqtt.h")>
+% Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
+HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');
+set_param(HANcoder_TARGET_DataBlock{1}, 'RTWdata', modelRTWFields);
 
-%% Function: BlockTypeSetup ==========================================================
-%%
-%% Purpose:
-%%      Code generation for configuration
-%%
-%function BlockTypeSetup(block, system) void
-
-%endfunction
-
-%% Function: Start ==========================================================
-%%
-%% Purpose:
-%%      Code generation for initialization
-%%
-%function Start(block, system) Output
-	//struct reconnect_state_t reconnect_state; %% init this one in the first mqtt publish subscribe block.
-    extern struct json_tokener *tokener;
-    extern pthread_t mqtt_thread
-    tokener = json_tokener_new();
-    reconnect_state.hostname = "addr"; %%ip as a string
-    reconnect_state.port = "port"; %%port as a string
-    uint8_t sendbuf[8192];
-    uint8_t recvbuf[8192];
-    reconnect_state.sendbuf = sendbuf;
-    reconnect_state.sendbufsz = sizeof(sendbuf);
-    reconnect_state.recvbuf = recvbuf;
-    reconnect_state.recvbufsz = sizeof(recvbuf);
-
-    struct mqtt_client client;
-
-    mqtt_init_reconnect(&client, reconnect_client, &reconnect_state, publish_callback);
-
-    if(pthread_create(&mqtt_thread, NULL, mqtt_thread_worker, &client)) {
-        fprintf("stderr, Failed to start mqtt thread.\n");
-    }
-%endfunction
+%%******************************* end of sfcn_UDPSend_mcb.m *************************

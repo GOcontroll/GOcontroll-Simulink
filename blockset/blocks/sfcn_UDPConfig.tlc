@@ -1,5 +1,5 @@
 %%***************************************************************************************
-%% file         sfcn_mqtt_conf.tlc
+%% file         sfcn_UDPConfig.tlc
 %% brief        Target Language Compiler file that contains the code generation specifics
 %%              for an S-function with the same name.
 %%
@@ -30,11 +30,9 @@
 %%
 %%***************************************************************************************
 
-%implements sfcn_mqtt_conf "C"
+%implements sfcn_UDPConfig "C"
 
-%<LibAddToCommonIncludes("mqtt.h")>
-%<LibAddToCommonIncludes("json.h")>
-%<LibAddToCommonIncludes("GocontrollMqtt.h")>
+%<LibAddToCommonIncludes("UDP.h")>
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -48,27 +46,30 @@
 %% Function: Start ==========================================================
 %%
 %% Purpose:
-%%      Code generation for initialization
+%%      initialize the reconnect_state struct
 %%
 %function Start(block, system) Output
-	//struct reconnect_state_t reconnect_state; %% init this one in the first mqtt publish subscribe block.
-    extern struct json_tokener *tokener;
-    extern pthread_t mqtt_thread
-    tokener = json_tokener_new();
-    reconnect_state.hostname = "addr"; %%ip as a string
-    reconnect_state.port = "port"; %%port as a string
-    uint8_t sendbuf[8192];
-    uint8_t recvbuf[8192];
-    reconnect_state.sendbuf = sendbuf;
-    reconnect_state.sendbufsz = sizeof(sendbuf);
-    reconnect_state.recvbuf = recvbuf;
-    reconnect_state.recvbufsz = sizeof(recvbuf);
+	initUdpBuffers();
+  UdpInitialize(%<block.RTWdata.port>, "%<block.RTWdata.ip>", %<block.RTWdata.broadcast>);
+%endfunction
 
-    struct mqtt_client client;
+%% Function: Output ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function Outputs(block, system) Output
+  UdpReceive();
+%endfunction
 
-    mqtt_init_reconnect(&client, reconnect_client, &reconnect_state, publish_callback);
-
-    if(pthread_create(&mqtt_thread, NULL, mqtt_thread_worker, &client)) {
-        fprintf("stderr, Failed to start mqtt thread.\n");
-    }
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function Terminate (block, system) Output
+  %%
+  /* Close UDP socket and free buffers */
+  UdpTerminate();
+  %%
 %endfunction

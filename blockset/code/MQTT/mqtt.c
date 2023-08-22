@@ -555,7 +555,7 @@ ssize_t __mqtt_send(struct mqtt_client *client)
 
         /* we're sending the message */
         {
-          ssize_t tmp = mqtt_pal_sendall(client->socketfd, msg->start + client->send_offset, msg->size - client->send_offset, 0);
+          ssize_t tmp = mqtt_pal_sendall(client->socketfd, msg->start + client->send_offset, msg->size - client->send_offset, MSG_DONTWAIT); //add the dontwait flag to prevent blocking the main model thread
           if (tmp < 0) {
             client->error = (enum MQTTErrors)tmp;
             MQTT_PAL_MUTEX_UNLOCK(&client->mutex);
