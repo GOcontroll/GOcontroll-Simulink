@@ -467,14 +467,14 @@ int8_t GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t
 
 		/* Check if path is opened properly */
 		if (ledControl == -1) {
-			fprintf(stderr, "Error GPOI write led %d!\n",led);
+			fprintf(stderr, "Error GPIO write led %d!\n",led);
 			close(ledControl);
 			return(-1);
 		}
 
 		/* Write the actual value to the LED LL file system */
 		if (1 != write(ledControl, &s_values_str[LOW == value ? 0 : 1], 1)) {
-			fprintf(stderr, "Error GPOI write led %d!\n", led);
+			fprintf(stderr, "Error GPIO write led %d!\n", led);
 			close(ledControl);
 			return(-1);
 		}
