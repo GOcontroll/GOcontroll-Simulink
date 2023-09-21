@@ -39,6 +39,7 @@
 #include "oaes_lib.h"
 #include "oaes_base64.h"
 #include "oaes_common.h"
+#include <errno.h>
 
 #include "GocontrollProcessorboard.h"
 #include "XcpTargetSpecific.h"
@@ -1042,4 +1043,39 @@ void GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char
 
 void GocontrollProcessorboard_GetIIOContext(void){
     iioContext = iio_create_local_context();
+}
+
+int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t call_type) {
+	uint8_t temp_brightness = brightness;
+	static int brightness_file = 0;
+	static uint8_t old_brightness = 0;
+	char buff[5] = {0};
+	switch (call_type)
+	{
+	case 0: //init
+		brightness_file = open("/sys/class/backlight/max25014/brightness", O_WRONLY);
+		if (brightness_file < 0) {
+			return brightness_file;
+		}
+		break;
+
+	case 1: //runtime
+		if (brightness_file > 0 && old_brightness != temp_brightness){
+			if (temp_brightness > 100) {
+				temp_brightness = 100;
+			}
+			old_brightness = temp_brightness;
+			snprintf(buff, 5, "%d",temp_brightness);
+			write(brightness_file, buff, 3);
+		}
+		break;
+
+	case 2: //terminate
+		close(brightness_file);
+		break;
+
+	default:
+		return -EINVAL;
+	}
+	return 0;
 }

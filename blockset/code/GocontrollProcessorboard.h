@@ -195,6 +195,14 @@ void 		GocontrollProcessorboard_ExitProgram(void* Terminate);
 ****************************************************************************************/
 void 		GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char *_file_in, char *_file_check, unsigned long keyLen);
 
+/**************************************************************************************
+** \brief     Function that sets the backlight brightness
+** \param     brightness brightness to set the screen to
+** \param 	  call_type 0 == init, 1 == control, 2 == terminate
+** \return    0 on success, error code on failure
+****************************************************************************************/
+int     GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t call_type);
+
 #endif // _GOCONTROLL_PROCESSORBOARD_H
 
 /************************************ end of GocontrollProcessorboard.h ******************************/

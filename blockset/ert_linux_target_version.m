@@ -30,8 +30,12 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.1.0';
+version = 'GOcontroll v3.2.0';
 
+%% V3.2.0 Update 21-9-2023:
+%% Added new moduline displays to the list of controllers
+%% Added a block to set the brightness of the display on the moduline display boards
+%%
 %% V3.1.0 Update 22-8-2023:
 %% Added UDP to the main library under GOcontroll_Moduline_target/Network/UDP/
 %% Added The possibility for new block sets to include a hook into the make process to generate a just pre compile time header file for example
