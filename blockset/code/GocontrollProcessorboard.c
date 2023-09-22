@@ -200,6 +200,14 @@ static void 	GocontrollProcessorboard_GetHardwareVersion(void);
 ****************************************************************************************/
 void 			GocontrollProcessorboard_GetIIOContext(void);
 
+/**************************************************************************************
+** \brief     Function that creates a local iio context with all iio devices on the controller
+** \param     slot module slot
+** \param	  rx the bootloader rx buffer
+** \return    none
+****************************************************************************************/
+void 			GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx);
+
 /****************************************************************************************/
 
 void GocontrollProcessorboard_Initialize(void)
@@ -212,7 +220,7 @@ void GocontrollProcessorboard_Initialize(void)
 	/*Start with modules in reset state so we can do other stuff during reset*/
 	for(uint8_t m = 0; m <hardwareConfig.moduleNumber; m++)
 	{
-	 GocontrollProcessorboard_ResetStateModule(m,1);
+		GocontrollProcessorboard_ResetStateModule(m,1);
 	}
 
 	fprintf(stderr,"Processorboard initialize\n");
@@ -225,16 +233,16 @@ void GocontrollProcessorboard_Initialize(void)
 	/*Initialize the memory dataholder for diagnostic data */
 	MemoryDiagnostic_InitializeMemory();
 	/* Initialize LED driver */
-		if( hardwareConfig.ledControl == LED_RUKR)
-		{
+	if( hardwareConfig.ledControl == LED_RUKR)
+	{
 		GocontrollProcessorboard_LedInitialize();
-		}
+	}
 	/* Short timeout before getting the modules out of reset state */
 	GocontrollProcessorboard_Delay1ms(5);
 	/*Get the modules out of reset and give some time to startup */
 	for(uint8_t m = 0; m <hardwareConfig.moduleNumber; m++)
 	{
-	 GocontrollProcessorboard_ResetStateModule(m,0);
+		GocontrollProcessorboard_ResetStateModule(m,0);
 	}
 	/* Give modules short time to start bootloader */
 	GocontrollProcessorboard_Delay1ms(10);
@@ -246,14 +254,14 @@ void GocontrollProcessorboard_Initialize(void)
 
 	for(uint8_t module = 1; module <=hardwareConfig.moduleNumber; module++)
 	{
-	dataRx[6] = 0;
-	GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
-	/* Check if the received data is coming from the bootloader */
-	/* Retrieve first part of module hardware code */
+		dataRx[6] = 0;
+		GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+		/* Check if the received data is coming from the bootloader */
+		/* Retrieve first part of module hardware code */
 		if( dataRx[0] == 9) /* bootloaders first byte == 9 */
 		{
-		/* If valid module data is received, dataRx[6] should be 20 */
-		moduleState[module-1] = dataRx[6];
+			/* If valid module data is received, dataRx[6] should be 20 */
+			moduleState[module-1] = dataRx[6];
 		}
 	}
 	/* Give some time to start application program on module */
@@ -268,6 +276,7 @@ void GocontrollProcessorboard_Initialize(void)
 		/* Retrieve first part of module hardware code. If it is provided, it means module application is running*/
 		if(dataRx[6] == 20)
 		{
+			GocontrollProcessorboard_RegisterModule(module, &dataRx[0]);
 			continue;
 		}
 		/* At this point, it seems the module is stuck. Check if during the first escape from bootloader
@@ -1045,6 +1054,8 @@ void GocontrollProcessorboard_GetIIOContext(void){
     iioContext = iio_create_local_context();
 }
 
+/****************************************************************************************/
+
 int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t call_type) {
 	uint8_t temp_brightness = brightness;
 	static int brightness_file = 0;
@@ -1078,4 +1089,10 @@ int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t cal
 		return -EINVAL;
 	}
 	return 0;
+}
+
+/****************************************************************************************/
+
+void GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx) {
+	memcpy(hardwareConfig.moduleOccupancy[slot], &rx[6], 7);
 }

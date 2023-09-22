@@ -97,7 +97,7 @@ typedef struct{
 	uint8_t ledControl;
 	uint8_t adcControl;
 	uint8_t moduleNumber;
-  uint8_t moduleOccupancy[8];
+  uint8_t moduleOccupancy[8][7];
 }_hardwareConfig;
 
 typedef struct{

@@ -30,8 +30,11 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.2.0';
+version = 'GOcontroll v3.2.1';
 
+%% V3.2.1 Update 22-9-2023:
+%% Made the module communication backwards compatible with older firmware versions, so the last line of V3.1.0 doesnt apply anymore.
+%%
 %% V3.2.0 Update 21-9-2023:
 %% Added new moduline displays to the list of controllers
 %% Added a block to set the brightness of the display on the moduline display boards
@@ -41,6 +44,7 @@ version = 'GOcontroll v3.2.0';
 %% Added The possibility for new block sets to include a hook into the make process to generate a just pre compile time header file for example
 %% Improved librarySetup.m and slblocks.m scripts that warn users with their own blockset if there is initialization files missing
 %% Work started on MQTT implementation for simulink, however this is not available for use yet
+%% 6-channel in- and output modules now use the proper SPI protocol, this means that from this version on these modules need to have firmware version 2.0.0+
 %%
 %% V3.0.0 Update 26-6-2023:
 %% First open source release
