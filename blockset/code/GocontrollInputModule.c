@@ -113,14 +113,11 @@ void InputModule_ReceiveValues(_inputModule *inputModule)
 		}
 		if(res)
 		{
-			fprintf(stderr, "send/receive input module success\n");
 			for (uint8_t pointer = 0; pointer <6; pointer++)
 			{
 				inputModule->value[pointer] 		= *(int32_t*)&inputModuleDataRx[(pointer*8)+6];
 				inputModule->syncCounter[pointer] 	= *(int32_t*)&inputModuleDataRx[(pointer*8)+10];
 			}
-		} else {
-			fprintf(stderr, "send/receive input module fail\n");
 		}
 	}
 	else if(inputModule->moduleType == INPUTMODULE10CHANNEL)

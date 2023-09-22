@@ -128,7 +128,6 @@ void OutputModule_SendValues(_outputModule *outputModule)
 		}
 		if(res)
 		{
-			fprintf(stderr, "send/receive output module success\n");
 			if( *(uint32_t*) &outputModuleDataRx[2] == 103)
 			{
 			outputModule->temperature 	= *(int16_t*)&outputModuleDataRx[6];
@@ -149,7 +148,6 @@ void OutputModule_SendValues(_outputModule *outputModule)
 		/* At this point we have a wrong checksum. So increase the error counter */
 		else
 		{
-		fprintf(stderr, "send/receive output module fail\n");
 		outputModule->communicationCheck ++;
 		}
 	}

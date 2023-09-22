@@ -36,7 +36,7 @@ version = 'GOcontroll v3.2.1';
 %% Made the module communication backwards compatible with older firmware versions, so the last line of V3.1.0 doesnt apply anymore.
 %%
 %% V3.2.0 Update 21-9-2023:
-%% Added new moduline displays to the list of controllers
+%% Added new moduline display to the list of controllers (1.05)
 %% Added a block to set the brightness of the display on the moduline display boards
 %%
 %% V3.1.0 Update 22-8-2023:
