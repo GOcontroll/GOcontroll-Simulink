@@ -30,8 +30,12 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.2.1';
+version = 'GOcontroll v3.2.2';
 
+%% V3.2.2 Update 18-10-2023:
+%% Fixed the pinout on the 6-Channel-output channel mask
+%% Fixed the frequency range description on the channel function option of the 6 and 10 channel input modules.
+%%
 %% V3.2.1 Update 22-9-2023:
 %% Made the module communication backwards compatible with older firmware versions, so the last line of V3.1.0 doesnt apply anymore.
 %%
