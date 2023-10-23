@@ -57,11 +57,12 @@ else
     a2lPath= strcat(pwd, '\..\',bdroot(modelName),".a2l");
 end
 UploadAddress = get_param(modelName,'tlcXcpTcpAddress');
+UploadPort = num2str(get_param(modelName,'tlcUploadPort'));
 % Upload the file to the controller
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',ModelPath,'" ',' http://',UploadAddress,':8001/upload');
+cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',ModelPath,'" ',' http://',UploadAddress,':',UploadPort,'/upload');
 disp(cmdCommand)
 system(cmdCommand);
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',UploadAddress,':8001/upload');
+cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',UploadAddress,':',UploadPort,'/upload');
 disp(cmdCommand)
 system(cmdCommand);
 

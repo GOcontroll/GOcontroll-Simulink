@@ -30,8 +30,12 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.2.2';
+version = 'GOcontroll v3.2.3';
 
+%% V3.2.3 Update 23-10-2023:
+%% ManualUpload now as an optional port argument, allowing uploads to a different port than 8001.
+%% The Simulink Upload setting now have a port field that allows auto upload to a different port than 8001.
+%%
 %% V3.2.2 Update 18-10-2023:
 %% Fixed the pinout on the 6-Channel-output channel mask
 %% Fixed the frequency range description on the channel function option of the 6 and 10 channel input modules.
