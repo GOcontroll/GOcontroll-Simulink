@@ -103,7 +103,7 @@ void InputModule_Configuration(_inputModule *inputModule)
 
 void InputModule_ReceiveValues(_inputModule *inputModule)
 {
-	uint8_t res = 0;
+	int res = 0;
 	if(inputModule->moduleType == INPUTMODULE6CHANNEL)
 	{
 		if (hardwareConfig.moduleOccupancy[inputModule->moduleSlot][4] >= 2) {
@@ -111,7 +111,7 @@ void InputModule_ReceiveValues(_inputModule *inputModule)
 		} else {
 			res = GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE6CHMESSAGELENGTH, 2,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]);
 		}
-		if(res)
+		if(res==0)
 		{
 			for (uint8_t pointer = 0; pointer <6; pointer++)
 			{
@@ -122,7 +122,7 @@ void InputModule_ReceiveValues(_inputModule *inputModule)
 	}
 	else if(inputModule->moduleType == INPUTMODULE10CHANNEL)
 	{
-		if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE10CHMESSAGELENGTH, 2,12,3,1, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]))
+		if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE10CHMESSAGELENGTH, 2,12,3,1, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0])==0)
 		{
 			for (uint8_t pointer = 0; pointer <10; pointer++)
 			{

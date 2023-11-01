@@ -22,10 +22,15 @@ Reboot may be necessary to ‘activate’ this environment variable. On Linux on
 ## Setting up a new project
 
 To maintain an up-to-date blockset in all your projects and ensure proper version control capabilities here are some tips:
-- Clone this repository in some location.
-- Make a new directory in which your project will be housed and set up your version control here.
-- Copy the everything in from this repository to your project folder except the blockset folder and your .git folder (which is probably invisible for you).
-- make a symbolic link from the Cloned repository blockset folder to your project folder. In Linux this can be done with the ln -s command, in Windows the mklink command can be used in cmd.
+1. Clone this repository in some location (`git clone https://github.com/GOcontroll/GOcontroll-Simulink.git` or using github desktop with the same link).
+2. Make a new directory in which your project will be housed and set up your version control here.
+3. Copy the everything in from this repository to your project folder except the blockset folder and your .git folder (which is probably invisible for you).
+4. make a symbolic link from the Cloned repository blockset folder to your project folder. In Linux this can be done with the ln -s command, in Windows the mklink command can be used in cmd. \
+`ln -s your/cloned/location/blockset your/project/path/` \
+or on windows open a cmd (not powershell) window as administrator, navigate to your project folder and run\
+`mklink /d blockset \your\cloned\location\blockset\`
+
+If you would not like to link the blockset to your project because you would like more control over the version that is present in your project, repeat step 3 but also copy the blockset folder and don't do step 4.
 
 Just to mention, be sure to open the .slx (template project) from within your Matlab environment. You need to see the .slx file in the ‘current folder’ tree otherwise the path references are incorrect. Once the Simulink template project is opened, you see the led wave program. When the compiler is available, you should be able to build this project.
 
@@ -34,8 +39,9 @@ Just to mention, be sure to open the .slx (template project) from within your Ma
 To add your own blocks to the project the following pattern should be followed:
 - The name of the folder should start with blockset_
 - In the root of this folder should be a Makefile, a librarySetup.m and a setupBlocks.m script
+- An optional makeHook.m script can also be present
 
-The rest of what it looks like is up to you and should be accurately described in these 2 files
+The rest of what it looks like is up to you and should be accurately described in these 3 files
 
 ### the Makefile
 
@@ -68,7 +74,7 @@ endif
 
 add libraries to the LIBS variable:
 ```
-LIBS += $(OAES_PATH)/liboaes_lib.a
+LIBS += $(YOUR_LIBS_PATH)/your_lib.a
 ```
 
 ### the librarySetup.m script

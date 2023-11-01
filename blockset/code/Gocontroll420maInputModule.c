@@ -67,7 +67,7 @@ GocontrollProcessorboard_SendSpi(1, INPUTMODULE420MAMESSAGELENGTH, 1,13,2,1, inp
 
 void InputModule420ma_ReceiveValues(_inputModule420ma *inputModule420ma)
 {
-	if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE420MAMESSAGELENGTH, 2,13,3,1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0], &inputModule420maDataRx[0]))
+	if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE420MAMESSAGELENGTH, 2,13,3,1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0], &inputModule420maDataRx[0])==0)
 	{
 		for (uint8_t pointer = 0; pointer <10; pointer++)
 		{

@@ -126,7 +126,7 @@ static uint32_t speed = 2000000;
 ** \param 	  dataRx buffer for the receive bytes
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-static uint8_t 	GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint8_t* dataTx, uint8_t* dataRx);
+static int 	GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint8_t* dataTx, uint8_t* dataRx);
 
 /****************************************************************************************
 ** \brief     Send a dummy message to all modules over spi
@@ -392,7 +392,7 @@ return 0;
 
 /****************************************************************************************/
 
-int8_t GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value)
+int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value)
 {
 	if(hardwareConfig.ledControl == LED_RUKR)
 	{
@@ -501,7 +501,7 @@ int8_t GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t
 
 /****************************************************************************************/
 
-static uint8_t GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint8_t* dataTx, uint8_t* dataRx)
+static int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module, uint8_t* dataTx, uint8_t* dataRx)
 {
 	dataTx[0] = 19;
 	dataTx[1] = BOOTMESSAGELENGTH-1;
@@ -520,17 +520,17 @@ static uint8_t GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint
 
 	ioctl(GocontrollProcessorboard_SpiDevice(module), SPI_IOC_MESSAGE(1), &tr);
 
-	if( GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],BOOTMESSAGELENGTH-1)==dataRx[BOOTMESSAGELENGTH-1])
+	if (GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],BOOTMESSAGELENGTH-1)==dataRx[BOOTMESSAGELENGTH-1])
 	{
-	return 0;
+		return 0;
 	}
 
-return -1;
+	return -1;
 }
 
 /****************************************************************************************/
 
-uint8_t GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,uint8_t id1,uint8_t id2,uint8_t id3,
+int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,uint8_t id1,uint8_t id2,uint8_t id3,
 	uint8_t id4, uint8_t module, uint8_t* dataTx, uint32_t delay)
 {
 	dataTx[0] = command;
@@ -545,12 +545,12 @@ uint8_t GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,uin
 	usleep((uint32_t)delay);
 	write(GocontrollProcessorboard_SpiDevice(module), &dataTx[0], dataLength+MESSAGEOVERLENGTH);
 
-return 1;
+	return 0;
 }
 
 /****************************************************************************************/
 
-uint8_t GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
+int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
 	uint8_t id4, uint8_t module, uint8_t* dataTx, uint8_t* dataRx)
 {
 	dataTx[0] = command;
@@ -563,7 +563,6 @@ uint8_t GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLen
 	dataTx[dataLength-1] = GocontrollProcessorboard_CheckSumCalculator(&dataTx[0],dataLength-1);
 
 	/* Reset some essential values to erase earlier messages */
-	dataRx[0] = 0;
 	dataRx[0] = 0;
 	dataRx[dataLength-1] = 0;
 
@@ -578,12 +577,12 @@ uint8_t GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLen
 
 	ioctl(GocontrollProcessorboard_SpiDevice(module), SPI_IOC_MESSAGE(1), &tr);
 
-	if( GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],dataLength-1)==dataRx[dataLength-1])
-	{
-	return 1;
+	if (dataRx[1]==dataLength-1) {
+		if( GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],dataLength-1)==dataRx[dataLength-1]){
+			return 0;
+		}
 	}
-
-return 0;
+	return -1;
 }
 
 /****************************************************************************************/

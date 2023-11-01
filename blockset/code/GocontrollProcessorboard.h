@@ -126,7 +126,7 @@ void 		GocontrollProcessorboard_Initialize(void);
 ** \param     value brightness of the colour on the specified led
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-int8_t 		GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value);
+int 		GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value);
 
 /**************************************************************************************
 ** \brief     Function that controls the controller supply active state. This function is
@@ -156,7 +156,7 @@ float 		GocontrollProcessorboard_ControllerTemperature(void);
 ** \param     delay delay in microseconds befor sending the message
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-uint8_t 	GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
+int 	GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
   uint8_t id4, uint8_t module, uint8_t* dataTx, uint32_t delay);
 
 /****************************************************************************************
@@ -172,7 +172,7 @@ uint8_t 	GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength, u
 ** \param     dataRx buffer for the bytes to receive
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-uint8_t 	GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
+int 	GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
   uint8_t id4, uint8_t module, uint8_t* dataTx, uint8_t* dataRx);
 
 /**************************************************************************************

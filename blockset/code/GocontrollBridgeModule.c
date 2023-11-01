@@ -71,7 +71,7 @@ void BridgeModule_Configuration(_bridgeModule *bridgeModule)
 
 void BridgeModule_SendValues(_bridgeModule *bridgeModule)
 {
-	uint8_t res = 0;
+	int res = 0;
 	for(uint8_t channel = 0; channel <2; channel++)
 	{
 	*(uint16_t*) &bridgeModuleDataTx[(channel*6)+6]		= bridgeModule->value[channel];
@@ -83,15 +83,12 @@ void BridgeModule_SendValues(_bridgeModule *bridgeModule)
 	}else {
 		res = GocontrollProcessorboard_SendReceiveSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2e,0x01,0,0, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], &bridgeModuleDataRx[0]);
 	} 
-	if(res)	{
-		if( *(uint16_t*) &bridgeModuleDataRx[2] == 303)
-		{
+	if(res==0)	{
 		bridgeModule->temperature 	= *(int16_t*)&bridgeModuleDataRx[6];
 		bridgeModule->ground 		= *(uint16_t*)&bridgeModuleDataRx[8];
-			for (uint8_t channel = 0; channel <2; channel++)
-			{
+		for (uint8_t channel = 0; channel <2; channel++)
+		{
 			bridgeModule->current[channel] = *(int16_t*)&bridgeModuleDataRx[(channel*2)+10];
-			}
 		}
 	}
 }

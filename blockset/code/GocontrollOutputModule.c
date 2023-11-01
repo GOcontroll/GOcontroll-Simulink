@@ -111,7 +111,7 @@ void OutputModule_Configuration(_outputModule *outputModule)
 
 void OutputModule_SendValues(_outputModule *outputModule)
 {
-	uint8_t res = 0;
+	int res = 0;
 	outputModule->errorCode = 0x10000000;
 
 	if(outputModule->moduleType == OUTPUTMODULE6CHANNEL)
@@ -126,18 +126,15 @@ void OutputModule_SendValues(_outputModule *outputModule)
 		} else {
 			res = GocontrollProcessorboard_SendReceiveSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 102,0,0,0, outputModule->moduleSlot, &outputModuleDataTx[0], &outputModuleDataRx[0]);
 		}
-		if(res)
+		if(res==0)
 		{
-			if( *(uint32_t*) &outputModuleDataRx[2] == 103)
-			{
 			outputModule->temperature 	= *(int16_t*)&outputModuleDataRx[6];
 			outputModule->ground 		= *(uint16_t*)&outputModuleDataRx[8];
 			outputModule->errorCode 	= *(uint32_t*)&outputModuleDataRx[22];
 
-				for (uint8_t channel = 0; channel <6; channel++)
-				{
+			for (uint8_t channel = 0; channel <6; channel++)
+			{
 				outputModule->current[channel] = *(int16_t*)&outputModuleDataRx[(channel*2)+10];
-				}
 			}
 			/* Correct reception so decrease the error counter */
 			if(outputModule->communicationCheck > 0)
@@ -159,7 +156,7 @@ void OutputModule_SendValues(_outputModule *outputModule)
 		}
 
 		/* Module ID check SPI communication protocol document */
-		if(GocontrollProcessorboard_SendReceiveSpi(1, OUTPUTMODULE10CHMESSAGELENGTH, 1,23,3,1, outputModule->moduleSlot, &outputModuleDataTx[0], &outputModuleDataRx[0]))
+		if(GocontrollProcessorboard_SendReceiveSpi(1, OUTPUTMODULE10CHMESSAGELENGTH, 1,23,3,1, outputModule->moduleSlot, &outputModuleDataTx[0], &outputModuleDataRx[0])==0)
 		{
 			/* Module ID check SPI communication protocol document */
 			if(	outputModuleDataRx[2] == 2  &&

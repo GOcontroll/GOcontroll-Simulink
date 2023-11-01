@@ -30,8 +30,14 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.2.3';
+version = 'GOcontroll v3.2.4';
 
+%% V3.2.4 Update 31-10-2023:
+%% Fixed potential error risk in module spi communication
+%% Added new diagnostic block to the Generic blockset
+%% Bridge module monitor block is now implemented
+%% Some improvements to the README
+%%
 %% V3.2.3 Update 23-10-2023:
 %% ManualUpload now as an optional port argument, allowing uploads to a different port than 8001.
 %% The Simulink Upload setting now have a port field that allows auto upload to a different port than 8001.
