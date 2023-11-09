@@ -29,7 +29,10 @@
 %% endinternal
 %%
 %%***************************************************************************************
-function [] = sfcn_UDPSend_mcb(port, ip)
+function [portStr,ipStr] = sfcn_UDPSend_mcb(port, ip)
+
+	portStr = num2str(port);
+	ipStr = ip;
 
 modelRTWFields = struct('port', num2str(port), 'ip', ip);
 

@@ -104,6 +104,15 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     % licensed use.
     %uiwait(warndlg(sprintf('You are using an educational version of HANcoder\n\nCommercial usage is not allowed in any way\n\nContact hancoder@han.nl for more information'),'HANcoder','modal'));
 
+	% Clear the UDP variables
+	if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
+		assignin('base','UDPBUFFNUM',0);
+	end
+
+	if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
+		assignin('base','UDPBUFFSIZE',0);
+	end
+
 	% Check if the code generation is started from the correct path
 
 	model_path = get_param(bdroot, 'FileName');
@@ -143,8 +152,21 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     % Valid arguments at this stage are hookMethod, modelName, and
     % buildArgs
 	%% get the necessary information from the model
-    nrOfUDPReceiveBlocks = searchUDPreceive(modelName);
-    UDPBuffSize = getUDPBuffSize(modelName);
+    % [nrOfUDPReceiveBuffers,UDPBuffSize] = searchUDPreceive(modelName);
+    % UDPBuffSize = getUDPBuffSize(modelName);
+
+	if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
+		nrOfUDPReceiveBuffers = evalin('base','UDPBUFFNUM') + 1;
+	else
+		nrOfUDPReceiveBuffers = 0;
+	end
+
+	if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
+		UDPBuffSize = evalin('base','UDPBUFFSIZE') + 1;
+	else
+		UDPBuffSize = 0;
+	end
+
 	nrOfCANreceiveBlocks = searchCANreceive(modelName);
 		% Add software version to the SYS_config.h file.
     fprintf('\n### Adding data to SYS_config.h...\n');
@@ -172,8 +194,8 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 	fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
 	fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
 	fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
-    fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBlocks);
-    fprintf(file, '#define UDPBUFFSIZE                    %s\n', UDPBuffSize);
+    fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBuffers);
+    fprintf(file, '#define UDPBUFFSIZE                    %d\n', UDPBuffSize);
 	fprintf(file, '#endif');
 	fclose(file);
 
@@ -252,34 +274,4 @@ function nrOfCANreceiveBlocks = searchCANreceive(modelName)
     blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'CAN receive');
     % only perform check if at least 1 or more HANcoder Target blocks were used
     nrOfCANreceiveBlocks = length(blockArray);
-end
-
-%% Search for UPDReceive blocks %%
-%% This function searches for UDP receive blocks and adds a define to the
-%% SYS_config.h file with the hightest id + 1 %
-
-function nrOfUDPReceiveBlocks = searchUDPreceive(modelName)
-    % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
-    blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'UDP receive');
-    % only perform check if at least 1 or more HANcoder Target blocks were used
-    highest_id = 0;
-    for i = 1:length(blockArray)
-        if str2num(get_param(blockArray{i}, "id")) > highest_id
-            highest_id = str2num(get_param(blockArray{i}, "id"));
-        end
-    end
-    nrOfUDPReceiveBlocks = highest_id+1;
-end
-
-%% Search for UPDConfig blocks %%
-%% This function searches for UDP config blocks and adds a define to the
-%% SYS_config.h file with buffer size %
-
-function UDPBuffSize = getUDPBuffSize(modelName)
-    config = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'Configure UDP socket');
-    if length(config)
-        UDPBuffSize = get_param(config{1}, "buffer_length");
-    else
-        UDPBuffSize = "0";
-    end
 end

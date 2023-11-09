@@ -60,8 +60,8 @@ function setup(block)
   block.NumOutputPorts = 2;
 
   %% get the buffer size from the config block TODO get rid of hardcoded model name somehow
-  config = find_system("GOcontroll_Linux", 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'Configure UDP socket');
-  UDPBuffSize = get_param(config{1}, "buffer_length");
+%   config = find_system("GOcontroll_Linux", 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'Configure UDP socket');
+%   UDPBuffSize = get_param(config{1}, "buffer_length");
 
   %% new message
   block.OutputPort(1).Dimensions = 1;
@@ -69,7 +69,7 @@ function setup(block)
   block.OutputPort(1).Complexity = 'Real';
   block.OutputPort(1).SamplingMode = 'sample';
   %% message
-  block.OutputPort(2).Dimensions = str2num(UDPBuffSize);
+  block.OutputPort(2).Dimensions = block.DialogPrm(3).Data + 1;
   block.OutputPort(2).DatatypeID = 3;
   block.OutputPort(2).Complexity = 'Real';
   block.OutputPort(2).SamplingMode = 'sample';
@@ -77,7 +77,7 @@ function setup(block)
   % Number of S-Function parameters expected
 
   % (tsamp, id)
-  block.NumDialogPrms     = 2;
+  block.NumDialogPrms     = 3;
   block.SampleTimes = [block.DialogPrm(1).Data 0];
   %% -----------------------------------------------------------------
   %% Register methods called at run-time

@@ -29,9 +29,17 @@
 %% endinternal
 %%
 %%***************************************************************************************
-function [] = sfcn_UDPConfig_mcb(buffer_length, port, ip, broadcast)
+function [portStr,ipStr,broadcastStr] = sfcn_UDPConfig_mcb(port, ip, broadcast)
 
-modelRTWFields = struct('buffer_length', num2str(buffer_length), 'port', num2str(port), 'ip', ip, 'broadcast', num2str(broadcast));
+	portStr = num2str(port);
+	ipStr = ip;
+	if broadcast == 0
+		broadcastStr = "Not broadcasting";
+	else
+		broadcastStr = "Broadcasting";
+	end
+
+modelRTWFields = struct('port', num2str(port), 'ip', ip, 'broadcast', num2str(broadcast));
 
 % Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
 HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');

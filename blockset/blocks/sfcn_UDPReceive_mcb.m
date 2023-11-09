@@ -29,9 +29,28 @@
 %% endinternal
 %%
 %%***************************************************************************************
-function [] = sfcn_UDPReceive_mcb(id)
+function [idStr] = sfcn_UDPReceive_mcb(id, buff_len);
 
-modelRTWFields = struct('id', num2str(id));
+idStr = num2str(id);
+
+% Store the largest id and buff len in a global parameter which will be used to make SYS_config.h in ert_linux_make_rtw_hook.m
+if evalin('base', 'exist(''UDPBUFFNUM'',''var'')==1')
+	if id > evalin('base','UDPBUFFNUM')
+		assignin('base','UDPBUFFNUM',id);
+	end
+else
+	assignin('base','UDPBUFFNUM',id);
+end
+
+if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
+	if buff_len > evalin('base','UDPBUFFSIZE')
+		assignin('base','UDPBUFFSIZE',buff_len);
+	end
+else
+	assignin('base','UDPBUFFSIZE',buff_len);
+end
+
+modelRTWFields = struct('id', num2str(id), 'buff_len', num2str(buff_len));
 
 % Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
 HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');

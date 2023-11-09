@@ -62,7 +62,7 @@ function setup(block)
   % Number of S-Function parameters expected
 
   % (tsamp, buffer_length, port, ip, broadcast)
-  block.NumDialogPrms     = 5;
+  block.NumDialogPrms     = 4;
   block.SampleTimes = [block.DialogPrm(1).Data 0];
   %% -----------------------------------------------------------------
   %% Register methods called at run-time

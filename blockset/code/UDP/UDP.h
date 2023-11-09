@@ -79,9 +79,10 @@ void UdpReceive(void);
  * 
  * @param id the identifier of the message desired
  * @param message the message
+ * @param message_len the length of the message
  * @param new_message was there a new message
  */
-void getUdpBuffer(size_t id, uint8_t* message, uint8_t* new_message);
+void getUdpBuffer(size_t id, uint8_t* message, size_t message_len, uint8_t* new_message);
 
 /**
  * @brief send a udp packet
