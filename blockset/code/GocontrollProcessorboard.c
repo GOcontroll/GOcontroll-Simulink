@@ -137,7 +137,7 @@ static void 	GocontrollProcessorboard_DummySpiSend(void);
 
 /**************************************************************************************
 ** \brief     Configures and provides the SPI busses
-** \param     moduleSlot the module slot for which it needs to provide an spi device
+** \param     moduleSlot the module slot for which it needs to provide an spi device (0-7)
 ** \return    an spi number
 ****************************************************************************************/
 static int 		GocontrollProcessorboard_SpiDevice(uint8_t moduleSlot);
@@ -202,7 +202,7 @@ void 			GocontrollProcessorboard_GetIIOContext(void);
 
 /**************************************************************************************
 ** \brief     Function that creates a local iio context with all iio devices on the controller
-** \param     slot module slot
+** \param     slot module slot (0-7)
 ** \param	  rx the bootloader rx buffer
 ** \return    none
 ****************************************************************************************/
@@ -212,13 +212,15 @@ void 			GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx);
 
 void GocontrollProcessorboard_Initialize(void)
 {
+	int res = 0;
+
 	/* Retrieve hardware version */
 	GocontrollProcessorboard_GetHardwareVersion();
 
 	GocontrollProcessorboard_GetIIOContext();
 
 	/*Start with modules in reset state so we can do other stuff during reset*/
-	for(uint8_t m = 0; m <hardwareConfig.moduleNumber; m++)
+	for(uint8_t m = 0; m < hardwareConfig.moduleNumber; m++)
 	{
 		GocontrollProcessorboard_ResetStateModule(m,1);
 	}
@@ -252,36 +254,38 @@ void GocontrollProcessorboard_Initialize(void)
 	uint8_t dataTx[BOOTMESSAGELENGTHCHECK] = {0};
 	uint8_t dataRx[BOOTMESSAGELENGTHCHECK] = {0};
 
-	for(uint8_t module = 1; module <=hardwareConfig.moduleNumber; module++)
+	for(uint8_t module = 0; module < hardwareConfig.moduleNumber; module++)
 	{
 		dataRx[6] = 0;
-		GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+		res = GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
 		/* Check if the received data is coming from the bootloader */
 		/* Retrieve first part of module hardware code */
-		if( dataRx[0] == 9) /* bootloaders first byte == 9 */
+		if( dataRx[0] == 9 && res == 0) /* bootloaders first byte == 9 */
 		{
 			/* If valid module data is received, dataRx[6] should be 20 */
-			moduleState[module-1] = dataRx[6];
+			moduleState[module] = dataRx[6];
+			GocontrollProcessorboard_RegisterModule(module, &dataRx[0]);
+		} else if ( dataRx[0] == 9) {
+			moduleState[module] = 20; // failed message from the bootloader must retry
 		}
 	}
 	/* Give some time to start application program on module */
 	GocontrollProcessorboard_Delay1ms(5);
 	/* Check if module application is started */
-	for(uint8_t module = 0; module <hardwareConfig.moduleNumber; module++)
+	for(uint8_t module = 0; module < hardwareConfig.moduleNumber; module++)
 	{
 		/* At this point, a module is installed so proceed with the check */
 		/* Reset dataRx[6] to 0 to prevent old data corrupting this mechanism */
 		dataRx[6] = 0;
-		GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+		GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx); //this one will report software version 0.0.1 instead of the actual software
 		/* Retrieve first part of module hardware code. If it is provided, it means module application is running*/
 		if(dataRx[6] == 20)
 		{
-			GocontrollProcessorboard_RegisterModule(module, &dataRx[0]);
 			continue;
 		}
 		/* At this point, it seems the module is stuck. Check if during the first escape from bootloader
 		a valid module hardware code was received. If so, extra reset and reinitialisation */
-		else if (moduleState[module-1] == 20)
+		else if (moduleState[module] == 20)
 		{
 			/* Set module in reset state */
 			GocontrollProcessorboard_ResetStateModule(module,1);
@@ -291,7 +295,15 @@ void GocontrollProcessorboard_Initialize(void)
 			GocontrollProcessorboard_Delay1ms(5);
 			dataRx[6] = 0;
 			/* Escape from bootloader */
-			GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+			res = GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+			if( dataRx[0] == 9 && res == 0) /* bootloaders first byte == 9 */
+			{
+				/* If valid module data is received, dataRx[6] should be 20 */
+				moduleState[module] = dataRx[6];
+				GocontrollProcessorboard_RegisterModule(module, &dataRx[0]);
+			} else if ( dataRx[0] == 9 ) {
+				moduleState[module] = 20; // failed message from the bootloader must retry
+			}
 			/* Give some time to start application program on module */
 			GocontrollProcessorboard_Delay1ms(5);
 			/* Check again if modules application is now running by re-execution of for loop*/
@@ -1094,4 +1106,9 @@ int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t cal
 
 void GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx) {
 	memcpy(hardwareConfig.moduleOccupancy[slot], &rx[6], 7);
+	printf("module %d registered, firmware: [ ", slot +1);
+	for (uint8_t i = 0; i < 7; i++){
+		printf("%d, ", hardwareConfig.moduleOccupancy[slot][i]);
+	}
+	printf("]\n");
 }
