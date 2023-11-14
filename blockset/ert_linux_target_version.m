@@ -30,8 +30,13 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.2.4';
+version = 'GOcontroll v3.2.5';
 
+%% V3.2.5 Update 14-11-2023:
+%% Fixed an error in the module initialisation and backwards compatability protocol from 3.2.1
+%% Improvements to the ergonomics of the UDP blocks
+%% Improved template makefile
+%%
 %% V3.2.4 Update 31-10-2023:
 %% Fixed potential error risk in module spi communication
 %% Added new diagnostic block to the Generic blockset
