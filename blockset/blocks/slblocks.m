@@ -66,16 +66,12 @@ d = dir("blockset_*");
 folders = {d.name};
 BrowserIndex = 3;
 for i = 1:length(folders)
-    name=folders(1,i);
-    if OS=="GLNXA64"
-        blocksetScript = sprintf("%s/%s/setupBlocks.m",pwd,char(name));
-    else
-        blocksetScript = sprintf("%s\\%s\\setupBlocks.m",pwd,char(name));
-    end
+    name=char(folders(1,i));
+	blocksetScript = [pwd filesep name filesep 'setupBlocks.m'];
     if isfile(blocksetScript)
         run(blocksetScript);
     else
-    	warndlg(sprintf('No setupBlocks script found for %s', char(name)),'Warning');
+    	warndlg(sprintf('No setupBlocks script found for %s', name),'Warning');
     end
 
 end

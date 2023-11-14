@@ -48,14 +48,8 @@ end % end of function ert_linux_target_upload()
 
 
 function UploadModelToTarget(modelName)
-OS = computer();
-if OS=="GLNXA64"
-    ModelPath= strcat(pwd, "/../",bdroot(modelName),".elf");
-    a2lPath= strcat(pwd, "/../",bdroot(modelName),".a2l");
-else
-    ModelPath= strcat(pwd, '\..\',bdroot(modelName),'.elf');
-    a2lPath= strcat(pwd, '\..\',bdroot(modelName),".a2l");
-end
+ModelPath = [pwd filesep '..' filesep bdroot(modelName) '.elf'];
+a2lPath = [pwd filesep '..' filesep bdroot(modelName) '.a2l'];
 UploadAddress = get_param(modelName,'tlcXcpTcpAddress');
 UploadPort = num2str(get_param(modelName,'tlcUploadPort'));
 % Upload the file to the controller

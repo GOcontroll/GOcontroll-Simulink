@@ -41,17 +41,13 @@ clear RESTOREDEFAULTPATH_EXECUTED
 % add Linux Target blockset related directories to the MATLAB path
 OS = computer();
 if OS=="GLNXA64" % if the host is Linux
-    addpath(sprintf('%s/blockset', pwd));
-    addpath(sprintf('%s/blockset/blocks',pwd));
-    addpath(sprintf('%s/blockset/code',pwd)); 
     path1 = getenv('LD_LIBRARY_PATH');
     path = ['/lib/x86_64-linux-gnu' ':' path1];
     setenv('LD_LIBRARY_PATH',path);
-else % if the host is Windows
-    addpath(sprintf('%s\\blockset', pwd));
-    addpath(sprintf('%s\\blockset\\blocks',pwd));
-    addpath(sprintf('%s\\blockset\\code',pwd)); 
 end
+addpath([pwd filesep 'blockset']);
+addpath([pwd filesep 'blockset' filesep 'blocks']);
+addpath([pwd filesep 'blockset' filesep 'code']);
 
 % find every folder that matches the blockset_* format and execute the
 % librarySetup.m script located in this folder
@@ -60,16 +56,12 @@ end
 d = dir("blockset_*");
 folders = {d.name};
 for i = 1:length(folders)
-    name=folders(1,i);
-    if OS=="GLNXA64"
-        setupScript = sprintf("%s/%s/librarySetup.m",pwd,char(name));
-    else
-        setupScript = sprintf("%s\\%s\\librarySetup.m",pwd,char(name));
-    end
+    name=char(folders(1,i));
+	setupScript = [pwd filesep name filesep 'librarySetup.m'];
     if isfile(setupScript)
     	run(setupScript);
     else
-    	warndlg(sprintf('No library setup script found for %s', char(name)),'Warning');
+    	warndlg(sprintf('No library setup script found for %s', name),'Warning');
     end
 end
 

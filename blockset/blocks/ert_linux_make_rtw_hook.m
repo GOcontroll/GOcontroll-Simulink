@@ -81,7 +81,6 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 %
 % You are encouraged to add other configuration options, and extend the
 % various callbacks to fully integrate ERT into your environment.
-  OS = computer();
   switch hookMethod
    case 'error'
       fprintf('########################### ERROR\n');
@@ -116,13 +115,8 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 	% Check if the code generation is started from the correct path
 
 	model_path = get_param(bdroot, 'FileName');
-    if OS=="GLNXA64"
-        model_path = regexprep(model_path, strcat('/',modelName,'.slx'),'');% Do for both slx as
-        model_path = regexprep(model_path, strcat('/',modelName,'.mdl'),'');% for mdl files
-    else
-        model_path = regexprep(model_path, strcat('\\',modelName,'.slx'),'');% Do for both slx as
-        model_path = regexprep(model_path, strcat('\\',modelName,'.mdl'),'');% for mdl files
-    end
+	model_path = regexprep(model_path, [filesep modelName '.slx'],'');
+	model_path = regexprep(model_path, [filesep modelName '.mdl'],'');
 
 	if (~(strcmp(pwd,model_path)))
 		errorMessage = strcat('The current folder is incorrect, please', ...
@@ -199,23 +193,18 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 	fprintf(file, '#endif');
 	fclose(file);
 
-    d = dir("../blockset_*");
+    d = dir(['..' filesep 'blockset_*']);
     folders = {d.name};
     for i = 1:length(folders)
-        name=folders(1,i);
-        if OS=="GLNXA64"
-            make_hook_script_orig = sprintf("%s/../%s/makeHook.m",pwd,char(name));
-            make_hook_script_dest = sprintf("%s/makeHook.m", pwd);
-        else
-            make_hook_script_orig = sprintf("%s\\..\\%s\\makeHook.m",pwd,char(name));
-            make_hook_script_dest = sprintf("%s\\makeHook.m", pwd);
-        end
+        name=char(folders(1,i));
+		make_hook_script_orig = [pwd filesep '..' filesep name filesep 'makeHook.m'];
+		make_hook_script_dest = [pwd filesep 'makeHook.m'];
         if isfile(make_hook_script_orig)
 		copyfile(make_hook_script_orig, make_hook_script_dest);
 		run(sprintf(make_hook_script_dest));
 		delete(make_hook_script_dest);
 		else
-			fprintf('No makeHook script found for %s\n',char(name));
+			fprintf('No makeHook script found for %s\n',name);
 		end
     end
 
@@ -231,11 +220,7 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     % Adding the memory addresses to the ASAP2 file
 	fprintf('### Post-processing ASAP2 file\n');
 	ASAP2file = sprintf('%s.a2l', modelName);
-    if OS=="GLNXA64"
-        MAPfile = sprintf('../%s.map',modelName);
-    else
-        MAPfile = sprintf('..\\%s.map',modelName);
-    end
+	MAPfile = ['..' filesep modelName '.map'];
 	disp(ASAP2file);
 	disp(MAPfile);
 	% Get XCP port
@@ -251,8 +236,8 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
 
     % Moving the A2L file to the user directory and the map file away
-    movefile([modelName,'.a2l'],['../',modelName,'.a2l']);
-	movefile(['../',modelName,'.map'],[modelName,'.map']);
+    movefile([modelName,'.a2l'],['..' filesep modelName '.a2l']);
+	movefile(['..' filesep modelName '.map'],[modelName,'.map']);
 
    case 'exit'
     % Called at the end of the RTW build process.  All arguments are valid
