@@ -1,6 +1,8 @@
 %% Executing this script automatically compiles the System_Config_*s.
 %% It will open the simulink model, load the configuration from the file, compile it and then move the products to their folder in the builds directory.
 
+tic
+
 OS = computer();
 
 load_system("GOcontroll_Linux");
@@ -33,3 +35,5 @@ for i = 1:length(configs)
 	copyfile('GOcontroll_Linux.elf', dest_path);
 	copyfile('GOcontroll_Linux.a2l', dest_path);
 end
+
+toc
