@@ -9,7 +9,7 @@ To check what release your controller is running see /etc/controller_update/curr
 
 ## GOcontroll Moduline IV toolchain setup
 
-To compile the Linux bases blockset for GOcontroll Moduline IV, some initial steps needs to be made:
+To compile the Linux bases blockset for GOcontroll Moduline IV/Mini/Display, some initial steps needs to be made:
 - The template project is created in Matlab Simulink R2018b. This is the tested version so it is strongly recommended to use this version of Matlab.
 - To generate code, you have to install some additional toolboxes to Matlab. This could require some extra licensing. Check https://openmbd.com/getting-started/installation/ for the toolboxes that need to be installed. Ignore the version information on this website.
 - Finally you need to add the right compiler to you system. For Windows this is: gcc-arm-9.2-2019.12-mingw-w64-i686-aarch64-none-linux-gnu. \

@@ -1,6 +1,7 @@
 /GOcontroll_Linux_generated_code/*
 /blockset_*
 /slprj/*
+/builds/*
 ~*
 *.elf
 *.a2l

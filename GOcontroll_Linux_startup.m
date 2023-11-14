@@ -35,3 +35,6 @@ UDPBuffSize = 4;
 %% UDP data packets
 SineWaveTypes = {'uint8','uint8','uint8','uint8'};
 SineWaveSizes = {1,1,1,1};
+
+set_param('GOcontroll_Linux/GOcontroll Moduline algorithm/UDP_Host', 'Commented', 'on');
+set_param('GOcontroll_Linux/GOcontroll Moduline algorithm/UDP_Client', 'Commented', 'on');
