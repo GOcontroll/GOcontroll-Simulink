@@ -62,16 +62,6 @@ Add a rule for compiling your sources, or multiple if your sources are spread ou
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 ```
 
-To make your build system Windows and Linux compatible use the HOST variable
-
-```
-ifeq ($(HOST), GLNXA64) Linux
-    Actions for Linux systems
-else
-    Actions for Windows systems
-endif
-```
-
 add libraries to the LIBS variable:
 ```
 LIBS += $(YOUR_LIBS_PATH)/your_lib.a
@@ -82,16 +72,9 @@ LIBS += $(YOUR_LIBS_PATH)/your_lib.a
 This script is meant to setup the paths for matlab so it can see your blockset
 example:
 ```
-OS = computer();
-if OS=="GLNXA64" % for Linux hosts
-    addpath(sprintf('%s', pwd));        %add the blockset_ rootfolder
-    addpath(sprintf('%s/blocks',pwd)); %add the matlab files for the blockset
-    addpath(sprintf('%s/code',pwd));   %add the source code folder
-else % for Windows hosts
-    addpath(sprintf('%s', pwd));
-    addpath(sprintf('%s\\blocks',pwd));
-    addpath(sprintf('%s\\code',pwd));
-end
+addpath([pwd]);
+addpath([pwd filesep 'blocks']);
+addpath([pwd filesep 'code']);
 ```
 
 ### the setupBlocks.m script
@@ -113,12 +96,7 @@ example:
 ```
 fprintf('\n### Adding data to UDP_config.h...\n');
 %% get the modelname from the folder name
-OS = computer();
-if OS=="GLNXA64" % if the host is Linux
-    splitPath = split(pwd, "/");
-else % if the host is Windows
-    splitPath = split(pwd, "\\");
-end
+splitPath = split(pwd, [filesep]);
 dirName = splitPath(length(splitPath));
 dirNameSplit = split(dirName, "_generated_code");
 modelName = char(dirNameSplit{1});
