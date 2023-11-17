@@ -58,7 +58,7 @@
     reconnect_state.hostname = "addr"; %%ip as a string
     reconnect_state.port = "port"; %%port as a string
     uint8_t sendbuf[8192];
-    uint8_t recvbuf[1024];
+    uint8_t recvbuf[8192];
     reconnect_state.sendbuf = sendbuf;
     reconnect_state.sendbufsz = sizeof(sendbuf);
     reconnect_state.recvbuf = recvbuf;
@@ -68,5 +68,7 @@
 
     mqtt_init_reconnect(&client, reconnect_client, &reconnect_state, publish_callback);
 
-    if(pthread_create())
+    if(pthread_create(&mqtt_thread, NULL, mqtt_thread_worker, &client)) {
+        fprintf("stderr, Failed to start mqtt thread.\n");
+    }
 %endfunction

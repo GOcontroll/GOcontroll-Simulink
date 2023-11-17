@@ -42,11 +42,13 @@ HOST                            = |>COMPUTER<|
 ifeq ($(HOST), GLNXA64)
 MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
 SHELL                           := /bin/bash
+ECHO =
 else
 MAKECMD                         = "%MATLAB%\bin\|>ARCH<|\gmake"
 COMPILER_TOOL_CHAIN             = default
 HOST                            = PC
 SHELL =
+ECHO 							= @echo
 endif
 
 SYS_TARGET_FILE                 = ert_linux.tlc
@@ -140,17 +142,14 @@ MODEL_NAME = $(MODEL)
 
 # Set some commonly used paths
 BIN_PATH     = $(RELATIVE_PATH_TO_ANCHOR)
-ifeq ($(HOST), GLNXA64)
 SRC_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code
 XCP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/XCP
+MQTT_PATH 	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/MQTT
+UDP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/UDP
 OAES_PATH    = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/OAES
 IIO_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/IIO
-else
-SRC_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\code
-XCP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\code\XCP
-OAES_PATH    = $(RELATIVE_PATH_TO_ANCHOR)\blockset\lib\OAES
-IIO_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\lib\IIO
-endif
+JSON_C_PATH  = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/JSON-C
+
 #|---------------------------------------------------------------------------------------|
 #| Compiler binaries                                                                     |
 #|---------------------------------------------------------------------------------------|
@@ -192,9 +191,11 @@ HANcoder_INCLUDES = \
     -I"$(OAES_PATH)" \
 	-I"$(XCP_PATH)" \
 	-I"$(SRC_PATH)" \
-	-I"$(IIO_PATH)"
+	-I"$(IIO_PATH)" \
+	-I"$(JSON_C_PATH)" \
+	-I"$(MQTT_PATH)" \
+	-I"$(UDP_PATH)"
 
-ifeq ($(HOST), GLNXA64)
 MATLAB_INCLUDES = \
 	-I"$(MATLAB_ROOT)/simulink/include" \
 	-I"$(MATLAB_ROOT)/extern/include" \
@@ -204,20 +205,6 @@ COMPILER_INCLUDES =
 # HANcoder Target includes
 
 CC_INCLUDES += -I"$(MATLAB_ROOT)/rtw/c/ert"
-else
-MATLAB_INCLUDES = \
-	-I"$(MATLAB_ROOT)\simulink\include" \
-	-I"$(MATLAB_ROOT)\extern\include" \
-	-I"$(MATLAB_ROOT)\rtw\c\src"
-
-COMPILER_INCLUDES =
-# HANcoder Target includes
-#HANcoder_INCLUDES = \
-#	-I"$(BIN_PATH)\blockset\code\XCP" \
-#	-I"$(BIN_PATH)\blockset\code"
-
-CC_INCLUDES += -I"$(MATLAB_ROOT)\rtw\c\ert"
-endif
 
 # Additional includes
 ADD_INCLUDES = \
@@ -275,13 +262,11 @@ OD_FLAGS         = -D -t -z
 # HANcoder target specific libraries
 # LIBS += $(LIB_PATH)/HANcoder_LINUX_RTL.a
 
-ifeq ($(HOST), GLNXA64)
+# GOcontroll added libraries
 LIBS += $(OAES_PATH)/liboaes_lib.a
 LIBS += $(IIO_PATH)/libiio.so.0
-else
-LIBS += $(OAES_PATH)\liboaes_lib.a
-LIBS += $(IIO_PATH)\libiio.so.0
-endif
+LIBS += $(JSON_C_PATH)/libjson-c.a
+
 # Other libraries (specified from Simulink)
 |>START_PRECOMP_LIBRARIES<|
 LIBS += |>EXPAND_LIBRARY_LOCATION<|/|>EXPAND_LIBRARY_NAME<|.a |>END_PRECOMP_LIBRARIES<|
@@ -300,13 +285,11 @@ HANcoder_LIB_SRCS =
 ADD_SRCS = \
 	GocontrollLin.c XcpStack.c XcpTargetSpecific.c CANdriver.c ert_main.c GocontrollProcessorboard.c \
 	GocontrollInputModule.c GocontrollOutputModule.c GocontrollBridgeModule.c MemoryEmulation.c \
-	MemoryDiagnostic.c GocontrollProcessorboardSupply.c Gocontroll420maInputModule.c
+	MemoryDiagnostic.c GocontrollProcessorboardSupply.c Gocontroll420maInputModule.c UDP.c \
 
-ifeq ($(HOST), GLNXA64)
+	# GocontrollMqtt.c mqtt_pal.c mqtt.c
+
 -include $(BIN_PATH)/blockset_*/Makefile
-else
--include $(BIN_PATH)\blockset_*\Makefile
-endif
 
 SRCS  = $(MODULES) $(ADD_SRCS) $(S_FUNCTIONS)
 
@@ -335,53 +318,61 @@ SHARED_OBJS = $(addsuffix .obj, $(basename $(SHARED_SRCS)))
 #|---------------------------------------------------------------------------------------
 $(PRODUCT): $(BIN_PATH)/$(MODEL_NAME).elf
 	@$(OD) $(OD_FLAGS) $< > $(BIN_PATH)/$(MODEL_NAME).map
-	echo ### Created Map file: $(MODEL_NAME).map
+	$(ECHO) ### Created Map file: $(MODEL_NAME).map
 	@$(OC) $(OC_FLAGS_BIN) $< $(BIN_PATH)/$(MODEL_NAME).bin
-	echo ### Created Binary file: $(MODEL_NAME).bin
+	$(ECHO) ### Created Binary file: $(MODEL_NAME).bin
 	@$(OC) $(OC_FLAGS) $< $@
-	echo ### Created $(BUILD_PRODUCT_TYPE): $(notdir $@)
-	echo ### Displaying program size info
+	$(ECHO) ### Created $(BUILD_PRODUCT_TYPE): $(notdir $@)
+	$(ECHO) ### Displaying program size info
 	@$(SZ) --format=berkeley $<
 
 $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
-	echo ### Linking $(notdir $@)
+	$(ECHO) ### Linking $(notdir $@)
 	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group\
         -o $@ $(LINKER_FLAGS)
-	echo ### Created $(MODEL_NAME).elf
+	$(ECHO) ### Created $(MODEL_NAME).elf
 
 %.obj : %.c
-	echo ### Compiling $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 %.obj : $(XCP_PATH)/%.c
-	echo ### Compiling xcp path $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling xcp path $(notdir $<) -o $(notdir $@)
+	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
+
+%.obj : $(MQTT_PATH)/%.c
+	$(ECHO) ### Compiling mqtt path $(notdir $<) -o $(notdir $@)
+	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
+
+%.obj : $(UDP_PATH)/%.c
+	$(ECHO) ### Compiling UDP path $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 %.obj : $(LIB_PATH)/%.c
-	echo ### Compiling lib path $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling lib path $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 %.obj : $(SRC_PATH)/%.c
-	echo ### Compiling source path $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling source path $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 %.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.c
-	echo ### Compiling relative path to anchor $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling relative path to anchor $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 %.obj : $(SHARED_BIN_DIR)/%.c
-	echo ### Compiling $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 ifeq ($(GEN_SAMPLE_MAIN),0)
 %.obj : $(MATLAB_ROOT)/rtw/c/ert/%.c
-	echo ### Compiling $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 endif
 
 
 |>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|\%.c
-	echo ### Compiling $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 |>END_EXPAND_RULES<|
 
@@ -390,13 +381,13 @@ endif
 #| Dependencies
 #|---------------------------------------------------------------------------------------
 $(SHARED_OBJS) : $(SHARED_SRC_DIR)/%.obj : $(SHARED_SRC_DIR)/%.c
-	echo ### Creating shared object: $(notdir $@) from: $(addsuffix .c, $(basename $@))
+	$(ECHO) ### Creating shared object: $(notdir $@) from: $(addsuffix .c, $(basename $@))
 	@$(CC) -c -o $@ $(addsuffix .c, $(basename $@)) $(CC_FLAGS) $(CC_INCLUDES)
 
 $(SHARED_LIB) : $(SHARED_OBJS)
-	echo ### Creating $@ from $(SHARED_OBJS)
+	$(ECHO) ### Creating $@ from $(SHARED_OBJS)
 	@$(AR) $(AR_FLAGS) $@ $(SHARED_OBJS)
-	echo ### Created $@
+	$(ECHO) ### Created $@
 
 #|---------------------------------------------------------------------------------------
 #| Project cleanup
@@ -404,13 +395,13 @@ $(SHARED_LIB) : $(SHARED_OBJS)
 ifeq ($(HOST), GLNXA64)
 .PHONY: clean
 clean :
-	echo ### Cleaning the object and lst files
+	$(ECHO) ### Cleaning the object and lst files
 	rm -f *.obj
 	rm -f *.lst
 else
 .PHONY: clean
 clean :
-	echo ### Cleaning the object and lst files
+	$(ECHO) ### Cleaning the object and lst files
 	del *.obj
 	del *.lst
 endif

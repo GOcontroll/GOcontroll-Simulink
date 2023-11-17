@@ -9,7 +9,7 @@ To check what release your controller is running see /etc/controller_update/curr
 
 ## GOcontroll Moduline IV toolchain setup
 
-To compile the Linux bases blockset for GOcontroll Moduline IV, some initial steps needs to be made:
+To compile the Linux bases blockset for GOcontroll Moduline IV/Mini/Display, some initial steps needs to be made:
 - The template project is created in Matlab Simulink R2018b. This is the tested version so it is strongly recommended to use this version of Matlab.
 - To generate code, you have to install some additional toolboxes to Matlab. This could require some extra licensing. Check https://openmbd.com/getting-started/installation/ for the toolboxes that need to be installed. Ignore the version information on this website.
 - Finally you need to add the right compiler to you system. For Windows this is: gcc-arm-9.2-2019.12-mingw-w64-i686-aarch64-none-linux-gnu. \
@@ -22,10 +22,15 @@ Reboot may be necessary to ‘activate’ this environment variable. On Linux on
 ## Setting up a new project
 
 To maintain an up-to-date blockset in all your projects and ensure proper version control capabilities here are some tips:
-- Clone this repository in some location.
-- Make a new directory in which your project will be housed and set up your version control here.
-- Copy the everything in from this repository to your project folder except the blockset folder and your .git folder (which is probably invisible for you).
-- make a symbolic link from the Cloned repository blockset folder to your project folder. In Linux this can be done with the ln -s command, in Windows the mklink command can be used in cmd.
+1. Clone this repository in some location (`git clone https://github.com/GOcontroll/GOcontroll-Simulink.git` or using github desktop with the same link).
+2. Make a new directory in which your project will be housed and set up your version control here.
+3. Copy the everything in from this repository to your project folder except the blockset folder and your .git folder (which is probably invisible for you).
+4. make a symbolic link from the Cloned repository blockset folder to your project folder. In Linux this can be done with the ln -s command, in Windows the mklink command can be used in cmd. \
+`ln -s your/cloned/location/blockset your/project/path/` \
+or on windows open a cmd (not powershell) window as administrator, navigate to your project folder and run\
+`mklink /d blockset \your\cloned\location\blockset\`
+
+If you would not like to link the blockset to your project because you would like more control over the version that is present in your project, repeat step 3 but also copy the blockset folder and don't do step 4.
 
 Just to mention, be sure to open the .slx (template project) from within your Matlab environment. You need to see the .slx file in the ‘current folder’ tree otherwise the path references are incorrect. Once the Simulink template project is opened, you see the led wave program. When the compiler is available, you should be able to build this project.
 
@@ -34,8 +39,9 @@ Just to mention, be sure to open the .slx (template project) from within your Ma
 To add your own blocks to the project the following pattern should be followed:
 - The name of the folder should start with blockset_
 - In the root of this folder should be a Makefile, a librarySetup.m and a setupBlocks.m script
+- An optional makeHook.m script can also be present
 
-The rest of what it looks like is up to you and should be accurately described in these 2 files
+The rest of what it looks like is up to you and should be accurately described in these 3 files
 
 ### the Makefile
 
@@ -56,19 +62,9 @@ Add a rule for compiling your sources, or multiple if your sources are spread ou
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 ```
 
-To make your build system Windows and Linux compatible use the HOST variable
-
-```
-ifeq ($(HOST), GLNXA64) Linux
-    Actions for Linux systems
-else
-    Actions for Windows systems
-endif
-```
-
 add libraries to the LIBS variable:
 ```
-LIBS += $(OAES_PATH)/liboaes_lib.a
+LIBS += $(YOUR_LIBS_PATH)/your_lib.a
 ```
 
 ### the librarySetup.m script
@@ -76,16 +72,9 @@ LIBS += $(OAES_PATH)/liboaes_lib.a
 This script is meant to setup the paths for matlab so it can see your blockset
 example:
 ```
-OS = computer();
-if OS=="GLNXA64" % for Linux hosts
-    addpath(sprintf('%s', pwd));        %add the blockset_ rootfolder
-    addpath(sprintf('%s//blocks',pwd)); %add the matlab files for the blockset
-    addpath(sprintf('%s//code',pwd));   %add the source code folder
-else % for Windows hosts
-    addpath(sprintf('%s', pwd));
-    addpath(sprintf('%s\\blocks',pwd));
-    addpath(sprintf('%s\\code',pwd));
-end
+addpath([pwd]);
+addpath([pwd filesep 'blocks']);
+addpath([pwd filesep 'code']);
 ```
 
 ### the setupBlocks.m script
@@ -97,6 +86,54 @@ Browser(BrowserIndex).Library = 'NameOfTheLibraryFile';  	% you could have block
 Browser(BrowserIndex).Name    = 'DisplayNameOfTheLibrary';	% any name you wish
 Browser(BrowserIndex).IsFlat  = 0;
 BrowserIndex = BrowserIndex + 1; 				% increment the BrowserIndex with the amount of libraries that you have added so any other blocksets can be properly initialized aswell
+```
+
+### the makeHook.m script
+
+This script lets you do something after the .tlc files have been processed, but before make. For example a header file with some model dependent parameters can be constructed to compile your blockset. For example you want to set some buffer size in your code in simulink.
+This script will get run in the "generated_code" folder of your project.
+example:
+```
+fprintf('\n### Adding data to UDP_config.h...\n');
+%% get the modelname from the folder name
+splitPath = split(pwd, [filesep]);
+dirName = splitPath(length(splitPath));
+dirNameSplit = split(dirName, "_generated_code");
+modelName = char(dirNameSplit{1});
+
+%% get the necessary information from the model
+nrOfUDPReceiveBlocks = searchUDPreceive(modelName);
+UDPBuffSize = getUDPBuffSize(modelName);
+%% Open file in write mode 'w'
+file = fopen('UDP_config.h', 'w');
+if file == -1
+     error('### failed to open UDP_config.h');
+end
+fprintf(file, '#ifndef __UDP_CONFIG_H__ \n#define __UDP_CONFIG_H__\n');
+fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBlocks);
+fprintf(file, '#define UDPBUFFSIZE                     %s\n', UDPBuffSize);
+fprintf(file, '#endif');
+fclose(file);
+    
+%% Search for UPDReceive blocks %%
+%% This function searches for UDP receive blocks and adds a define to the
+%% UDP_config.h file with the number of blocks found %
+
+function nrOfUDPReceiveBlocks = searchUDPreceive(modelName)
+    % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
+    blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'UDP receive');
+    % only perform check if at least 1 or more HANcoder Target blocks were used
+    nrOfUDPReceiveBlocks = length(blockArray);
+end
+
+function UDPBuffSize = getUDPBuffSize(modelName)
+    config = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'Configure UDP socket');
+    if length(config)
+        UDPBuffSize = get_param(config{1}, "buffer_length");
+    else
+        UDPBuffSize = "0";
+    end
+end
 ```
 
 Please let us know when interface blocks are not working properly. You can contact us at support@gocontroll.com \

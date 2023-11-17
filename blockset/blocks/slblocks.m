@@ -66,15 +66,14 @@ d = dir("blockset_*");
 folders = {d.name};
 BrowserIndex = 3;
 for i = 1:length(folders)
-    name=folders(1,i);
-    if OS=="GLNXA64"
-        blocksetScript = sprintf("%s//%s//setupBlocks",pwd,char(name));
+    name=char(folders(1,i));
+	blocksetScript = [pwd filesep name filesep 'setupBlocks.m'];
+    if isfile(blocksetScript)
+        run(blocksetScript);
     else
-        blocksetScript = sprintf("%s\\%s\\setupBlocks",pwd,char(name));
+    	warndlg(sprintf('No setupBlocks script found for %s', name),'Warning');
     end
-    run(blocksetScript);
+
 end
 
-
 blkStruct.Browser = Browser;
-

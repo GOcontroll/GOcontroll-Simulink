@@ -34,6 +34,7 @@
 #include "GocontrollInputModule.h"
 #include "GocontrollProcessorboard.h"
 #include <stdlib.h>
+#include <string.h>
 
 /****************************************************************************************
 * Macro definitions
@@ -47,6 +48,9 @@ static uint8_t inputModuleDataTx[INPUTMODULE6CHMESSAGELENGTH+MESSAGEOVERLENGTH];
 static uint8_t inputModuleDataRx[INPUTMODULE6CHMESSAGELENGTH+MESSAGEOVERLENGTH];
 
 uint8_t resistorMatrix[4] = {0,3,1,2};
+
+const uint8_t INPUTMODULE6CHANNELID[] = {20,10,1};
+const uint8_t INPUTMODULE10CHANNELID[] = {20,10,2};
 
 extern _hardwareConfig hardwareConfig;
 
@@ -72,7 +76,11 @@ void InputModule_Configuration(_inputModule *inputModule)
 			inputModuleDataTx[43] = inputModule->sensorSupply2;
 			inputModuleDataTx[44] = inputModule->sensorSupply3;
 
-			GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 1,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+			if (hardwareConfig.moduleOccupancy[inputModule->moduleSlot][4] >= 2) {
+				GocontrollProcessorboard_SendSpi(inputModule->moduleSlot+1, INPUTMODULE6CHMESSAGELENGTH, 1,11,2,1, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+			} else {
+				GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 1,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+			}
 		}
 		else if(inputModule->moduleType == INPUTMODULE10CHANNEL)
 		{
@@ -95,9 +103,15 @@ void InputModule_Configuration(_inputModule *inputModule)
 
 void InputModule_ReceiveValues(_inputModule *inputModule)
 {
+	int res = 0;
 	if(inputModule->moduleType == INPUTMODULE6CHANNEL)
 	{
-		if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE6CHMESSAGELENGTH, 2,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]))
+		if (hardwareConfig.moduleOccupancy[inputModule->moduleSlot][4] >= 2) {
+			res = GocontrollProcessorboard_SendReceiveSpi(inputModule->moduleSlot+1, INPUTMODULE6CHMESSAGELENGTH, 2,11,3,1, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]);
+		} else {
+			res = GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE6CHMESSAGELENGTH, 2,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]);
+		}
+		if(res==0)
 		{
 			for (uint8_t pointer = 0; pointer <6; pointer++)
 			{
@@ -108,7 +122,7 @@ void InputModule_ReceiveValues(_inputModule *inputModule)
 	}
 	else if(inputModule->moduleType == INPUTMODULE10CHANNEL)
 	{
-		if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE10CHMESSAGELENGTH, 2,12,3,1, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]))
+		if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE10CHMESSAGELENGTH, 2,12,3,1, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0])==0)
 		{
 			for (uint8_t pointer = 0; pointer <10; pointer++)
 			{
@@ -138,7 +152,11 @@ void InputModule_ResetPulsCounter(_inputModule *inputModule, uint8_t channel, in
 
 	if(inputModule->moduleType == INPUTMODULE6CHANNEL)
 	{
-		GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 3,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+		if (hardwareConfig.moduleOccupancy[inputModule->moduleSlot][4] >= 2) {
+			GocontrollProcessorboard_SendSpi(inputModule->moduleSlot+1, INPUTMODULE6CHMESSAGELENGTH, 1,11,3,2, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+		} else {
+			GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 3,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+		}
 	}
 	else if(inputModule->moduleType == INPUTMODULE10CHANNEL)
 	{
@@ -153,10 +171,16 @@ void InputModule_ResetPulsCounter(_inputModule *inputModule, uint8_t channel, in
 
 void InputModule_SetModuleSlot(_inputModule *inputModule, uint8_t moduleSlot) {
 	if (moduleSlot < hardwareConfig.moduleNumber){
-		if (hardwareConfig.moduleOccupancy[moduleSlot] != SLOTFREE) {
-			hardwareConfig.moduleOccupancy[moduleSlot] = SLOTOCCUPIED;
-			inputModule->moduleSlot = moduleSlot;
-			return;
+		if (inputModule->moduleType == INPUTMODULE6CHANNEL){
+			if (!memcmp(hardwareConfig.moduleOccupancy, INPUTMODULE6CHANNELID, 3)) {
+				inputModule->moduleSlot = moduleSlot;
+				return;
+			}
+		} else {
+			if (!memcmp(hardwareConfig.moduleOccupancy, INPUTMODULE10CHANNELID, 3)) {
+				inputModule->moduleSlot = moduleSlot;
+				return;
+			}
 		}
 		printf("module slot %d is contested by multiple module claims, check *SetModuleSlot init functions for double slot claims.\n", moduleSlot+1);
 		exit(-1);

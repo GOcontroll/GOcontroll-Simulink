@@ -23,8 +23,18 @@ SI_CPUload.StorageClass = 'ExportedGlobal';
 SI_FreeHeap = Simulink.Signal;
 SI_FreeHeap.StorageClass = 'ExportedGlobal';
 
-%% Parameters
+%% Tunable Parameters
 % Defining a parameter for editing in HANtune
 LEDRed = Simulink.Parameter; % Define as parameter
 LEDRed.StorageClass = 'ExportedGlobal'; % Only Exported Global will be visible in HANtune
-LEDRed.Value = 0; % Initial value is set to zero, no override
+LEDRed.Value = 50; % Initial value is set to zero, no override
+
+%% Constant Parameters
+UDPBuffSize = 4;
+
+%% UDP data packets
+SineWaveTypes = {'uint8','uint8','uint8','uint8'};
+SineWaveSizes = {1,1,1,1};
+
+set_param('GOcontroll_Linux/GOcontroll Moduline algorithm/UDP_Host', 'Commented', 'on');
+set_param('GOcontroll_Linux/GOcontroll Moduline algorithm/UDP_Client', 'Commented', 'on');

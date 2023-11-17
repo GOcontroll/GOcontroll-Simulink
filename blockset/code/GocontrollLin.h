@@ -44,6 +44,7 @@
 #define _GOCONTROLLLIN_H
 
 #include <stdint.h>
+#include <asm/termbits.h>
 
 
 /* maximum buffer len to store whole LIN message*/

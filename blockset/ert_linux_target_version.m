@@ -30,8 +30,46 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.0.0';
+version = 'GOcontroll v3.2.6';
 
+%% V3.2.6 Update 17-11-2023:
+%% Automatic build script demo added with multicore compiling support
+%% README fixes
+%% Improved build platform independence
+%%
+%% V3.2.5 Update 14-11-2023:
+%% Fixed an error in the module initialisation and backwards compatability protocol from 3.2.1
+%% Improvements to the ergonomics of the UDP blocks
+%% Improved template makefile
+%%
+%% V3.2.4 Update 31-10-2023:
+%% Fixed potential error risk in module spi communication
+%% Added new diagnostic block to the Generic blockset
+%% Bridge module monitor block is now implemented
+%% Some improvements to the README
+%%
+%% V3.2.3 Update 23-10-2023:
+%% ManualUpload now as an optional port argument, allowing uploads to a different port than 8001.
+%% The Simulink Upload setting now have a port field that allows auto upload to a different port than 8001.
+%%
+%% V3.2.2 Update 18-10-2023:
+%% Fixed the pinout on the 6-Channel-output channel mask
+%% Fixed the frequency range description on the channel function option of the 6 and 10 channel input modules.
+%%
+%% V3.2.1 Update 22-9-2023:
+%% Made the module communication backwards compatible with older firmware versions, so the last line of V3.1.0 doesnt apply anymore.
+%%
+%% V3.2.0 Update 21-9-2023:
+%% Added new moduline display to the list of controllers (1.05)
+%% Added a block to set the brightness of the display on the moduline display boards
+%%
+%% V3.1.0 Update 22-8-2023:
+%% Added UDP to the main library under GOcontroll_Moduline_target/Network/UDP/
+%% Added The possibility for new block sets to include a hook into the make process to generate a just pre compile time header file for example
+%% Improved librarySetup.m and slblocks.m scripts that warn users with their own blockset if there is initialization files missing
+%% Work started on MQTT implementation for simulink, however this is not available for use yet
+%% 6-channel in- and output modules now use the proper SPI protocol, this means that from this version on these modules need to have firmware version 2.0.0+
+%%
 %% V3.0.0 Update 26-6-2023:
 %% First open source release
 %% License headers fixed for open source validity

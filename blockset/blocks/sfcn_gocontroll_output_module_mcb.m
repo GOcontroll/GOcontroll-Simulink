@@ -63,7 +63,7 @@ if(ContrType == 1) % Moduline IV
 	pin3Id = 'Pin 12';
 	pin4Id = 'Pin 18';
 	pin5Id = 'Pin 11';
-	pin6Id = 'Pin 21';
+	pin6Id = 'Pin 17';
 	else
 	pin1Id = 'Pin 8';
 	pin2Id = 'Pin 14';

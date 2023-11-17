@@ -97,7 +97,7 @@ typedef struct{
 	uint8_t ledControl;
 	uint8_t adcControl;
 	uint8_t moduleNumber;
-  uint8_t moduleOccupancy[8];
+  uint8_t moduleOccupancy[8][7];
 }_hardwareConfig;
 
 typedef struct{
@@ -126,7 +126,7 @@ void 		GocontrollProcessorboard_Initialize(void);
 ** \param     value brightness of the colour on the specified led
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-int8_t 		GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value);
+int 		GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value);
 
 /**************************************************************************************
 ** \brief     Function that controls the controller supply active state. This function is
@@ -156,7 +156,7 @@ float 		GocontrollProcessorboard_ControllerTemperature(void);
 ** \param     delay delay in microseconds befor sending the message
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-uint8_t 	GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
+int 	GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
   uint8_t id4, uint8_t module, uint8_t* dataTx, uint32_t delay);
 
 /****************************************************************************************
@@ -172,7 +172,7 @@ uint8_t 	GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength, u
 ** \param     dataRx buffer for the bytes to receive
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-uint8_t 	GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
+int 	GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
   uint8_t id4, uint8_t module, uint8_t* dataTx, uint8_t* dataRx);
 
 /**************************************************************************************
@@ -190,9 +190,18 @@ void 		GocontrollProcessorboard_ExitProgram(void* Terminate);
 ** \param 	  _iv_ent initialisation vector for the encryption
 ** \param 	  _file_in pointer to a string describing the path to the encrypted license file
 ** \param 	  _file_check pointer to a string describing te path to the file containing the decrypted license
+** \param     keyLen the length of the key
 ** \return    none or exits if it fails
 ****************************************************************************************/
 void 		GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char *_file_in, char *_file_check, unsigned long keyLen);
+
+/**************************************************************************************
+** \brief     Function that sets the backlight brightness
+** \param     brightness brightness to set the screen to
+** \param 	  call_type 0 == init, 1 == control, 2 == terminate
+** \return    0 on success, error code on failure
+****************************************************************************************/
+int     GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t call_type);
 
 #endif // _GOCONTROLL_PROCESSORBOARD_H
 

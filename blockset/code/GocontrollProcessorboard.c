@@ -39,6 +39,7 @@
 #include "oaes_lib.h"
 #include "oaes_base64.h"
 #include "oaes_common.h"
+#include <errno.h>
 
 #include "GocontrollProcessorboard.h"
 #include "XcpTargetSpecific.h"
@@ -125,7 +126,7 @@ static uint32_t speed = 2000000;
 ** \param 	  dataRx buffer for the receive bytes
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-static uint8_t 	GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint8_t* dataTx, uint8_t* dataRx);
+static int 	GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint8_t* dataTx, uint8_t* dataRx);
 
 /****************************************************************************************
 ** \brief     Send a dummy message to all modules over spi
@@ -136,7 +137,7 @@ static void 	GocontrollProcessorboard_DummySpiSend(void);
 
 /**************************************************************************************
 ** \brief     Configures and provides the SPI busses
-** \param     moduleSlot the module slot for which it needs to provide an spi device
+** \param     moduleSlot the module slot for which it needs to provide an spi device (0-7)
 ** \return    an spi number
 ****************************************************************************************/
 static int 		GocontrollProcessorboard_SpiDevice(uint8_t moduleSlot);
@@ -199,19 +200,29 @@ static void 	GocontrollProcessorboard_GetHardwareVersion(void);
 ****************************************************************************************/
 void 			GocontrollProcessorboard_GetIIOContext(void);
 
+/**************************************************************************************
+** \brief     Function that creates a local iio context with all iio devices on the controller
+** \param     slot module slot (0-7)
+** \param	  rx the bootloader rx buffer
+** \return    none
+****************************************************************************************/
+void 			GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx);
+
 /****************************************************************************************/
 
 void GocontrollProcessorboard_Initialize(void)
 {
+	int res = 0;
+
 	/* Retrieve hardware version */
 	GocontrollProcessorboard_GetHardwareVersion();
 
 	GocontrollProcessorboard_GetIIOContext();
 
 	/*Start with modules in reset state so we can do other stuff during reset*/
-	for(uint8_t m = 0; m <hardwareConfig.moduleNumber; m++)
+	for(uint8_t m = 0; m < hardwareConfig.moduleNumber; m++)
 	{
-	 GocontrollProcessorboard_ResetStateModule(m,1);
+		GocontrollProcessorboard_ResetStateModule(m,1);
 	}
 
 	fprintf(stderr,"Processorboard initialize\n");
@@ -224,16 +235,16 @@ void GocontrollProcessorboard_Initialize(void)
 	/*Initialize the memory dataholder for diagnostic data */
 	MemoryDiagnostic_InitializeMemory();
 	/* Initialize LED driver */
-		if( hardwareConfig.ledControl == LED_RUKR)
-		{
+	if( hardwareConfig.ledControl == LED_RUKR)
+	{
 		GocontrollProcessorboard_LedInitialize();
-		}
+	}
 	/* Short timeout before getting the modules out of reset state */
 	GocontrollProcessorboard_Delay1ms(5);
 	/*Get the modules out of reset and give some time to startup */
 	for(uint8_t m = 0; m <hardwareConfig.moduleNumber; m++)
 	{
-	 GocontrollProcessorboard_ResetStateModule(m,0);
+		GocontrollProcessorboard_ResetStateModule(m,0);
 	}
 	/* Give modules short time to start bootloader */
 	GocontrollProcessorboard_Delay1ms(10);
@@ -243,27 +254,30 @@ void GocontrollProcessorboard_Initialize(void)
 	uint8_t dataTx[BOOTMESSAGELENGTHCHECK] = {0};
 	uint8_t dataRx[BOOTMESSAGELENGTHCHECK] = {0};
 
-	for(uint8_t module = 1; module <=hardwareConfig.moduleNumber; module++)
+	for(uint8_t module = 0; module < hardwareConfig.moduleNumber; module++)
 	{
-	dataRx[6] = 0;
-	GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
-	/* Check if the received data is coming from the bootloader */
-	/* Retrieve first part of module hardware code */
-		if( dataRx[0] == 9) /* bootloaders first byte == 9 */
+		dataRx[6] = 0;
+		res = GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+		/* Check if the received data is coming from the bootloader */
+		/* Retrieve first part of module hardware code */
+		if( dataRx[0] == 9 && res == 0) /* bootloaders first byte == 9 */
 		{
-		/* If valid module data is received, dataRx[6] should be 20 */
-		moduleState[module-1] = dataRx[6];
+			/* If valid module data is received, dataRx[6] should be 20 */
+			moduleState[module] = dataRx[6];
+			GocontrollProcessorboard_RegisterModule(module, &dataRx[0]);
+		} else if ( dataRx[0] == 9) {
+			moduleState[module] = 20; // failed message from the bootloader must retry
 		}
 	}
 	/* Give some time to start application program on module */
 	GocontrollProcessorboard_Delay1ms(5);
 	/* Check if module application is started */
-	for(uint8_t module = 0; module <hardwareConfig.moduleNumber; module++)
+	for(uint8_t module = 0; module < hardwareConfig.moduleNumber; module++)
 	{
 		/* At this point, a module is installed so proceed with the check */
 		/* Reset dataRx[6] to 0 to prevent old data corrupting this mechanism */
 		dataRx[6] = 0;
-		GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+		GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx); //this one will report software version 0.0.1 instead of the actual software
 		/* Retrieve first part of module hardware code. If it is provided, it means module application is running*/
 		if(dataRx[6] == 20)
 		{
@@ -271,7 +285,7 @@ void GocontrollProcessorboard_Initialize(void)
 		}
 		/* At this point, it seems the module is stuck. Check if during the first escape from bootloader
 		a valid module hardware code was received. If so, extra reset and reinitialisation */
-		else if (moduleState[module-1] == 20)
+		else if (moduleState[module] == 20)
 		{
 			/* Set module in reset state */
 			GocontrollProcessorboard_ResetStateModule(module,1);
@@ -281,7 +295,15 @@ void GocontrollProcessorboard_Initialize(void)
 			GocontrollProcessorboard_Delay1ms(5);
 			dataRx[6] = 0;
 			/* Escape from bootloader */
-			GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+			res = GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
+			if( dataRx[0] == 9 && res == 0) /* bootloaders first byte == 9 */
+			{
+				/* If valid module data is received, dataRx[6] should be 20 */
+				moduleState[module] = dataRx[6];
+				GocontrollProcessorboard_RegisterModule(module, &dataRx[0]);
+			} else if ( dataRx[0] == 9 ) {
+				moduleState[module] = 20; // failed message from the bootloader must retry
+			}
 			/* Give some time to start application program on module */
 			GocontrollProcessorboard_Delay1ms(5);
 			/* Check again if modules application is now running by re-execution of for loop*/
@@ -382,7 +404,7 @@ return 0;
 
 /****************************************************************************************/
 
-int8_t GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value)
+int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value)
 {
 	if(hardwareConfig.ledControl == LED_RUKR)
 	{
@@ -467,14 +489,14 @@ int8_t GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t
 
 		/* Check if path is opened properly */
 		if (ledControl == -1) {
-			fprintf(stderr, "Error GPOI write led %d!\n",led);
+			fprintf(stderr, "Error GPIO write led %d!\n",led);
 			close(ledControl);
 			return(-1);
 		}
 
 		/* Write the actual value to the LED LL file system */
 		if (1 != write(ledControl, &s_values_str[LOW == value ? 0 : 1], 1)) {
-			fprintf(stderr, "Error GPOI write led %d!\n", led);
+			fprintf(stderr, "Error GPIO write led %d!\n", led);
 			close(ledControl);
 			return(-1);
 		}
@@ -491,7 +513,7 @@ int8_t GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t
 
 /****************************************************************************************/
 
-static uint8_t GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint8_t* dataTx, uint8_t* dataRx)
+static int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module, uint8_t* dataTx, uint8_t* dataRx)
 {
 	dataTx[0] = 19;
 	dataTx[1] = BOOTMESSAGELENGTH-1;
@@ -510,17 +532,17 @@ static uint8_t GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint
 
 	ioctl(GocontrollProcessorboard_SpiDevice(module), SPI_IOC_MESSAGE(1), &tr);
 
-	if( GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],BOOTMESSAGELENGTH-1)==dataRx[BOOTMESSAGELENGTH-1])
+	if (GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],BOOTMESSAGELENGTH-1)==dataRx[BOOTMESSAGELENGTH-1])
 	{
-	return 0;
+		return 0;
 	}
 
-return -1;
+	return -1;
 }
 
 /****************************************************************************************/
 
-uint8_t GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,uint8_t id1,uint8_t id2,uint8_t id3,
+int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,uint8_t id1,uint8_t id2,uint8_t id3,
 	uint8_t id4, uint8_t module, uint8_t* dataTx, uint32_t delay)
 {
 	dataTx[0] = command;
@@ -535,12 +557,12 @@ uint8_t GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,uin
 	usleep((uint32_t)delay);
 	write(GocontrollProcessorboard_SpiDevice(module), &dataTx[0], dataLength+MESSAGEOVERLENGTH);
 
-return 1;
+	return 0;
 }
 
 /****************************************************************************************/
 
-uint8_t GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
+int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
 	uint8_t id4, uint8_t module, uint8_t* dataTx, uint8_t* dataRx)
 {
 	dataTx[0] = command;
@@ -553,7 +575,6 @@ uint8_t GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLen
 	dataTx[dataLength-1] = GocontrollProcessorboard_CheckSumCalculator(&dataTx[0],dataLength-1);
 
 	/* Reset some essential values to erase earlier messages */
-	dataRx[0] = 0;
 	dataRx[0] = 0;
 	dataRx[dataLength-1] = 0;
 
@@ -568,12 +589,12 @@ uint8_t GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLen
 
 	ioctl(GocontrollProcessorboard_SpiDevice(module), SPI_IOC_MESSAGE(1), &tr);
 
-	if( GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],dataLength-1)==dataRx[dataLength-1])
-	{
-	return 1;
+	if (dataRx[1]==dataLength-1) {
+		if( GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],dataLength-1)==dataRx[dataLength-1]){
+			return 0;
+		}
 	}
-
-return 0;
+	return -1;
 }
 
 /****************************************************************************************/
@@ -1042,4 +1063,52 @@ void GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char
 
 void GocontrollProcessorboard_GetIIOContext(void){
     iioContext = iio_create_local_context();
+}
+
+/****************************************************************************************/
+
+int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t call_type) {
+	uint8_t temp_brightness = brightness;
+	static int brightness_file = 0;
+	static uint8_t old_brightness = 0;
+	char buff[5] = {0};
+	switch (call_type)
+	{
+	case 0: //init
+		brightness_file = open("/sys/class/backlight/max25014/brightness", O_WRONLY);
+		if (brightness_file < 0) {
+			return brightness_file;
+		}
+		break;
+
+	case 1: //runtime
+		if (brightness_file > 0 && old_brightness != temp_brightness){
+			if (temp_brightness > 100) {
+				temp_brightness = 100;
+			}
+			old_brightness = temp_brightness;
+			snprintf(buff, 5, "%d",temp_brightness);
+			write(brightness_file, buff, 3);
+		}
+		break;
+
+	case 2: //terminate
+		close(brightness_file);
+		break;
+
+	default:
+		return -EINVAL;
+	}
+	return 0;
+}
+
+/****************************************************************************************/
+
+void GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx) {
+	memcpy(hardwareConfig.moduleOccupancy[slot], &rx[6], 7);
+	printf("module %d registered, firmware: [ ", slot +1);
+	for (uint8_t i = 0; i < 7; i++){
+		printf("%d, ", hardwareConfig.moduleOccupancy[slot][i]);
+	}
+	printf("]\n");
 }

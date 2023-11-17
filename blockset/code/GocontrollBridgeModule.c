@@ -34,6 +34,7 @@
 #include "GocontrollBridgeModule.h"
 #include "GocontrollProcessorboard.h"
 #include <stdlib.h>
+#include <string.h>
 
 /****************************************************************************************
 * Macro definitions
@@ -46,6 +47,8 @@
 static uint8_t bridgeModuleDataTx[BRIDGEMODULEMESSAGELENGTH+MESSAGEOVERLENGTH];
 static uint8_t bridgeModuleDataRx[BRIDGEMODULEMESSAGELENGTH+MESSAGEOVERLENGTH];
 
+const uint8_t BRIDGEMODULECHANNELID[] = {20,10,1};
+
 extern _hardwareConfig hardwareConfig;
 
 /****************************************************************************************/
@@ -57,30 +60,35 @@ void BridgeModule_Configuration(_bridgeModule *bridgeModule)
 	bridgeModuleDataTx[6+channel]						= bridgeModule->configuration[channel];
 	*(uint16_t*) &bridgeModuleDataTx[12+(channel*2)]	= 4000; //bridgeModule->maxCurrent[channel];
 	}
-
-	GocontrollProcessorboard_SendSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2d,0x01,0x00,0x00, bridgeModule->moduleSlot, &bridgeModuleDataTx[0],0);
+	if (hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][4] >= 2) {
+		GocontrollProcessorboard_SendSpi(1, BRIDGEMODULEMESSAGELENGTH, 1,21,2,1, bridgeModule->moduleSlot, &bridgeModuleDataTx[0],0);
+	} else {
+		GocontrollProcessorboard_SendSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2d,0x01,0x00,0x00, bridgeModule->moduleSlot, &bridgeModuleDataTx[0],0);
+	}
 }
 
 /****************************************************************************************/
 
 void BridgeModule_SendValues(_bridgeModule *bridgeModule)
 {
+	int res = 0;
 	for(uint8_t channel = 0; channel <2; channel++)
 	{
 	*(uint16_t*) &bridgeModuleDataTx[(channel*6)+6]		= bridgeModule->value[channel];
 	*(uint32_t*) &bridgeModuleDataTx[(channel*6)+8]		= bridgeModule->syncCounter[channel];
 	}
 
-	if(GocontrollProcessorboard_SendReceiveSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2e,0x01,0x00,0x00, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], &bridgeModuleDataRx[0]))
-	{
-		if( *(uint16_t*) &bridgeModuleDataRx[2] == 303)
-		{
+	if (hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][4] >= 2) {
+		res = GocontrollProcessorboard_SendReceiveSpi(1, BRIDGEMODULEMESSAGELENGTH, 1,21,3,1, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], &bridgeModuleDataRx[0]);
+	}else {
+		res = GocontrollProcessorboard_SendReceiveSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2e,0x01,0,0, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], &bridgeModuleDataRx[0]);
+	} 
+	if(res==0)	{
 		bridgeModule->temperature 	= *(int16_t*)&bridgeModuleDataRx[6];
 		bridgeModule->ground 		= *(uint16_t*)&bridgeModuleDataRx[8];
-			for (uint8_t channel = 0; channel <2; channel++)
-			{
+		for (uint8_t channel = 0; channel <2; channel++)
+		{
 			bridgeModule->current[channel] = *(int16_t*)&bridgeModuleDataRx[(channel*2)+10];
-			}
 		}
 	}
 }
@@ -89,11 +97,10 @@ void BridgeModule_SendValues(_bridgeModule *bridgeModule)
 
 void BridgeModule_SetModuleSlot(_bridgeModule *bridgeModule, uint8_t moduleSlot) {
 	if (moduleSlot < hardwareConfig.moduleNumber){
-		if (hardwareConfig.moduleOccupancy[moduleSlot] != SLOTFREE) {
-			hardwareConfig.moduleOccupancy[moduleSlot] = SLOTOCCUPIED;
-			bridgeModule->moduleSlot = moduleSlot;
-			return;
-		}
+		if (!memcmp(hardwareConfig.moduleOccupancy, BRIDGEMODULECHANNELID, 3)) {
+				bridgeModule->moduleSlot = moduleSlot;
+				return;
+			}
 		printf("module slot %d is contested by multiple module claims, check *SetModuleSlot init functions for double slot claims.\n", moduleSlot+1);
 		exit(-1);
 	}

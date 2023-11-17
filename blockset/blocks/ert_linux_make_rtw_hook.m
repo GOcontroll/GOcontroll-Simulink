@@ -81,7 +81,6 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 %
 % You are encouraged to add other configuration options, and extend the
 % various callbacks to fully integrate ERT into your environment.
-  OS = computer();
   switch hookMethod
    case 'error'
       fprintf('########################### ERROR\n');
@@ -104,16 +103,20 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     % licensed use.
     %uiwait(warndlg(sprintf('You are using an educational version of HANcoder\n\nCommercial usage is not allowed in any way\n\nContact hancoder@han.nl for more information'),'HANcoder','modal'));
 
+	% Clear the UDP variables
+	if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
+		assignin('base','UDPBUFFNUM',0);
+	end
+
+	if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
+		assignin('base','UDPBUFFSIZE',0);
+	end
+
 	% Check if the code generation is started from the correct path
 
 	model_path = get_param(bdroot, 'FileName');
-    if OS=="GLNXA64"
-        model_path = regexprep(model_path, strcat('/',modelName,'.slx'),'');% Do for both slx as
-        model_path = regexprep(model_path, strcat('/',modelName,'.mdl'),'');% for mdl files
-    else
-        model_path = regexprep(model_path, strcat('\\',modelName,'.slx'),'');% Do for both slx as
-        model_path = regexprep(model_path, strcat('\\',modelName,'.mdl'),'');% for mdl files
-    end
+	model_path = regexprep(model_path, ['\' filesep modelName '.slx'],''); %windows needs the '\' and linux seems fine with or without it
+	model_path = regexprep(model_path, ['\' filesep modelName '.mdl'],'');
 
 	if (~(strcmp(pwd,model_path)))
 		errorMessage = strcat('The current folder is incorrect, please', ...
@@ -142,7 +145,22 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     % Called just after to invoking TLC Compiler (actual code generation.)
     % Valid arguments at this stage are hookMethod, modelName, and
     % buildArgs
-		% Get number of CAN receive blocks
+	%% get the necessary information from the model
+    % [nrOfUDPReceiveBuffers,UDPBuffSize] = searchUDPreceive(modelName);
+    % UDPBuffSize = getUDPBuffSize(modelName);
+
+	if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
+		nrOfUDPReceiveBuffers = evalin('base','UDPBUFFNUM') + 1;
+	else
+		nrOfUDPReceiveBuffers = 0;
+	end
+
+	if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
+		UDPBuffSize = evalin('base','UDPBUFFSIZE') + 1;
+	else
+		UDPBuffSize = 0;
+	end
+
 	nrOfCANreceiveBlocks = searchCANreceive(modelName);
 		% Add software version to the SYS_config.h file.
     fprintf('\n### Adding data to SYS_config.h...\n');
@@ -158,20 +176,37 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     if file == -1
          error('### failed to open SYS_config.h');
     end
-    if numel(stationID) > 255
-        msg = sprintf('Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n');
-             % Display error message in the matlab command window.
-             fprintf(msg);
-             % Abort and display pop-up window with error message.
-             error(msg);
-    end
-    fprintf(file, '#if defined ( __SYS_CONFIG_H__ )\n#else\n#define __SYS_CONFIG_H__\n');
-    fprintf(file, '#define kXcpStationIdString            "%s"\n', stationID);
-    fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
-    fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
+	if numel(stationID) > 255
+		msg = sprintf('Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n');
+			% Display error message in the matlab command window.
+			fprintf(msg);
+			% Abort and display pop-up window with error message.
+			error(msg);
+	end
+	fprintf(file, '#ifndef __SYS_CONFIG_H__ \n#define __SYS_CONFIG_H__\n');
+	fprintf(file, '#define kXcpStationIdString            "%s"\n', stationID);
+	fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
+	fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
 	fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
-    fprintf(file, '#endif');
-    fclose(file);
+    fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBuffers);
+    fprintf(file, '#define UDPBUFFSIZE                    %d\n', UDPBuffSize);
+	fprintf(file, '#endif');
+	fclose(file);
+
+    d = dir(['..' filesep 'blockset_*']);
+    folders = {d.name};
+    for i = 1:length(folders)
+        name=char(folders(1,i));
+		make_hook_script_orig = [pwd filesep '..' filesep name filesep 'makeHook.m'];
+		make_hook_script_dest = [pwd filesep 'makeHook.m'];
+        if isfile(make_hook_script_orig)
+		copyfile(make_hook_script_orig, make_hook_script_dest);
+		run(sprintf(make_hook_script_dest));
+		delete(make_hook_script_dest);
+		else
+			fprintf('No makeHook script found for %s\n',name);
+		end
+    end
 
    case 'before_make'
     % Called after code generation is complete, and just prior to kicking
@@ -185,12 +220,8 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     % Adding the memory addresses to the ASAP2 file
 	fprintf('### Post-processing ASAP2 file\n');
 	ASAP2file = sprintf('%s.a2l', modelName);
-    if OS=="GLNXA64"
-        MAPfile = sprintf('../%s.map',modelName);
-    else
-        MAPfile = sprintf('..\\%s.map',modelName);
-    end
-disp(ASAP2file);
+	MAPfile = ['..' filesep modelName '.map'];
+	disp(ASAP2file);
 	disp(MAPfile);
 	% Get XCP port
     XCPport = get_param(modelName,'tlcXcpTcpPort');
@@ -205,8 +236,8 @@ disp(ASAP2file);
     ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
 
     % Moving the A2L file to the user directory and the map file away
-    movefile([modelName,'.a2l'],['../',modelName,'.a2l']);
-	movefile(['../',modelName,'.map'],[modelName,'.map']);
+    movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
+	movefile(['..' filesep modelName '.map'],[modelName '.map']);
 
    case 'exit'
     % Called at the end of the RTW build process.  All arguments are valid
@@ -216,7 +247,7 @@ disp(ASAP2file);
 
     ert_linux_target_upload(modelName);
   end
-
+end
 %%******************************* end of ert_linux_make_rtw_hook.m ****************************
 
 
@@ -224,7 +255,8 @@ disp(ASAP2file);
 % This function searches for CAN receive blocks and adds a define to the
 % SYS_config.h file with the number of blocks found %
 function nrOfCANreceiveBlocks = searchCANreceive(modelName)
-% build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
-blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'CAN receive');
+    % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
+    blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'CAN receive');
     % only perform check if at least 1 or more HANcoder Target blocks were used
     nrOfCANreceiveBlocks = length(blockArray);
+end

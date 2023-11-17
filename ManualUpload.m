@@ -31,24 +31,28 @@
 %% This file is a modified version of the ert_linux_target_upload.m file found in the
 %% blockset folder to make it manually callable. It was modified by GOcontroll.
 %%
+%% Usage:
+%% ManualUpload [address] <optional port>
+%%
 %%***************************************************************************************
 %% Automatic flash script
 
-function ManualUpload(ip)
-OS = computer();
-if OS=="GLNXA64"
-    ModelPath= strcat(pwd, "/GOcontroll_Linux.elf");
-    a2lPath= strcat(pwd, "/GOcontroll_Linux.a2l");
+function ManualUpload(ip,varargin)
+
+if length(varargin) == 1
+	port = varargin{1};
 else
-    ModelPath= strcat(pwd, '\GOcontroll_Linux.elf');
-    a2lPath= strcat(pwd, '\GOcontroll_Linux.a2l');
+	port = '8001';
 end
 
+ModelPath = [pwd filesep 'GOcontroll_Linux.elf'];
+a2lPath = [pwd filesep 'GOcontroll_Linux.a2l'];
+
 % Upload the file to the controller
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',ModelPath,'" ',' http://',ip,':8001/upload');
+cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',ModelPath,'" ',' http://',ip,':',port,'/upload');
 disp(cmdCommand)
 system(cmdCommand);
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',ip,':8001/upload');
+cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',ip,':',port,'/upload');
 disp(cmdCommand)
 system(cmdCommand);
 
