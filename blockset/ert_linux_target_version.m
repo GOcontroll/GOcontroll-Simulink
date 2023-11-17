@@ -30,8 +30,13 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.2.5';
+version = 'GOcontroll v3.2.6';
 
+%% V3.2.6 Update 17-11-2023:
+%% Automatic build script demo added with multicore compiling support
+%% README fixes
+%% Improved build platform independence
+%%
 %% V3.2.5 Update 14-11-2023:
 %% Fixed an error in the module initialisation and backwards compatability protocol from 3.2.1
 %% Improvements to the ergonomics of the UDP blocks

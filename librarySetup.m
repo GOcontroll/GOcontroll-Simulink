@@ -65,13 +65,7 @@ for i = 1:length(folders)
     end
 end
 
-clear setupScript
-clear i
-clear d
-clear folders
-clear name
-clear path
-clear path1
+clear setupScript i d folders name path path1 OS
 
 warning off Simulink:SL_LoadMdlParameterizedLink;
 warning off Simulink:Commands:LoadMdlParameterizedLink;

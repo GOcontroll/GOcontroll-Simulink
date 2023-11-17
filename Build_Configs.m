@@ -2,9 +2,20 @@
 %% It will open the simulink model, load the configuration from the file, compile it and then move the products to their folder in the builds directory.
 
 tic % start timer
+model_name = "GOcontroll_Linux";
 
-load_system("GOcontroll_Linux"); % Open the Simulink model
-set_param("GOcontroll_Linux","tlcAutoUpload", "Do not upload"); % disable auto uploading
+model = load_system(model_name); % Open the Simulink model
+set_param(model,"tlcAutoUpload", "Do not upload"); % disable auto uploading
+
+core_info = evalc('feature(''numcores'')');
+core_info_split = split(core_info, " ");
+num_cores = core_info_split{12};
+
+fprintf("\nDetected %s logical cores\n",num_cores);
+
+set_param(model, "MakeCommand", ['make_rtw -j' num_cores]);
+
+clear num_cores core_info core_info_split
 
 if isfolder('builds') % if there already is a builds directory
 	rmdir('builds','s'); % delete it and its contents
@@ -25,10 +36,12 @@ for i = 1:length(configs)
 	dest_path = ['builds' filesep configname]; % find the destination path where the .elf and .a2l will be put
 
 	run(config_path); % execute the configuration
-	rtwbuild('GOcontroll_Linux'); % compile the model
+	rtwbuild(model); % compile the model
 	mkdir(dest_path); % make the destination folder
-	copyfile('GOcontroll_Linux.elf', dest_path); % copy the compilation products
-	copyfile('GOcontroll_Linux.a2l', dest_path);
+	copyfile(strcat(model_name, '.elf'), dest_path); % copy the compilation products
+	copyfile(strcat(model_name, '.a2l'), dest_path);
 end
+
+clear c configs i filename extension_split name_split configname config_path dest_path model_name ans model
 
 toc % print the elapsed time

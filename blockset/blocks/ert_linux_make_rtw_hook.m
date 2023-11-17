@@ -115,8 +115,8 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 	% Check if the code generation is started from the correct path
 
 	model_path = get_param(bdroot, 'FileName');
-	model_path = regexprep(model_path, [filesep modelName '.slx'],'');
-	model_path = regexprep(model_path, [filesep modelName '.mdl'],'');
+	model_path = regexprep(model_path, ['\' filesep modelName '.slx'],''); %windows needs the '\' and linux seems fine with or without it
+	model_path = regexprep(model_path, ['\' filesep modelName '.mdl'],'');
 
 	if (~(strcmp(pwd,model_path)))
 		errorMessage = strcat('The current folder is incorrect, please', ...
@@ -236,8 +236,8 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
 
     % Moving the A2L file to the user directory and the map file away
-    movefile([modelName,'.a2l'],['..' filesep modelName '.a2l']);
-	movefile(['..' filesep modelName '.map'],[modelName,'.map']);
+    movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
+	movefile(['..' filesep modelName '.map'],[modelName '.map']);
 
    case 'exit'
     % Called at the end of the RTW build process.  All arguments are valid
