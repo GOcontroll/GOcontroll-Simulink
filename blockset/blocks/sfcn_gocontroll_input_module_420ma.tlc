@@ -46,6 +46,7 @@
 
 	%openfile tmpBuf
 	_inputModule420ma inputModule420ma%<block.RTWdata.moduleSlot>;
+	const char *moduleslot%<block.RTWdata.moduleSlot> = "occupied by 4-20mA input module";
 	%closefile tmpBuf
 
 	%assign srcFile = LibGetModelDotCFile()

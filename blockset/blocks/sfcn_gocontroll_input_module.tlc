@@ -46,6 +46,7 @@
 
 	%openfile tmpBuf
 	_inputModule inputModule%<block.RTWdata.moduleSlot>;
+	const char *moduleslot%<block.RTWdata.moduleSlot> = "occupied by 6 channel input module";
 	%closefile tmpBuf
 
 	%assign srcFile = LibGetModelDotCFile()

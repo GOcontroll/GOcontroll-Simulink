@@ -55,6 +55,7 @@
 
 	%openfile tmpBuf
 	_bridgeModule bridgeModule%<block.RTWdata.moduleSlot>;
+	const char *moduleslot%<block.RTWdata.moduleSlot> = "occupied by bridge module";
 	%closefile tmpBuf
 
 	%assign srcFile = LibGetModelDotCFile()
