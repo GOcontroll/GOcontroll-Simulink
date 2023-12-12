@@ -236,7 +236,7 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
     ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
 
     % Moving the A2L file to the user directory and the map file away
-    movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
+    copyfile([modelName '.a2l'],['..' filesep modelName '.a2l']);
 	movefile(['..' filesep modelName '.map'],[modelName '.map']);
 
    case 'exit'

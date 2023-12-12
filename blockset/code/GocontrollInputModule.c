@@ -147,23 +147,23 @@ void InputModule_ResetPulsCounter(_inputModule *inputModule, uint8_t channel, in
 
 	if(inputModule->pulscounterResetTrigger[channel] != trigger)
 	{
-	inputModuleDataTx[6]				= channel;
-	*(int32_t*) &inputModuleDataTx[7]  	= value;
+		inputModuleDataTx[6]				= channel;
+		*(int32_t*) &inputModuleDataTx[7]  	= value;
 
-	if(inputModule->moduleType == INPUTMODULE6CHANNEL)
-	{
-		if (hardwareConfig.moduleOccupancy[inputModule->moduleSlot][4] >= 2) {
-			GocontrollProcessorboard_SendSpi(inputModule->moduleSlot+1, INPUTMODULE6CHMESSAGELENGTH, 1,11,3,2, inputModule->moduleSlot, &inputModuleDataTx[0],0);
-		} else {
-			GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 3,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+		if(inputModule->moduleType == INPUTMODULE6CHANNEL)
+		{
+			if (hardwareConfig.moduleOccupancy[inputModule->moduleSlot][4] >= 2) {
+				GocontrollProcessorboard_SendSpi(inputModule->moduleSlot+1, INPUTMODULE6CHMESSAGELENGTH, 1,11,3,2, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+			} else {
+				GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 3,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+			}
 		}
-	}
-	else if(inputModule->moduleType == INPUTMODULE10CHANNEL)
-	{
-		GocontrollProcessorboard_SendSpi(1, INPUTMODULE10CHMESSAGELENGTH, 1,12,3,2, inputModule->moduleSlot, &inputModuleDataTx[0],0);
-	}
+		else if(inputModule->moduleType == INPUTMODULE10CHANNEL)
+		{
+			GocontrollProcessorboard_SendSpi(1, INPUTMODULE10CHMESSAGELENGTH, 1,12,3,2, inputModule->moduleSlot, &inputModuleDataTx[0],0);
+		}
 
-	inputModule->pulscounterResetTrigger[channel] = trigger;
+		inputModule->pulscounterResetTrigger[channel] = trigger;
 	}
 }
 

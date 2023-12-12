@@ -30,8 +30,11 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.2.6';
+version = 'GOcontroll v3.2.7';
 
+%% V3.2.7 Update 4-12-2023:
+%% Having multiple modules configured for 1 module slot now causes a compilation error instead of giving you a headache trying to debug a problem that is difficult to trace
+%%
 %% V3.2.6 Update 17-11-2023:
 %% Automatic build script demo added with multicore compiling support
 %% README fixes
