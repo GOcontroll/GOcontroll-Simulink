@@ -38,3 +38,14 @@ SineWaveSizes = {1,1,1,1};
 
 set_param('GOcontroll_Linux/GOcontroll Moduline algorithm/UDP_Host', 'Commented', 'on');
 set_param('GOcontroll_Linux/GOcontroll Moduline algorithm/UDP_Client', 'Commented', 'on');
+
+%% Set CPU configation for faster compile times
+core_info = evalc('feature(''numcores'')');
+core_info_split = split(core_info, " ");
+num_cores = core_info_split{12};
+
+fprintf("\nDetected %s logical cores\n",num_cores);
+
+set_param('GOcontroll_Linux', "MakeCommand", ['make_rtw -j' num_cores]);
+
+clear num_cores core_info core_info_split
