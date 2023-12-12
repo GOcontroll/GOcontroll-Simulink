@@ -201,7 +201,7 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 		make_hook_script_dest = [pwd filesep 'makeHook.m'];
         if isfile(make_hook_script_orig)
 		copyfile(make_hook_script_orig, make_hook_script_dest);
-		run(sprintf(make_hook_script_dest));
+		run(make_hook_script_dest);
 		delete(make_hook_script_dest);
 		else
 			fprintf('No makeHook script found for %s\n',name);
