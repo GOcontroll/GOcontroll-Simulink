@@ -29,10 +29,8 @@
 %% endinternal
 %%
 %%***************************************************************************************
-function [portStr,ipStr,broadcastStr] = sfcn_UDPConfig_mcb(port, ip, broadcast)
+function [broadcastStr] = sfcn_UDPConfig_mcb(port, ip, broadcast)
 
-	portStr = num2str(port);
-	ipStr = ip;
 	if broadcast == 0
 		broadcastStr = "Not broadcasting";
 	else

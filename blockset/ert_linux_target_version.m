@@ -30,8 +30,11 @@
 
 function [version] = ert_linux_target_version();
 
-version = 'GOcontroll v3.2.7';
+version = 'GOcontroll v3.2.8';
 
+%% V3.2.8 Update 14-12-2023:
+%% UDP receive ID can now be switched between parameter or input port
+%%
 %% V3.2.7 Update 4-12-2023:
 %% Having multiple modules configured for 1 module slot now causes a compilation error instead of giving you a headache trying to debug a problem that is difficult to trace
 %%

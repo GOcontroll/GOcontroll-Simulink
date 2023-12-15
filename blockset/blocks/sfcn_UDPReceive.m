@@ -28,7 +28,7 @@
 %%
 %%***************************************************************************************
 function sfcn_UDPReceive(block)
-  setup(block);
+	setup(block);
 %endfunction
 
 
@@ -55,57 +55,61 @@ function sfcn_UDPReceive(block)
 %% BOOLEAN =  8
 
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 2;
+	%% Register number of input and output ports
+	block.NumInputPorts = 1;
+	block.NumOutputPorts = 2;
 
-  %% get the buffer size from the config block TODO get rid of hardcoded model name somehow
-%   config = find_system("GOcontroll_Linux", 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'Configure UDP socket');
-%   UDPBuffSize = get_param(config{1}, "buffer_length");
+	%% maybe ID
+	block.InputPort(1).Dimensions = 1;
+	block.InputPort(1).DatatypeID = 3;
+	block.InputPort(1).Complexity = 'Real';
+	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
+	block.InputPort(1).SamplingMode = 'sample';
 
-  %% new message
-  block.OutputPort(1).Dimensions = 1;
-  block.OutputPort(1).DatatypeID = 8;
-  block.OutputPort(1).Complexity = 'Real';
-  block.OutputPort(1).SamplingMode = 'sample';
-  %% message
-  block.OutputPort(2).Dimensions = block.DialogPrm(3).Data + 1;
-  block.OutputPort(2).DatatypeID = 3;
-  block.OutputPort(2).Complexity = 'Real';
-  block.OutputPort(2).SamplingMode = 'sample';
 
-  % Number of S-Function parameters expected
+	%% new message
+	block.OutputPort(1).Dimensions = 1;
+	block.OutputPort(1).DatatypeID = 8;
+	block.OutputPort(1).Complexity = 'Real';
+	block.OutputPort(1).SamplingMode = 'sample';
+	%% message
+	block.OutputPort(2).Dimensions = block.DialogPrm(3).Data + 1;
+	block.OutputPort(2).DatatypeID = 3;
+	block.OutputPort(2).Complexity = 'Real';
+	block.OutputPort(2).SamplingMode = 'sample';
 
-  % (tsamp, id)
-  block.NumDialogPrms     = 3;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	% Number of S-Function parameters expected
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	% (tsamp, id)
+	block.NumDialogPrms     = 4;
+	block.SampleTimes = [block.DialogPrm(1).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
+
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
 %endfunction
 
 function Start(block)

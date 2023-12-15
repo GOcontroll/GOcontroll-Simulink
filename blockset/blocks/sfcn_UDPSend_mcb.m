@@ -29,11 +29,8 @@
 %% endinternal
 %%
 %%***************************************************************************************
-function [portStr,ipStr] = sfcn_UDPSend_mcb(port, ip)
-
-	portStr = num2str(port);
-	ipStr = ip;
-
+function sfcn_UDPSend_mcb(port, ip)
+	
 modelRTWFields = struct('port', num2str(port), 'ip', ip);
 
 % Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
