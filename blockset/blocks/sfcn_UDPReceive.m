@@ -61,7 +61,7 @@ function setup(block)
 
 	%% maybe ID
 	block.InputPort(1).Dimensions = 1;
-	block.InputPort(1).DatatypeID = 3;
+	% block.InputPort(1).DatatypeID = 3;
 	block.InputPort(1).Complexity = 'Real';
 	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
 	block.InputPort(1).SamplingMode = 'sample';

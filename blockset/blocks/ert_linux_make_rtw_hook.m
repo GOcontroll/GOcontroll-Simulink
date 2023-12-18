@@ -221,8 +221,6 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 	fprintf('### Post-processing ASAP2 file\n');
 	ASAP2file = sprintf('%s.a2l', modelName);
 	MAPfile = ['..' filesep modelName '.map'];
-	disp(ASAP2file);
-	disp(MAPfile);
 	% Get XCP port
     XCPport = get_param(modelName,'tlcXcpTcpPort');
 	% Get XCP address

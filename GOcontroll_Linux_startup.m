@@ -31,6 +31,9 @@ LEDRed.Value = 50; % Initial value is set to zero, no override
 
 %% Constant Parameters
 UDPBuffSize = 4;
+UDPBuffNum = 2;
+
+load('S2.mat');
 
 %% UDP data packets
 SineWaveTypes = {'uint8','uint8','uint8','uint8'};
