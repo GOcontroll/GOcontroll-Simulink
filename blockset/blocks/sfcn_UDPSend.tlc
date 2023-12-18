@@ -49,5 +49,5 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-    UdpSend(%<block.RTWdata.port>, "%<block.RTWdata.ip>",(uint8_t*) %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>);
+    UdpSend((uint8_t) %<block.RTWdata.port>, "%<block.RTWdata.ip>",(uint8_t*) %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>);
 %endfunction

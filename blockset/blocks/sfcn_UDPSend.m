@@ -60,7 +60,6 @@ function setup(block)
   block.NumOutputPorts = 0;
 
   %% message out, dont set dimensions as they are not known yet, model will make this work.
-  block.InputPort(1).DatatypeID = 3;
   block.InputPort(1).Complexity = 'Real';
   block.InputPort(1).DirectFeedthrough = false;
   block.InputPort(1).SamplingMode = 'sample';
