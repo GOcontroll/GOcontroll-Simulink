@@ -883,7 +883,7 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	}
 
 	/* Displays */
-	else if(strcmp (tempValue, "Moduline Screen V1.01")==0)
+	else if(strcmp (tempValue, "Moduline Display V1.01")==0)
 	{
 	printf(tempValue);
 	hardwareConfig.moduleNumber = 2;
@@ -891,7 +891,7 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Screen V1.02")==0)
+	else if(strcmp (tempValue, "Moduline Display V1.02")==0)
 	{
 	printf(tempValue);
 	hardwareConfig.moduleNumber = 2;
@@ -899,7 +899,7 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Screen V1.03")==0)
+	else if(strcmp (tempValue, "Moduline Display V1.03")==0)
 	{
 	printf(tempValue);
 	hardwareConfig.moduleNumber = 2;
@@ -907,7 +907,7 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Screen V1.04")==0)
+	else if(strcmp (tempValue, "Moduline Display V1.04")==0)
 	{
 	printf(tempValue);
 	hardwareConfig.moduleNumber = 2;
@@ -915,7 +915,7 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Screen V1.05")==0)
+	else if(strcmp (tempValue, "Moduline Display V1.05")==0)
 	{
 	printf(tempValue);
 	hardwareConfig.moduleNumber = 2;

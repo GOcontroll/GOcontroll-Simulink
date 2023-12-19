@@ -72,24 +72,8 @@ if(ContrType == 1) % Moduline IV
 	pin5Id = 'Pin 10';
 	pin6Id = 'Pin 16';
 	end
-elseif(ContrType == 2) % Moduline mini
+elseif(ContrType == 2 || ContrType == 3) % Moduline mini / Moduline Display
 	if(moduleSlot == 1 || moduleSlot == 3)
-	pin1Id = 'Pin 15';
-	pin2Id = 'Pin 23';
-	pin3Id = 'Pin 14';
-	pin4Id = 'Pin 22';
-	pin5Id = 'Pin 13';
-	pin6Id = 'Pin 21';
-	else
-	pin1Id = 'Pin 10';
-	pin2Id = 'Pin 18';
-	pin3Id = 'Pin 11';
-	pin4Id = 'Pin 19';
-	pin5Id = 'Pin 12';
-	pin6Id = 'Pin 20';
-	end
-elseif(ContrType == 3) % Moduline screen
-	if(moduleSlot == 1)
 	pin1Id = 'Pin 15';
 	pin2Id = 'Pin 23';
 	pin3Id = 'Pin 14';

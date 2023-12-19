@@ -28,10 +28,14 @@
 %%
 %%***************************************************************************************
 
-function [version] = ert_linux_target_version();
+function [version] = ert_linux_target_version()
 
-version = 'GOcontroll v3.2.8';
+version = 'GOcontroll v3.3.0';
 
+%% V3.3.0 Update 19-12-2023:
+%% Now enforcing the Moduline Display name in software. This will break this blockset for the small number of boards currently in circulation.
+%% These boards can be brought up to date so they will work again with newer blocksets by contacting support@gocontroll.com
+%%
 %% V3.2.8 Update 14-12-2023:
 %% UDP receive ID can now be switched between parameter or input port
 %%

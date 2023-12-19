@@ -27,19 +27,19 @@
 %% DEALINGS IN THE SOFTWARE.
 %%
 %%***************************************************************************************
-function [moduleSlotInfoStr, inputChannelInfoStr] = go_6channel_input_module_reset_mcb(moduleSlot,contrType,inputChannel)
+function [moduleSlotInfoStr, inputChannelInfoStr] = sfcn_gocontroll_input_module_reset_mcb(moduleSlot,contrType,inputChannel)
 
 
 
   % array with module slot infos
-moduleSlotInfoStrings = {  'Module Slot 1',  ...\
-						'Module Slot 2',  ...\
-						'Module Slot 3',  ...\
-						'Module Slot 4',  ...\
-						'Module Slot 5',  ...\
-						'Module Slot 6',  ...\
-						'Module Slot 7',  ...\
-						'Module Slot 8'};
+moduleSlotInfoStrings = {'Module Slot 1',  ...\
+						 'Module Slot 2',  ...\
+						 'Module Slot 3',  ...\
+						 'Module Slot 4',  ...\
+						 'Module Slot 5',  ...\
+						 'Module Slot 6',  ...\
+						 'Module Slot 7',  ...\
+						 'Module Slot 8'};
 
 channelIDInfoStrings = {	'Input Channel 1',  ...\
 							'Input Channel 2',  ...\
