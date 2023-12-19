@@ -54,35 +54,35 @@ end
 
 if(ContrType == 1) % Moduline IV
 	if(moduleSlot == 1 || moduleSlot == 3 || moduleSlot == 5 || moduleSlot == 7)
-	pin1Id = 'Pin 13';
-	pin2Id = 'Pin 19';
-	pin3Id = 'Pin 12';
-	pin4Id = 'Pin 18';
-	pin5Id = 'Pin 11';
-	pin6Id = 'Pin 17';
+		pin1Id = 'Pin 13';
+		pin2Id = 'Pin 19';
+		pin3Id = 'Pin 12';
+		pin4Id = 'Pin 18';
+		pin5Id = 'Pin 11';
+		pin6Id = 'Pin 17';
 	else
-	pin1Id = 'Pin 8';
-	pin2Id = 'Pin 14';
-	pin3Id = 'Pin 9';
-	pin4Id = 'Pin 15';
-	pin5Id = 'Pin 10';
-	pin6Id = 'Pin 16';
+		pin1Id = 'Pin 8';
+		pin2Id = 'Pin 14';
+		pin3Id = 'Pin 9';
+		pin4Id = 'Pin 15';
+		pin5Id = 'Pin 10';
+		pin6Id = 'Pin 16';
 	end
 elseif(ContrType == 2 || ContrType == 3) % Moduline mini / Moduline display
 	if(moduleSlot == 1 || moduleSlot == 3)
-	pin1Id = 'Pin 15';
-	pin2Id = 'Pin 23';
-	pin3Id = 'Pin 14';
-	pin4Id = 'Pin 22';
-	pin5Id = 'Pin 13';
-	pin6Id = 'Pin 17';
+		pin1Id = 'Pin 15';
+		pin2Id = 'Pin 23';
+		pin3Id = 'Pin 14';
+		pin4Id = 'Pin 22';
+		pin5Id = 'Pin 13';
+		pin6Id = 'Pin 17';
 	else
-	pin1Id = 'Pin 10';
-	pin2Id = 'Pin 18';
-	pin3Id = 'Pin 11';
-	pin4Id = 'Pin 19';
-	pin5Id = 'Pin 12';
-	pin6Id = 'Pin 20';
+		pin1Id = 'Pin 10';
+		pin2Id = 'Pin 18';
+		pin3Id = 'Pin 11';
+		pin4Id = 'Pin 19';
+		pin5Id = 'Pin 12';
+		pin6Id = 'Pin 20';
 	end
 end
 

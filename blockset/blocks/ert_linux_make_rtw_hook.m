@@ -81,170 +81,170 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 %
 % You are encouraged to add other configuration options, and extend the
 % various callbacks to fully integrate ERT into your environment.
-  switch hookMethod
-   case 'error'
-      fprintf('########################### ERROR\n');
-    % Called if an error occurs anywhere during the build.  If no error occurs
-    % during the build, then this hook will not be called.  Valid arguments
-    % at this stage are hookMethod and modelName. This enables cleaning up
-    % any static or global data used by this hook file.
-    disp(['### Real-Time Workshop build procedure for model: ''' modelName...
-          ''' aborted due to an error.']);
+switch hookMethod
+	case 'error'
+		fprintf('########################### ERROR\n');
+		% Called if an error occurs anywhere during the build.  If no error occurs
+		% during the build, then this hook will not be called.  Valid arguments
+		% at this stage are hookMethod and modelName. This enables cleaning up
+		% any static or global data used by this hook file.
+		disp(['### Real-Time Workshop build procedure for model: ''' modelName...
+				''' aborted due to an error.']);
 
-   case 'entry'
-      fprintf('########################### ENTRY\n');
-    % Called at start of code generation process (before anything happens.)
-    % Valid arguments at this stage are hookMethod, modelName, and buildArgs.
+	case 'entry'
+		fprintf('########################### ENTRY\n');
+		% Called at start of code generation process (before anything happens.)
+		% Valid arguments at this stage are hookMethod, modelName, and buildArgs.
 
-    % The following warning must be given if the evaluation version is
-    % used, comment for licensed use.
-    %uiwait(warndlg('This version is for evaluation purposes only','HANcoder','modal'));
-    % The following warning is given for the student version, comment for
-    % licensed use.
-    %uiwait(warndlg(sprintf('You are using an educational version of HANcoder\n\nCommercial usage is not allowed in any way\n\nContact hancoder@han.nl for more information'),'HANcoder','modal'));
+		% The following warning must be given if the evaluation version is
+		% used, comment for licensed use.
+		%uiwait(warndlg('This version is for evaluation purposes only','HANcoder','modal'));
+		% The following warning is given for the student version, comment for
+		% licensed use.
+		%uiwait(warndlg(sprintf('You are using an educational version of HANcoder\n\nCommercial usage is not allowed in any way\n\nContact hancoder@han.nl for more information'),'HANcoder','modal'));
 
-	% Clear the UDP variables
-	if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
-		assignin('base','UDPBUFFNUM',0);
-	end
-
-	if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
-		assignin('base','UDPBUFFSIZE',0);
-	end
-
-	% Check if the code generation is started from the correct path
-
-	model_path = get_param(bdroot, 'FileName');
-	model_path = regexprep(model_path, ['\' filesep modelName '.slx'],''); %windows needs the '\' and linux seems fine with or without it
-	model_path = regexprep(model_path, ['\' filesep modelName '.mdl'],'');
-
-	if (~(strcmp(pwd,model_path)))
-		errorMessage = strcat('The current folder is incorrect, please', ...
-		' set the current folder to:', model_path);
-		error(errorMessage);
-    end
-
-    % Call function to add all variables which are not declared by the
-    % user to the workspace as Simulink.Signals/Parameters. This way the
-    % missing signals and parameters will become visible in HANtune
-		fprintf('########################### ASAP\n');
-    AddASAP2Elements(modelName);
-
-    fprintf(['\n### Starting Real-Time Workshop build procedure for ', ...
-                  'model: %s\n'],modelName);
-    fprintf('### Checking for the use of HANcoder blocks...\n');
-
-
-   case 'before_tlc'
-    % Called just prior to invoking TLC Compiler (actual code generation.)
-    % Valid arguments at this stage are hookMethod, modelName, and
-    % buildArgs
-
-
-   case 'after_tlc'
-    % Called just after to invoking TLC Compiler (actual code generation.)
-    % Valid arguments at this stage are hookMethod, modelName, and
-    % buildArgs
-	%% get the necessary information from the model
-    % [nrOfUDPReceiveBuffers,UDPBuffSize] = searchUDPreceive(modelName);
-    % UDPBuffSize = getUDPBuffSize(modelName);
-
-	if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
-		nrOfUDPReceiveBuffers = evalin('base','UDPBUFFNUM') + 1;
-	else
-		nrOfUDPReceiveBuffers = 0;
-	end
-
-	if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
-		UDPBuffSize = evalin('base','UDPBUFFSIZE') + 1;
-	else
-		UDPBuffSize = 0;
-	end
-
-	nrOfCANreceiveBlocks = searchCANreceive(modelName);
-		% Add software version to the SYS_config.h file.
-    fprintf('\n### Adding data to SYS_config.h...\n');
-    formatOut = 'ddmmyy_HHMMSS';
-    daten = datestr(now, formatOut);
-    stationID = strcat(modelName,daten);
-    assignin('base','kXcpStationId',stationID);
-    % Get XCP port
-    XCPport = get_param(modelName,'tlcXcpTcpPort');
-
-	% Open file in write mode 'w'
-    file = fopen('SYS_config.h', 'w');
-    if file == -1
-         error('### failed to open SYS_config.h');
-    end
-	if numel(stationID) > 255
-		msg = sprintf('Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n');
-			% Display error message in the matlab command window.
-			fprintf(msg);
-			% Abort and display pop-up window with error message.
-			error(msg);
-	end
-	fprintf(file, '#ifndef __SYS_CONFIG_H__ \n#define __SYS_CONFIG_H__\n');
-	fprintf(file, '#define kXcpStationIdString            "%s"\n', stationID);
-	fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
-	fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
-	fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
-    fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBuffers);
-    fprintf(file, '#define UDPBUFFSIZE                    %d\n', UDPBuffSize);
-	fprintf(file, '#endif');
-	fclose(file);
-
-    d = dir(['..' filesep 'blockset_*']);
-    folders = {d.name};
-    for i = 1:length(folders)
-        name=char(folders(1,i));
-		make_hook_script_orig = [pwd filesep '..' filesep name filesep 'makeHook.m'];
-		make_hook_script_dest = [pwd filesep 'makeHook.m'];
-        if isfile(make_hook_script_orig)
-		copyfile(make_hook_script_orig, make_hook_script_dest);
-		run(make_hook_script_dest);
-		delete(make_hook_script_dest);
-		else
-			fprintf('No makeHook script found for %s\n',name);
+		% Clear the UDP variables
+		if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
+			assignin('base','UDPBUFFNUM',0);
 		end
-    end
 
-   case 'before_make'
-    % Called after code generation is complete, and just prior to kicking
-    % off make process (assuming code generation only is not selected.)  All
-    % arguments are valid at this stage.
-	delete('*.obj')
+		if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
+			assignin('base','UDPBUFFSIZE',0);
+		end
 
-   case 'after_make'
-    % Called after make process is complete. All arguments are valid at
-    % this stage.
-    % Adding the memory addresses to the ASAP2 file
-	fprintf('### Post-processing ASAP2 file\n');
-	ASAP2file = sprintf('%s.a2l', modelName);
-	MAPfile = ['..' filesep modelName '.map'];
-	% Get XCP port
-    XCPport = get_param(modelName,'tlcXcpTcpPort');
-	% Get XCP address
-	XCPaddress = get_param(modelName,'tlcXcpTcpAddress');
-    % Read the kXcpStationId from the workspace
-    stationID = evalin('base', 'kXcpStationId');
-	% Get the Linux target from the model parameters tab
-	LinuxTarget = get_param(modelName,'tlcLinuxTarget');
+		% Check if the code generation is started from the correct path
 
-    % Postprocess the ASAP2file
-    ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
+		model_path = get_param(bdroot, 'FileName');
+		model_path = regexprep(model_path, ['\' filesep modelName '.slx'],''); %windows needs the '\' and linux seems fine with or without it
+		model_path = regexprep(model_path, ['\' filesep modelName '.mdl'],'');
 
-    % Moving the A2L file to the user directory and the map file away
-    copyfile([modelName '.a2l'],['..' filesep modelName '.a2l']);
-	movefile(['..' filesep modelName '.map'],[modelName '.map']);
+		if (~(strcmp(pwd,model_path)))
+			errorMessage = strcat('The current folder is incorrect, please', ...
+			' set the current folder to:', model_path);
+			error(errorMessage);
+		end
 
-   case 'exit'
-    % Called at the end of the RTW build process.  All arguments are valid
-    % at this stage.
-    disp(['### Successful completion of Real-Time Workshop build ',...
-          'procedure for model: ', modelName]);
+		% Call function to add all variables which are not declared by the
+		% user to the workspace as Simulink.Signals/Parameters. This way the
+		% missing signals and parameters will become visible in HANtune
+			fprintf('########################### ASAP\n');
+		AddASAP2Elements(modelName);
 
-    ert_linux_target_upload(modelName);
-  end
+		fprintf(['\n### Starting Real-Time Workshop build procedure for ', ...
+						'model: %s\n'],modelName);
+		fprintf('### Checking for the use of HANcoder blocks...\n');
+
+
+	case 'before_tlc'
+		% Called just prior to invoking TLC Compiler (actual code generation.)
+		% Valid arguments at this stage are hookMethod, modelName, and
+		% buildArgs
+
+
+	case 'after_tlc'
+		% Called just after to invoking TLC Compiler (actual code generation.)
+		% Valid arguments at this stage are hookMethod, modelName, and
+		% buildArgs
+		%% get the necessary information from the model
+		% [nrOfUDPReceiveBuffers,UDPBuffSize] = searchUDPreceive(modelName);
+		% UDPBuffSize = getUDPBuffSize(modelName);
+
+		if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
+			nrOfUDPReceiveBuffers = evalin('base','UDPBUFFNUM') + 1;
+		else
+			nrOfUDPReceiveBuffers = 0;
+		end
+
+		if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
+			UDPBuffSize = evalin('base','UDPBUFFSIZE') + 1;
+		else
+			UDPBuffSize = 0;
+		end
+
+		nrOfCANreceiveBlocks = searchCANreceive(modelName);
+			% Add software version to the SYS_config.h file.
+		fprintf('\n### Adding data to SYS_config.h...\n');
+		formatOut = 'ddmmyy_HHMMSS';
+		daten = datestr(now, formatOut);
+		stationID = strcat(modelName,daten);
+		assignin('base','kXcpStationId',stationID);
+		% Get XCP port
+		XCPport = get_param(modelName,'tlcXcpTcpPort');
+
+		% Open file in write mode 'w'
+		file = fopen('SYS_config.h', 'w');
+		if file == -1
+				error('### failed to open SYS_config.h');
+		end
+		if numel(stationID) > 255
+			msg = sprintf('Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n');
+				% Display error message in the matlab command window.
+				fprintf(msg);
+				% Abort and display pop-up window with error message.
+				error(msg);
+		end
+		fprintf(file, '#ifndef __SYS_CONFIG_H__ \n#define __SYS_CONFIG_H__\n');
+		fprintf(file, '#define kXcpStationIdString            "%s"\n', stationID);
+		fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
+		fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
+		fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
+		fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBuffers);
+		fprintf(file, '#define UDPBUFFSIZE                    %d\n', UDPBuffSize);
+		fprintf(file, '#endif');
+		fclose(file);
+
+		d = dir(['..' filesep 'blockset_*']);
+		folders = {d.name};
+		for i = 1:length(folders)
+			name=char(folders(1,i));
+			make_hook_script_orig = [pwd filesep '..' filesep name filesep 'makeHook.m'];
+			make_hook_script_dest = [pwd filesep 'makeHook.m'];
+			if isfile(make_hook_script_orig)
+				copyfile(make_hook_script_orig, make_hook_script_dest);
+				run(make_hook_script_dest);
+				delete(make_hook_script_dest);
+			else
+				fprintf('No makeHook script found for %s\n',name);
+			end
+		end
+
+	case 'before_make'
+		% Called after code generation is complete, and just prior to kicking
+		% off make process (assuming code generation only is not selected.)  All
+		% arguments are valid at this stage.
+		delete('*.obj')
+
+	case 'after_make'
+		% Called after make process is complete. All arguments are valid at
+		% this stage.
+		% Adding the memory addresses to the ASAP2 file
+		fprintf('### Post-processing ASAP2 file\n');
+		ASAP2file = sprintf('%s.a2l', modelName);
+		MAPfile = ['..' filesep modelName '.map'];
+		% Get XCP port
+		XCPport = get_param(modelName,'tlcXcpTcpPort');
+		% Get XCP address
+		XCPaddress = get_param(modelName,'tlcXcpTcpAddress');
+		% Read the kXcpStationId from the workspace
+		stationID = evalin('base', 'kXcpStationId');
+		% Get the Linux target from the model parameters tab
+		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
+
+		% Postprocess the ASAP2file
+		ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
+
+		% Moving the A2L file to the user directory and the map file away
+		copyfile([modelName '.a2l'],['..' filesep modelName '.a2l']);
+		movefile(['..' filesep modelName '.map'],[modelName '.map']);
+
+	case 'exit'
+		% Called at the end of the RTW build process.  All arguments are valid
+		% at this stage.
+		disp(['### Successful completion of Real-Time Workshop build ',...
+				'procedure for model: ', modelName]);
+
+		ert_linux_target_upload(modelName);
+end
 end
 %%******************************* end of ert_linux_make_rtw_hook.m ****************************
 

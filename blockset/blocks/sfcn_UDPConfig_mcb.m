@@ -37,10 +37,10 @@ function [broadcastStr] = sfcn_UDPConfig_mcb(port, ip, broadcast)
 		broadcastStr = "Broadcasting";
 	end
 
-modelRTWFields = struct('port', num2str(port), 'ip', ip, 'broadcast', num2str(broadcast));
+	modelRTWFields = struct('port', num2str(port), 'ip', ip, 'broadcast', num2str(broadcast));
 
-% Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
-HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');
-set_param(HANcoder_TARGET_DataBlock{1}, 'RTWdata', modelRTWFields);
+	% Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
+	HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');
+	set_param(HANcoder_TARGET_DataBlock{1}, 'RTWdata', modelRTWFields);
 
 %%******************************* end of sfcn_UDPConfig_mcb.m *************************
