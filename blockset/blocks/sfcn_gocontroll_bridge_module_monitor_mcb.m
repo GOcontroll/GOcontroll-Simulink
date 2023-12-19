@@ -60,7 +60,7 @@ function [moduleSlotInfoStr, connectorId, pin1Id, pin2Id] = sfcn_gocontroll_brid
 			pin1Id = 'Pin 8,9,10';
 			pin2Id = 'Pin 14,15,16';
 		end
-	elseif(ContrType == 2) % Moduline mini
+	elseif(ContrType == 2 || ContrType == 3) % Moduline mini / Moduline display
 		if(moduleSlot == 1 || moduleSlot == 3)
 			pin1Id = 'Pin 13,14,15';
 			pin2Id = 'Pin 21,22,23';
@@ -75,7 +75,7 @@ function [moduleSlotInfoStr, connectorId, pin1Id, pin2Id] = sfcn_gocontroll_brid
 
 	% Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
 	HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');
-set_param(HANcoder_TARGET_DataBlock{1}, 'RTWdata', modelRTWFields);
+	set_param(HANcoder_TARGET_DataBlock{1}, 'RTWdata', modelRTWFields);
 
 
 %%******************************* end of sfcn_gocontroll_bridge_module_monitor_mcb.m ******************
