@@ -92,17 +92,17 @@ void getUdpBuffer(size_t id, uint8_t* message, size_t message_len, uint8_t* new_
 	}
 }
 
-void UdpSend(uint16_t port, char* ip, uint8_t* message, size_t message_length) {
+void UdpSend(uint16_t port, char* ip, uint8_t id, uint8_t* message, size_t message_length) {
 	struct sockaddr_in client_addr;
 	client_addr.sin_family = AF_INET;
 	client_addr.sin_port = htons(port);
 	client_addr.sin_addr.s_addr = inet_addr(ip);
 	int client_struct_length = sizeof(client_addr);
+	message[0] = id;
 
 	if (sendto(socket_desc, message, message_length, 0,
 			(struct sockaddr*)&client_addr, client_struct_length) < 0){
 		fprintf(stderr, "Can't send UDP packet\n");
-		return ;
 	}
 }
 

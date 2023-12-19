@@ -29,9 +29,9 @@
 %% endinternal
 %%
 %%***************************************************************************************
-function sfcn_UDPSend_mcb(port, ip)
+function sfcn_UDPSend_mcb(port, ip, id, input_type)
 	
-modelRTWFields = struct('port', num2str(port), 'ip', ip);
+modelRTWFields = struct('port', num2str(port), 'ip', ip, 'id', num2str(id), 'input_type', num2str(input_type));
 
 % Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
 HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');

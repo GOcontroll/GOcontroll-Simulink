@@ -56,18 +56,22 @@ function sfcn_UDPSend(block)
 
 function setup(block)
   %% Register number of input and output ports
-  block.NumInputPorts = 1;
+  block.NumInputPorts = 2;
   block.NumOutputPorts = 0;
 
-  %% message out, dont set dimensions as they are not known yet, model will make this work.
+  block.InputPort(1).Dimensions = 1;
   block.InputPort(1).Complexity = 'Real';
   block.InputPort(1).DirectFeedthrough = false;
   block.InputPort(1).SamplingMode = 'sample';
+  %% message out, dont set dimensions as they are not known yet, model will make this work.
+  block.InputPort(2).Complexity = 'Real';
+  block.InputPort(2).DirectFeedthrough = false;
+  block.InputPort(2).SamplingMode = 'sample';
 
   % Number of S-Function parameters expected
 
   % (tsamp, port, ip)
-  block.NumDialogPrms     = 3;
+  block.NumDialogPrms     = 5;
   block.SampleTimes = [block.DialogPrm(1).Data 0];
   %% -----------------------------------------------------------------
   %% Register methods called at run-time

@@ -89,10 +89,11 @@ void getUdpBuffer(size_t id, uint8_t* message, size_t message_len, uint8_t* new_
  * 
  * @param port port to which it needs to be sent
  * @param ip ip to which it needs to be sent
- * @param message the packet
+ * @param id the message identifier
+ * @param message the packet (keep [0] unoccupied for the id)
  * @param message_length packet length
  */
-void UdpSend(uint16_t port, char* ip, uint8_t* message, size_t message_length);
+void UdpSend(uint16_t port, char* ip, uint8_t id, uint8_t* message, size_t message_length);
 
 /**
  * @brief init the udp buffers

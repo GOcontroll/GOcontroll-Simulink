@@ -50,7 +50,6 @@
 %%
 %function Outputs(block, system) Output
     /* %<Type> Block: %<Name> */
-    /* update the output signal */
 	%if ISEQUAL(0, %<block.RTWdata.input_type>)
     getUdpBuffer((uint8_t) %<block.RTWdata.id>, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<block.RTWdata.buff_len> + 1, %<LibBlockOutputSignalAddr(0, "", "", 0)>);
 	%else
