@@ -51,9 +51,6 @@
 #include <sys/time.h>
 
  /* declarations for threading and timer */
-static pthread_mutex_t mutex     = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t  condition = PTHREAD_COND_INITIALIZER;
-
 pthread_t model_step_thread;
 pthread_t xcp_thread;
 pthread_t adc_thread;
@@ -91,6 +88,7 @@ void killModel(void) {
 	//pthread_join(mqtt_thread, NULL);
 	//run block terminate functions
 	%<modelName>_terminate();
+	exit(0);
 }
 
 /****************************************************************************************
@@ -105,22 +103,10 @@ static void * model_step(void *arg)
 	struct timespec timeout;
 	int result;
 	struct sched_param sp; /* Structure to hold priority for thread */
-	cpu_set_t cpuSet;
-
-	/* Initialize mutex and condition */
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&condition, NULL);
-
+	
 	sp.sched_priority = 40;/* Set priority high (99 is top prio)*/
 	if(pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)){
 		fprintf(stderr,"WARNING, failed to set priority of model_step thread\n");
-	}
-
-	/* Next we set the CPU affinity to make sure the thread won't be switched to CPU's with other tasks */
-	CPU_ZERO(&cpuSet); /* Clear affinity first no CPU selected */
-	CPU_SET(2, &cpuSet); /* Set mask affinity to second cpu */
-	if(sched_setaffinity(0,sizeof(cpu_set_t), &cpuSet)){
-		fprintf(stderr,"WARNING, failed to set CPU affinity of model_step thread\n");
 	}
 
 	/* Setting a timeout so the program doesn't wait endlessly */
@@ -132,18 +118,13 @@ static void * model_step(void *arg)
 		result = sigtimedwait(set, NULL, &timeout);
 		if(result==-1)
 			fprintf(stderr,"Error with sigwait:%s\n",strerror(errno));
-		//pthread_mutex_lock(&mutex);
 		serveCANconnection();
 		/* Run model code */
 		%<modelName>_step();
-		//pthread_mutex_unlock(&mutex);
 		XcpDataTransmission();
 		if(DEBUG == 1)
 			fprintf(stdout,"Some DEBUG text can be placed here");
 	}
-
-	pthread_mutex_destroy(&mutex);
-	pthread_cond_destroy(&condition);
 
 	return NULL;
 }
@@ -155,8 +136,7 @@ static void * model_step(void *arg)
 ** \return    int
 **
 ****************************************************************************************/
-int_T main(int_T argc, const char_T *argv[])
-  {
+int_T main(int_T argc, const char_T *argv[]){
 	sigset_t set;	/* Signal set to hold signal mask */
 	int result;		/* General variable to check function returns */
 	/* Declare thread for model step and XCP*/
@@ -174,15 +154,8 @@ int_T main(int_T argc, const char_T *argv[])
 	/* Initialize the processorboard pheriphals */
 	GocontrollProcessorboard_Initialize();
 
-    /* Initialize model */
-    %<modelName>_initialize();
-
-	/* Make a struct for the timer setup */
-	struct itimerval timer_setup = { .it_interval = {0, %<CompiledModel.SampleTime[0].ClockTickStepSize * 1000000> },	/* Automatically updated from the base sample time of the model */
-	                                    .it_value = {0, 100000 } };		/* Start in 1 seconds(&0us) to give time for other functions to finish */
-
-	/* Start timer */
-	setitimer(ITIMER_REAL, &timer_setup, NULL); /* set kind of timer, set new_value, no need to store old value */
+	/* Initialize model */
+	%<modelName>_initialize();
 
 	/* Block signal SIGALRM used to time the modelStep() in all threads created by main thread */
 	sigemptyset(&set);
@@ -191,14 +164,23 @@ int_T main(int_T argc, const char_T *argv[])
 	if(result != 0)
 		fprintf(stderr, "WARNING, unable to block signal SIG_ALRM%s\n",strerror(errno));
 
-	/* Create model step thread */
-	pthread_create(&model_step_thread, NULL, &model_step, (void *) &set);
+	
 
 	/* Create xcp thread */
 	pthread_create(&xcp_thread, NULL, &XcpInitialize, NULL);
 
 	/* Create a dedicated thread to read the ADC values from the voltage supply ADC convertor */
 	pthread_create(&adc_thread, NULL, GocontrollProcessorboardSupply_ReadAdcThread, NULL);
+
+	/* Make a struct for the timer setup */
+	struct itimerval timer_setup = { .it_interval = {0, %<CompiledModel.SampleTime[0].ClockTickStepSize * 1000000> },	/* Automatically updated from the base sample time of the model */
+	                                    .it_value = {0, 1000 } };		/* Start in 1 millisecond to give time for other functions to finish */
+
+	/* Start timer */
+	setitimer(ITIMER_REAL, &timer_setup, NULL); /* set kind of timer, set new_value, no need to store old value */
+
+	/* Create model step thread */
+	pthread_create(&model_step_thread, NULL, &model_step, (void *) &set);
 
 	/* suspend current thread until model_step_thread returns */
 	pthread_join(model_step_thread, NULL);
@@ -211,11 +193,11 @@ int_T main(int_T argc, const char_T *argv[])
 
 	/* Terminate function for the model */
 	/* This function is called by the SIGTERM detection */
-    killModel();
+	killModel();
 
 	/* Get outta here */
 	return 0;
-  }
+}
 
 
 

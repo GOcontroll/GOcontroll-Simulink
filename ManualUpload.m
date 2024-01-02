@@ -6,7 +6,7 @@
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
 %%  Copyright 2019 (c) by HAN Automotive     http://www.han.nl          All rights reserved
-%%  Copyrigth 2023 (c) by GOcontroll B.V.    http://www.gocontroll.com  All rights reserved
+%%  Copyrigth 2024 (c) by GOcontroll B.V.    http://www.gocontroll.com  All rights reserved
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
 %%---------------------------------------------------------------------------------------

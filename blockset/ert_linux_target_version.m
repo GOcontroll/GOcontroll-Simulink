@@ -5,7 +5,7 @@
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
-%%  Copyright 2023 (c) by GOcontroll     http://www.gocontroll.com    All rights reserved
+%%  Copyright 2024 (c) by GOcontroll     http://www.gocontroll.com    All rights reserved
 %%
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
@@ -30,8 +30,13 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll v3.3.0';
+version = 'GOcontroll v3.3.1';
 
+%% V3.3.1 Update 2-1-2024:
+%% Improved model startup time
+%% Removed unnecessary code from ert_linux_main.tlc
+%% Renamed the BusObject used for testing
+%%
 %% V3.3.0 Update 19-12-2023:
 %% Now enforcing the Moduline Display name in software. This will break this blockset for the small number of boards currently in circulation.
 %% These boards can be brought up to date so they will work again with newer blocksets by contacting support@gocontroll.com
