@@ -35,7 +35,6 @@
 %% ManualUpload [address] <optional port>
 %%
 %%***************************************************************************************
-%% Automatic flash script
 
 function ManualUpload(ip,varargin)
 

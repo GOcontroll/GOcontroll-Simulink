@@ -77,10 +77,11 @@ void UdpInitialize(uint16_t port, char* ip, int broadcast) {
 void UdpReceive(void) {
 	uint8_t client_message[UDPBUFFSIZE];
 	// Receive client's message:
-	while (recvfrom(socket_desc, client_message, sizeof(client_message), MSG_DONTWAIT,
-		NULL, NULL) > 0){
-		memcpy(udp_buffers[client_message[0]].buffer, client_message, UDPBUFFSIZE);
-		udp_buffers[client_message[0]].new_message = true;
+	while (recvfrom(socket_desc, client_message, sizeof(client_message), MSG_DONTWAIT, NULL, NULL) > 0){
+		if client_message[0] < UDPBUFFNUM { //prevent segfault
+			memcpy(udp_buffers[client_message[0]].buffer, client_message, UDPBUFFSIZE);
+			udp_buffers[client_message[0]].new_message = true;
+		}
 	}
 }
 

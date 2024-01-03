@@ -30,8 +30,11 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll v3.3.1';
+version = 'GOcontroll v3.3.2';
 
+%% V3.3.2 Update 3-1-2024:
+%% Fixed potential segfault in the UDP code
+%%
 %% V3.3.1 Update 2-1-2024:
 %% Improved model startup time
 %% Removed unnecessary code from ert_linux_main.tlc
