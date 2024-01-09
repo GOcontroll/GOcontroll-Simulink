@@ -30,8 +30,17 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll v3.3.2';
+version = 'GOcontroll v3.4.0';
 
+%% V3.4.0 Update 9-1-2024:
+%% Fixed 4-20mA module pinout in the blocks
+%% Fixed CAN block breaking their library links
+%% Note for user updating to this blockset that have CAN blocks in their models:
+%% Navigate to one of your CAN blocks and right click the chain symbol at the bottom left of the block.
+%% Select the Restore Link option, this will open up a menu. Somewhere above select a checkbox that says something like show all broken links, check this.
+%% There should now be a list with all your CAN blocks, for everyone select the resolve option !!!not the push option!!!.
+%% Then apply, all links should now be restored to the library
+%%
 %% V3.3.2 Update 3-1-2024:
 %% Fixed potential segfault in the UDP code
 %%

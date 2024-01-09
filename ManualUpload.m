@@ -44,11 +44,11 @@ else
 	port = '8001';
 end
 
-ModelPath = [pwd filesep 'GOcontroll_Linux.elf'];
+elfPath = [pwd filesep 'GOcontroll_Linux.elf'];
 a2lPath = [pwd filesep 'GOcontroll_Linux.a2l'];
 
 % Upload the file to the controller
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',ModelPath,'" ',' http://',ip,':',port,'/upload');
+cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',elfPath,'" ',' http://',ip,':',port,'/upload');
 disp(cmdCommand)
 system(cmdCommand);
 cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',ip,':',port,'/upload');
