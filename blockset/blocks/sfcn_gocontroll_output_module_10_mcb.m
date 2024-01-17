@@ -65,8 +65,8 @@ if(ContrType == 1) % Moduline IV
 		pin4Id = 'Pin 18';
 		pin5Id = 'Pin 11';
 		pin6Id = 'Pin 17';
-		pin7Id = 'Pin 24';
-		pin8Id = 'Pin 6';
+		pin7Id = 'Pin 25';
+		pin8Id = 'Pin 24';
 		pin9Id = 'Pin 5';
 		pin10Id = 'Pin 4';
 	else
@@ -76,8 +76,8 @@ if(ContrType == 1) % Moduline IV
 		pin4Id = 'Pin 15';
 		pin5Id = 'Pin 10';
 		pin6Id = 'Pin 16';
-		pin7Id = 'Pin 22';
-		pin8Id = 'Pin 2';
+		pin7Id = 'Pin 21';
+		pin8Id = 'Pin 22';
 		pin9Id = 'Pin 3';
 		pin10Id = 'Pin 23';
 	end
@@ -88,8 +88,8 @@ elseif(ContrType == 2 || ContrType == 3) % Moduline mini / Moduline display
 		pin3Id = 'Pin 14';
 		pin4Id = 'Pin 22';
 		pin5Id = 'Pin 13';
-		pin6Id = 'Pin 17';
-		pin7Id = 'Pin 21';
+		pin6Id = 'Pin 21';
+		pin7Id = 'Pin 31';
 		pin8Id = 'Pin 30';
 		pin9Id = 'Pin 5';
 		pin10Id = 'Pin 4';
@@ -100,8 +100,8 @@ elseif(ContrType == 2 || ContrType == 3) % Moduline mini / Moduline display
 		pin4Id = 'Pin 19';
 		pin5Id = 'Pin 12';
 		pin6Id = 'Pin 20';
-		pin7Id = 'Pin 28';
-		pin8Id = 'Pin 2';
+		pin7Id = 'Pin 27';
+		pin8Id = 'Pin 28';
 		pin9Id = 'Pin 3';
 		pin10Id = 'Pin 29';
 	end
