@@ -32,8 +32,12 @@ function [version] = ert_linux_target_version()
 
 version = 'GOcontroll v3.5.0';
 
+%% V3.5.1.Update 24-1-2024:
+%% Minor improvements to the xcp stack, replaced some odd buffer copy code with memcpy
+%%
 %% V3.5.0 Update 17-1-2024:
 %% Fixed the mask for the 10 channel in and output modules to reflect hardware version 4 and 3 respectively
+%%
 %% V3.4.0 Update 9-1-2024:
 %% Fixed 4-20mA module pinout in the blocks
 %% Fixed CAN block breaking their library links
