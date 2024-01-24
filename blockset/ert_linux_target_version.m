@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll v3.5.0';
+version = 'GOcontroll v3.5.1';
 
 %% V3.5.1.Update 24-1-2024:
 %% Minor improvements to the xcp stack, replaced some odd buffer copy code with memcpy
