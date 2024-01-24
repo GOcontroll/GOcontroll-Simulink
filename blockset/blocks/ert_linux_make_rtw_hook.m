@@ -123,7 +123,6 @@ switch hookMethod
 			' set the current folder to:', model_path);
 			error(errorMessage);
 		end
-
 		% Call function to add all variables which are not declared by the
 		% user to the workspace as Simulink.Signals/Parameters. This way the
 		% missing signals and parameters will become visible in HANtune
@@ -234,7 +233,7 @@ switch hookMethod
 		ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
 
 		% Moving the A2L file to the user directory and the map file away
-		copyfile([modelName '.a2l'],['..' filesep modelName '.a2l']);
+		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
 		movefile(['..' filesep modelName '.map'],[modelName '.map']);
 
 	case 'exit'
