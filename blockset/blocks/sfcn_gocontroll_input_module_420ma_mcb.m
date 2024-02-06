@@ -28,7 +28,7 @@
 %%
 %%***************************************************************************************
 function [moduleSlotInfoStr, connectorId, pin1Id, pin2Id, pin3Id, pin4Id, pin5Id, pin6Id, pin7Id, pin8Id, pin9Id, pin10Id] = sfcn_gocontroll_input_module_420ma_mcb(moduleSlot,ContrType,...
-																		Sup16va, Sup16vb)
+																		Sup16va)
 
   % array with module slot infos
   moduleSlotInfoStrings = {  	'Module slot 1',  ...\
@@ -105,7 +105,7 @@ end
 
 % Create resource keywords to be reserved in resource database
 modelRTWFields = struct('moduleSlot', int2str(moduleSlot),...
-						'Sup16va', int2str(Sup16va),'Sup16vb', int2str(Sup16vb));
+						'Sup16va', int2str(Sup16va));
 
 % Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
 HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');

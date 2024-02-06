@@ -57,9 +57,14 @@ function sfcn_gocontroll_input_module_420ma(block)
 function setup(block)
   %% Register number of input and output ports
   block.NumInputPorts = 0;
-  block.NumOutputPorts = 10;
+  block.NumOutputPorts = 11;
 
-  for i = 1:10
+  block.OutputPort(1).Dimensions = 1;
+  block.OutputPort(1).DatatypeID = 3;
+  block.OutputPort(1).Complexity = 'Real';
+  block.OutputPort(1).SamplingMode = 'sample';
+
+  for i = 2:11
   %% configurable input module channel 1
   block.OutputPort(i).Dimensions = 1;
   block.OutputPort(i).DatatypeID = 5;
@@ -68,7 +73,7 @@ function setup(block)
   end
 
   % Number of S-Function parameters expected
-  block.NumDialogPrms     = 4;
+  block.NumDialogPrms     = 3;
   block.SampleTimes = [block.DialogPrm(1).Data 0];
 
   %% -----------------------------------------------------------------

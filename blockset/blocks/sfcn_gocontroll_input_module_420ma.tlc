@@ -55,8 +55,6 @@
 	inputModule420ma%<block.RTWdata.moduleSlot>.moduleSlot = %<block.RTWdata.moduleSlot>-1;
 
 	inputModule420ma%<block.RTWdata.moduleSlot>.supply16va 			= %<block.RTWdata.Sup16va>-1;
-	inputModule420ma%<block.RTWdata.moduleSlot>.supply16vb			= %<block.RTWdata.Sup16vb>-1;
-
 	/* Send configuration to the module */
 	InputModule420ma_Configuration(&inputModule420ma%<block.RTWdata.moduleSlot>);
 
@@ -74,16 +72,17 @@
 	InputModule420ma_ReceiveValues(&inputModule420ma%<block.RTWdata.moduleSlot>);
 
 	/* Push data to the block outputs */
-    %<LibBlockOutputSignal(0, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[0];
-	%<LibBlockOutputSignal(1, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[1];
-	%<LibBlockOutputSignal(2, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[2];
-	%<LibBlockOutputSignal(3, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[3];
-	%<LibBlockOutputSignal(4, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[4];
-	%<LibBlockOutputSignal(5, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[5];
-	%<LibBlockOutputSignal(6, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[6];
-	%<LibBlockOutputSignal(7, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[7];
-	%<LibBlockOutputSignal(8, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[8];
-	%<LibBlockOutputSignal(9, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[9];
+	%<LibBlockOutputSignal(0, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.status;
+    %<LibBlockOutputSignal(1, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[0];
+	%<LibBlockOutputSignal(2, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[1];
+	%<LibBlockOutputSignal(3, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[2];
+	%<LibBlockOutputSignal(4, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[3];
+	%<LibBlockOutputSignal(5, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[4];
+	%<LibBlockOutputSignal(6, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[5];
+	%<LibBlockOutputSignal(7, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[6];
+	%<LibBlockOutputSignal(8, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[7];
+	%<LibBlockOutputSignal(9, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[8];
+	%<LibBlockOutputSignal(10, "", "", 0)> =  inputModule420ma%<block.RTWdata.moduleSlot>.value[9];
   %%
 %endfunction
 
