@@ -154,9 +154,6 @@ int_T main(int_T argc, const char_T *argv[]){
 	/* Initialize the processorboard pheriphals */
 	GocontrollProcessorboard_Initialize();
 
-	/* Initialize model */
-	%<modelName>_initialize();
-
 	/* Block signal SIGALRM used to time the modelStep() in all threads created by main thread */
 	sigemptyset(&set);
 	sigaddset(&set, SIGALRM);
@@ -164,7 +161,8 @@ int_T main(int_T argc, const char_T *argv[]){
 	if(result != 0)
 		fprintf(stderr, "WARNING, unable to block signal SIG_ALRM%s\n",strerror(errno));
 
-	
+	/* Initialize model */
+	%<modelName>_initialize();
 
 	/* Create xcp thread */
 	pthread_create(&xcp_thread, NULL, &XcpInitialize, NULL);
