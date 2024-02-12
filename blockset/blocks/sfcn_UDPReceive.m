@@ -55,16 +55,25 @@ function sfcn_UDPReceive(block)
 %% BOOLEAN =  8
 
 function setup(block)
+	tsamp = 1;
+	id = 2;
+	buff_len = 3;
+	input_type = 4;
+
 	%% Register number of input and output ports
-	block.NumInputPorts = 1;
+	if block.DialogPrm(input_type).Data
+		block.NumInputPorts = 1;
+		block.InputPort(1).Dimensions = 1;
+		block.InputPort(1).Complexity = 'Real';
+		block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
+		block.InputPort(1).SamplingMode = 'sample';
+	else
+		block.NumInputPorts = 0;
+	end
+
 	block.NumOutputPorts = 2;
 
 	%% maybe ID
-	block.InputPort(1).Dimensions = 1;
-	block.InputPort(1).Complexity = 'Real';
-	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(1).SamplingMode = 'sample';
-
 
 	%% new message
 	block.OutputPort(1).Dimensions = 1;
@@ -72,7 +81,7 @@ function setup(block)
 	block.OutputPort(1).Complexity = 'Real';
 	block.OutputPort(1).SamplingMode = 'sample';
 	%% message
-	block.OutputPort(2).Dimensions = block.DialogPrm(3).Data + 1;
+	block.OutputPort(2).Dimensions = block.DialogPrm(3).Data;
 	block.OutputPort(2).DatatypeID = 3;
 	block.OutputPort(2).Complexity = 'Real';
 	block.OutputPort(2).SamplingMode = 'sample';
@@ -81,11 +90,10 @@ function setup(block)
 
 	% (tsamp, id)
 	block.NumDialogPrms     = 4;
-	block.SampleTimes = [block.DialogPrm(1).Data 0];
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------
-
 	%%
 	%% Start:
 	%%   Functionality    : Called in order to initialize state and work
@@ -109,6 +117,8 @@ function setup(block)
 	%%   C-Mex counterpart: mdlUpdate
 	%%
 	block.RegBlockMethod('Update', @Update);
+
+	block.RegBlockMethod('WriteRTW', @WriteRTW);
 %endfunction
 
 function Start(block)
@@ -131,5 +141,13 @@ function Update(block)
 
 %endfunction
 
+function WriteRTW(block)
+	id = 2;
+	buff_len = 3;
+	input_type = 4;
+
+	block.WriteRTWParam('string', 'id', num2str(block.DialogPrm(id).Data));
+	block.WriteRTWParam('string', 'buff_len', num2str(block.DialogPrm(buff_len).Data));
+	block.WriteRTWParam('string', 'input_type', num2str(block.DialogPrm(input_type).Data));
 
 %%******************************* end of sfcn_UDPReceive.m **********************

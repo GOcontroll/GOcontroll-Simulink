@@ -61,9 +61,11 @@ function setup(block)
 
   % Number of S-Function parameters expected
 
+  tsamp = 1;
+
   % (tsamp, buffer_length, port, ip, broadcast)
   block.NumDialogPrms     = 4;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
+  block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
   %% -----------------------------------------------------------------
   %% Register methods called at run-time
   %% -----------------------------------------------------------------
@@ -99,6 +101,8 @@ function setup(block)
   %%   C-Mex counterpart: mdlTerminate
   %%
   block.RegBlockMethod('Terminate', @Terminate);
+
+  block.RegBlockMethod('WriteRTW', @WriteRTW);
 %endfunction
 
 function Start(block)
@@ -126,6 +130,14 @@ function Terminate(block)
   %% No Terminate
 
 %endfunction
+
+function WriteRTW(block)
+	port = 2;
+	ip = 3;
+	broadcast = 4;
+	block.WriteRTWParam('string', 'port', num2str(block.DialogPrm(port).Data));
+	block.WriteRTWParam('string', 'ip', ['"' block.DialogPrm(ip).Data '"']);
+	block.WriteRTWParam('string', 'broadcast' , num2str(block.DialogPrm(broadcast).Data));
 
 
 %%******************************* end of sfcn_UDPConfig.m **********************

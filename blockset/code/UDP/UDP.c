@@ -42,7 +42,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "SYS_config.h"
+// #include "SYS_config.h"
+#include "UDP_CONFIG.h"
 
 struct UDP_Buffer udp_buffers[UDPBUFFNUM];
 
@@ -87,7 +88,7 @@ void UdpReceive(void) {
 
 void getUdpBuffer(size_t id, uint8_t* message, size_t message_len, uint8_t* new_message) {
 	if (id < UDPBUFFNUM) {
-		memcpy(message, udp_buffers[id].buffer, message_len);
+		memcpy(message+1, udp_buffers[id].buffer, message_len);
 		*new_message = udp_buffers[id].new_message;
 		udp_buffers[id].new_message = false;
 	}

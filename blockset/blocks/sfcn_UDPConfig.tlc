@@ -31,16 +31,29 @@
 %%***************************************************************************************
 
 %implements sfcn_UDPConfig "C"
-
-%<LibAddToCommonIncludes("UDP.h")>
+%include "udp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
-%% Purpose:
-%%      Code generation for configuration
-%%
-%function BlockTypeSetup(block, system) void
+%% Runs once for the block type, no matter how many blocks are present in the model
 
+%function BlockTypeSetup(block, system) void
+	%assign ::udp_config_present = 1
+	%<UdpCommonBlockTypeSetup()>
+%endfunction
+
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Runs once for every instance of the block in the model
+
+%function BlockInstanceSetup(block, system) void
+	%if EXISTS("upd_config_in_model") == 0
+		%assign ::udp_config_in_model = 1
+	%else
+		%assign ::udp_config_in_model = ::udp_config_in_model + 1
+	%endif
+	%foreach 
+	%addtorecord ::Go.Udp Ctrl { name %<block.ParamSettings.socket_name> }
 %endfunction
 
 %% Function: Start ==========================================================
@@ -49,8 +62,38 @@
 %%      initialize the reconnect_state struct
 %%
 %function Start(block, system) Output
+	%if EXISTS(::udp_buff_num) == 1
+		%openfile tmpBufDefs
+			#define UDPBUFFSIZE %<::udp_buff_size>
+			#define UDPBUFFNUM %<::udp_buff_num>
+		%closefile tmpBufDefs
+
+		%openfile tmpBufTypedefs
+			/* struct that holds a UDP buffer */
+			struct UDP_Buffer{
+				uint8_t buffer[%<::udp_buff_size>];
+				uint8_t new_message;
+			};
+		%closefile tmpBufTypedefs
+
+		%openfile tmpBufDecls
+			struct UDP_Buffer udp_buffers[%<::udp_buff_num>];
+			int udp_socket;
+		%closefile tmpBufDecls
+
+		
+		%assign udpHeader = LibCreateSourceFile("Header", "UdpConfig", "UDP_CONFIG")
+		%<LibSetSourceFileSection(udpHeader, "Defines", tmpBufDefs)>
+		%<LibSetSourceFileSection(udpHeader, "Typedefs", tmpBufTypedefs)>
+		%<LibSetSourceFileSection(udpHeader, "Declarations", tmpBufDecls)>
+	%endif
+
+
+	/* Init UDP buffers to 0 */
 	initUdpBuffers();
-  UdpInitialize(%<block.RTWdata.port>, "%<block.RTWdata.ip>", %<block.RTWdata.broadcast>);
+
+	/* Create UDP socket */
+	UdpInitialize(%<block.ParamSettings.port>, %<block.ParamSettings.ip>, %<block.ParamSettings.broadcast>);
 %endfunction
 
 %% Function: Output ==========================================================

@@ -31,8 +31,7 @@
 %%***************************************************************************************
 
 %implements sfcn_UDPReceive "C"
-
-%<LibAddToCommonIncludes("UDP.h")>
+%include "udp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -40,7 +39,31 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
+	%<UdpCommonBlockTypeSetup()>
+%endfunction
 
+%function BlockInstanceSetup(block, system) void
+	%if EXISTS(::udp_buff_num) == 0
+		%assign ::udp_buff_num = %<block.ParamSettings.id>
+	%else
+		%if %<block.ParamSettings.id> > ::udp_buff_num
+			%assign ::udp_buff_num = %<block.ParamSettings.id>
+		%endif
+	%endif
+
+	%if EXISTS(::udp_buff_size) == 0
+		%assign ::udp_buff_size = %<block.ParamSettings.buff_len>
+	%else
+		%if %<block.ParamSettings.buff_len> > ::udp_buff_size
+			%assign ::udp_buff_size = %<block.ParamSettings.buff_len>
+		%endif
+	%endif
+%endfunction
+
+%function Start(block, system) Output
+	%if EXISTS(::udp_config_present) == 0
+		%<LibBlockReportError(block, "No udp configuration block present at this moment in time.")>
+	%endif
 %endfunction
 
 %% Function: Output ==========================================================
@@ -50,9 +73,9 @@
 %%
 %function Outputs(block, system) Output
     /* %<Type> Block: %<Name> */
-	%if ISEQUAL(0, %<block.RTWdata.input_type>)
-    getUdpBuffer((uint8_t) %<block.RTWdata.id>, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<block.RTWdata.buff_len> + 1, %<LibBlockOutputSignalAddr(0, "", "", 0)>);
+	%if ISEQUAL(0, %<block.ParamSettings.input_type>)
+    getUdpBuffer((uint8_t) %<block.ParamSettings.id>, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<block.ParamSettings.buff_len> + 1, %<LibBlockOutputSignalAddr(0, "", "", 0)>);
 	%else
-	getUdpBuffer((uint8_t) %<LibBlockInputSignal(0, "", "", 0)>, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<block.RTWdata.buff_len> + 1, %<LibBlockOutputSignalAddr(0, "", "", 0)>);
+	getUdpBuffer((uint8_t) %<LibBlockInputSignal(0, "", "", 0)>, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<block.ParamSettings.buff_len> + 1, %<LibBlockOutputSignalAddr(0, "", "", 0)>);
 	%endif
 %endfunction

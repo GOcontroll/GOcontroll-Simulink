@@ -37,26 +37,26 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "SYS_config.h"
+// #include "SYS_config.h"
 
-#ifndef UDPBUFFNUM
-#define UDPBUFFNUM 0
-#endif
+// #ifndef UDPBUFFNUM
+// #define UDPBUFFNUM 0
+// #endif
 
-#ifndef UDPBUFFSIZE
-#define UDPBUFFSIZE 0
-#endif
+// #ifndef UDPBUFFSIZE
+// #define UDPBUFFSIZE 0
+// #endif
 
 
-/* struct that holds a UDP buffer */
-struct UDP_Buffer{
-    uint8_t buffer[UDPBUFFSIZE];
-    uint8_t new_message;
-};
+// /* struct that holds a UDP buffer */
+// struct UDP_Buffer{
+//     uint8_t buffer[UDPBUFFSIZE];
+//     uint8_t new_message;
+// };
 
-/* Globals */
+// /* Globals */
 
-int socket_desc;
+// int socket_desc;
 
 /**
  * @brief Initialize the udp socket

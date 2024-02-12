@@ -31,8 +31,7 @@
 %%***************************************************************************************
 
 %implements sfcn_UDPSend "C"
-
-%<LibAddToCommonIncludes("UDP.h")>
+%include "udp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -40,8 +39,36 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-
+	%<UdpCommonBlockTypeSetup()>
 %endfunction
+
+%function Start(block, system) Output
+	%if EXISTS(::udp_config_present) == 0
+		%<LibBlockReportError(block, "No udp configuration block present at this moment in time.")>
+	%endif
+
+	%if ISEQUAL(0, %<block.ParamSettings.input_type>)
+		%assign buff_size  = LibBlockInputSignalWidth(0) + 1
+		
+	%else
+		%assign buff_size = LibBlockInputSignalWidth(1) + 1
+	%endif
+
+	%openfile tmpBuf
+		%assign addr = send%<>
+		struct sockaddr_in 
+		uint8_t %<addr>_buff[%<buff_size>];
+
+	%closefile tmpBuf
+
+	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBuf)>
+
+	%<addr>.sin_family = AF_INET;
+	%<addr>.sin_port = htons(%<block.ParamSettings.port>);
+	%<addr>.sind_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
+	memset(%<addr>_buff, 0, %<buff_size>);
+%endfunction
+
 
 %% Function: Output ==========================================================
 %%
@@ -50,9 +77,18 @@
 %%
 %function Outputs(block, system) Output
 	/* %<Type> Block: %<Name> */
-	%if ISEQUAL(0, %<block.RTWdata.input_type>)
-	UdpSend(%<block.RTWdata.port>, "%<block.RTWdata.ip>", (uint8_t) %<block.RTWdata.input_type>, (uint8_t*) %<LibBlockInputSignalAddr(1, "", "", 0)>, %<LibBlockInputSignalWidth(1)>);
+	%assign addr = LibGetBlockName(block)
+	%if ISEQUAL(0, %<block.ParamSettings.input_type>)
+	memcpy(%<addr>_buff, %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>);
+	%<addr>_buff[0] = (uint8_t) %<block.ParamSettings.id>;
+	%%UdpSend(%<block.ParamSettings.port>, %<block.ParamSettings.ip>, (uint8_t) %<block.ParamSettings.id>, (uint8_t*) %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>);
 	%else
-	UdpSend(%<block.RTWdata.port>, "%<block.RTWdata.ip>", (uint8_t) %<LibBlockInputSignal(0, "", "", 0)>, (uint8_t*) %<LibBlockInputSignalAddr(1, "", "", 0)>, %<LibBlockInputSignalWidth(1)>);
+	memcpy(%<addr>_buff, %<LibBlockInputSignalAddr(1, "", "", 0)>, %<LibBlockInputSignalWidth(1)>);
+	%<addr>_buff[0] = (uint8_t) %<LibBlockInputSignal(0, "", "", 0)>;
+	%%UdpSend(%<block.ParamSettings.port>, %<block.ParamSettings.ip>, (uint8_t) %<LibBlockInputSignal(0, "", "", 0)>, (uint8_t*) %<LibBlockInputSignalAddr(1, "", "", 0)>, %<LibBlockInputSignalWidth(1)>);
 	%endif
+	if (sendto(udp_socket, %<addr>_buff, sizeof(%<addr>_buff), 0,
+			(struct sockaddr*)&%<addr>, sizeof(%<addr>)) < 0){
+		fprintf(stderr, "Can't send UDP packet\n");
+	}
 %endfunction
