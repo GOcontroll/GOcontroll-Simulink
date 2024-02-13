@@ -37,16 +37,16 @@
 #  BUILD           - Invoke make from the Real-Time Workshop build procedure
 #                    (yes/no)?
 #  SYS_TARGET_FILE - Name of system target file.
-HOST                            = |>COMPUTER<|
+HOST                            = ANY
+COMPUTER =|>COMPUTER<|
 
-ifeq ($(HOST), GLNXA64)
+ifeq ($(COMPUTER), GLNXA64)
 MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
 SHELL                           := /bin/bash
 ECHO =
 else
 MAKECMD                         = "%MATLAB%\bin\|>ARCH<|\gmake"
 COMPILER_TOOL_CHAIN             = default
-HOST                            = PC
 SHELL =
 ECHO 							= @echo
 endif
@@ -88,7 +88,6 @@ MATLAB_ROOT          = |>MATLAB_ROOT<|
 ALT_MATLAB_ROOT      = |>ALT_MATLAB_ROOT<|
 MATLAB_BIN           = |>MATLAB_BIN<|
 ALT_MATLAB_BIN       = |>ALT_MATLAB_BIN<|
-S_FUNCTIONS          = |>S_FUNCTIONS<|
 S_FUNCTIONS_LIB      = |>S_FUNCTIONS_LIB<|
 NUMST                = |>NUMST<|
 NCSTATES             = |>NCSTATES<|
@@ -107,13 +106,9 @@ EXTMODE_STATIC       = |>EXTMODE_STATIC_ALLOC<|
 EXTMODE_STATIC_SIZE  = |>EXTMODE_STATIC_ALLOC_SIZE<|
 MULTI_INSTANCE_CODE  = |>MULTI_INSTANCE_CODE<|
 MODELREFS               = |>MODELREFS<|
-SHARED_SRC              = |>SHARED_SRC<|
-SHARED_SRC_DIR          = |>SHARED_SRC_DIR<|
-SHARED_BIN_DIR          = |>SHARED_BIN_DIR<|
-SHARED_LIB              = |>SHARED_LIB<|
 GEN_SAMPLE_MAIN         = |>GEN_SAMPLE_MAIN<|
 TARGET_LANG_EXT         = |>TARGET_LANG_EXT<|
-MEX_OPT_FILE            = |>MEX_OPT_FILE<|
+OTHER                   = |>DEFINES_OTHER<|
 
 
 #|---------------------------------------------------------------------------------------
@@ -121,7 +116,6 @@ MEX_OPT_FILE            = |>MEX_OPT_FILE<|
 #|---------------------------------------------------------------------------------------
 MODELLIB                  = |>MODELLIB<|
 MODELREF_LINK_LIBS        = |>MODELREF_LINK_LIBS<|
-MODELREF_INC_PATH         = |>START_MDLREFINC_EXPAND_INCLUDES<|-I|>MODELREF_INC_PATH<| |>END_MDLREFINC_EXPAND_INCLUDES<|
 RELATIVE_PATH_TO_ANCHOR   = |>RELATIVE_PATH_TO_ANCHOR<|
 MODELREF_TARGET_TYPE      = |>MODELREF_TARGET_TYPE<|
 
@@ -218,7 +212,7 @@ SHARED_INCLUDES = -I$(SHARED_SRC_DIR)
 endif
 
 CC_INCLUDES += -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(MATLAB_INCLUDES) $(ADD_INCLUDES) \
-	$(COMPILER_INCLUDES) $(USER_INCLUDES) $(MODELREF_INC_PATH) \
+	$(COMPILER_INCLUDES) $(USER_INCLUDES) \
 	$(SHARED_INCLUDES) $(HANcoder_INCLUDES)
 
 
@@ -240,7 +234,7 @@ AC_INCLUDES =
 # additional compiler flags
 CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES)
 CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
-CC_FLAGS        += -mcpu=cortex-a53 -Wno-unused-but-set-variable -Wno-maybe-uninitialized -D_GNU_SOURCE
+CC_FLAGS        += -mcpu=cortex-a53 -Wno-unused-but-set-variable -Wno-maybe-uninitialized -D_GNU_SOURCE -gdwarf
 
 # additional assembler flags
 AS_FLAGS        +=
@@ -392,7 +386,7 @@ $(SHARED_LIB) : $(SHARED_OBJS)
 #|---------------------------------------------------------------------------------------
 #| Project cleanup
 #|---------------------------------------------------------------------------------------
-ifeq ($(HOST), GLNXA64)
+ifeq ($(COMPUTER), GLNXA64)
 .PHONY: clean
 clean :
 	$(ECHO) ### Cleaning the object and lst files
