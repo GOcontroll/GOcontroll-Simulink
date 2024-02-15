@@ -123,11 +123,6 @@ switch hookMethod
 			' set the current folder to:', model_path);
 			error(errorMessage);
 		end
-		% Call function to add all variables which are not declared by the
-		% user to the workspace as Simulink.Signals/Parameters. This way the
-		% missing signals and parameters will become visible in HANtune
-			fprintf('########################### ASAP\n');
-		AddASAP2Elements(modelName);
 
 		fprintf(['\n### Starting Real-Time Workshop build procedure for ', ...
 						'model: %s\n'],modelName);
@@ -214,6 +209,11 @@ switch hookMethod
 		delete('*.obj')
 
 	case 'after_make'
+		matlab_year = str2num(erase(version('-release'),{'a','b'}));
+		if matlab_year >= 2023
+			create_asap2(modelName); %this has to be a seperate function call, because matlab gives syntax errors if it isn't
+		end
+		% end
 		% Called after make process is complete. All arguments are valid at
 		% this stage.
 		% Adding the memory addresses to the ASAP2 file

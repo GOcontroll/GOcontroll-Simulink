@@ -84,7 +84,7 @@ MAPfileHash = containers.Map;
 
 for i = 1:length(pairs)
 
-    MAPfileHash(pairs{i}{2}) = pairs{i}{1}; % pairs{i}{2} is name, pairs{1} is memory address
+    MAPfileHash(pairs{i}{2}) = pairs{i}{1}; % pairs{i}{2} is name, pairs{i}{1} is memory address
 end
 % Get all element names with pre- and suffix from the ASAP2 file
 ASAP2Elements = regexp(ASAP2fileString,[addrPrefix '(\w+)' addrSuffix],'match');
