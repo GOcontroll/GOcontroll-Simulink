@@ -61,7 +61,6 @@ Browser(2).IsFlat  = 0;
 % slblocks.m script located in this folder
 % If a user wishes to add their own blockset elements see the GOcontroll
 % Wiki on how to get started (link to be added).
-OS = computer();
 d = dir("blockset_*");
 folders = {d.name};
 BrowserIndex = 3;

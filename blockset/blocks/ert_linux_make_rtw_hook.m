@@ -81,6 +81,8 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 %
 % You are encouraged to add other configuration options, and extend the
 % various callbacks to fully integrate ERT into your environment.
+
+persistent stationID;
 switch hookMethod
 	case 'error'
 		fprintf('########################### ERROR\n');
@@ -160,8 +162,7 @@ switch hookMethod
 		fprintf('\n### Adding data to SYS_config.h...\n');
 		formatOut = 'ddmmyy_HHMMSS';
 		daten = datestr(now, formatOut);
-		stationID = strcat(modelName,daten);
-		assignin('base','kXcpStationId',stationID);
+		stationID = strcat(modelName,daten); %assign to static variable as it is needed in the after_make step
 		% Get XCP port
 		XCPport = get_param(modelName,'tlcXcpTcpPort');
 
@@ -209,29 +210,30 @@ switch hookMethod
 		delete('*.obj')
 
 	case 'after_make'
-		matlab_year = str2num(erase(version('-release'),{'a','b'}));
-		if matlab_year >= 2023
-			create_asap2(modelName); %this has to be a seperate function call, because matlab gives syntax errors if it isn't
-		end
 		% end
 		% Called after make process is complete. All arguments are valid at
 		% this stage.
 		% Adding the memory addresses to the ASAP2 file
-		fprintf('### Post-processing ASAP2 file\n');
-		ASAP2file = sprintf('%s.a2l', modelName);
-		MAPfile = ['..' filesep modelName '.map'];
+
 		% Get XCP port
 		XCPport = get_param(modelName,'tlcXcpTcpPort');
 		% Get XCP address
 		XCPaddress = get_param(modelName,'tlcXcpTcpAddress');
-		% Read the kXcpStationId from the workspace
-		stationID = evalin('base', 'kXcpStationId');
 		% Get the Linux target from the model parameters tab
 		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
 
-		% Postprocess the ASAP2file
-		ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
+		ASAP2file = sprintf('%s.a2l', modelName);
+		MAPfile = ['..' filesep modelName '.map'];
 
+		matlab_year = str2num(erase(version('-release'),{'a','b'}));
+		if matlab_year >= 2023
+			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget); %this has to be a seperate function call, because matlab gives syntax errors if it isn't
+		else
+			fprintf('### Post-processing ASAP2 file\n');
+			% Postprocess the ASAP2file
+			ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
+		end
+		
 		% Moving the A2L file to the user directory and the map file away
 		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
 		movefile(['..' filesep modelName '.map'],[modelName '.map']);
