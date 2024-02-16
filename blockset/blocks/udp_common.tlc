@@ -1,12 +1,11 @@
 %function UdpCommonBlockTypeSetup() void
 	%if EXISTS(::_udp_common_setup) == 0
 		%assign ::_udp_common_setup = 1
-
-		%createrecord ::Go { Udp { ...
-			NumSockets ...
-			Tx { NumBuffers 0 } ...
-			Rx { NumBuffers 0 } ...
-		}}
-		%<LibAddToCommonIncludes("UDP.h")>
+		%<LibAddToCommonIncludes("sys/socket.h")>
+		%<LibAddToCommonIncludes("arpa/inet.h")>
+		%<LibAddToCommonIncludes("stdint.h")>
+		%<LibAddToCommonIncludes("stddef.h")>
+		%<LibAddToCommonIncludes("stdlib.h")>
+		%<LibAddToCommonIncludes("unistd.h")>
 	%endif
 %endfunction

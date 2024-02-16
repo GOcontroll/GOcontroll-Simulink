@@ -40,6 +40,12 @@
 %function BlockTypeSetup(block, system) void
 	%assign ::udp_config_present = 1
 	%<UdpCommonBlockTypeSetup()>
+
+	%openfile tmpBufDecls
+		int udp_socket;
+	%closefile tmpBufDecls
+
+	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
 %endfunction
 
 %% Function: BlockInstanceSetup ==========================================================
@@ -50,10 +56,8 @@
 	%if EXISTS("upd_config_in_model") == 0
 		%assign ::udp_config_in_model = 1
 	%else
-		%assign ::udp_config_in_model = ::udp_config_in_model + 1
+		%<LibBlockReportError(block, "Only one UDP config block is allowed in the model at this point in time")>
 	%endif
-	%foreach 
-	%addtorecord ::Go.Udp Ctrl { name %<block.ParamSettings.socket_name> }
 %endfunction
 
 %% Function: Start ==========================================================
@@ -62,38 +66,29 @@
 %%      initialize the reconnect_state struct
 %%
 %function Start(block, system) Output
-	%if EXISTS(::udp_buff_num) == 1
-		%openfile tmpBufDefs
-			#define UDPBUFFSIZE %<::udp_buff_size>
-			#define UDPBUFFNUM %<::udp_buff_num>
-		%closefile tmpBufDefs
+	// Create UDP socket:
+	udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
-		%openfile tmpBufTypedefs
-			/* struct that holds a UDP buffer */
-			struct UDP_Buffer{
-				uint8_t buffer[%<::udp_buff_size>];
-				uint8_t new_message;
-			};
-		%closefile tmpBufTypedefs
+	if(udp_socket < 0){
+		fprintf(stderr, "Error while creating UDP socket\n");
+		return;
+	}
 
-		%openfile tmpBufDecls
-			struct UDP_Buffer udp_buffers[%<::udp_buff_num>];
-			int udp_socket;
-		%closefile tmpBufDecls
+	int broadcast = %<block.ParamSettings.broadcast>;
+	if (broadcast) {
+		if (setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
+			fprintf(stderr, "Could set socket to broadcast\n");
+	}
+	struct sockaddr_in server_addr;
+	// Set port and IP:
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(port);
+	server_addr.sin_addr.s_addr = inet_addr(ip);
 
-		
-		%assign udpHeader = LibCreateSourceFile("Header", "UdpConfig", "UDP_CONFIG")
-		%<LibSetSourceFileSection(udpHeader, "Defines", tmpBufDefs)>
-		%<LibSetSourceFileSection(udpHeader, "Typedefs", tmpBufTypedefs)>
-		%<LibSetSourceFileSection(udpHeader, "Declarations", tmpBufDecls)>
-	%endif
-
-
-	/* Init UDP buffers to 0 */
-	initUdpBuffers();
-
-	/* Create UDP socket */
-	UdpInitialize(%<block.ParamSettings.port>, %<block.ParamSettings.ip>, %<block.ParamSettings.broadcast>);
+	// Bind to the set port and IP:
+	if(bind(udp_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
+		fprintf(stderr,"Couldn't bind to the port\n");
+	}
 %endfunction
 
 %% Function: Output ==========================================================
@@ -102,7 +97,6 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-  UdpReceive();
 %endfunction
 
 %% Function: Terminate ==========================================================
@@ -111,8 +105,6 @@
 %%      Code generation for signal output
 %%
 %function Terminate (block, system) Output
-  %%
-  /* Close UDP socket and free buffers */
-  UdpTerminate();
-  %%
+	/* Close UDP socket */
+	close(udp_socket);
 %endfunction

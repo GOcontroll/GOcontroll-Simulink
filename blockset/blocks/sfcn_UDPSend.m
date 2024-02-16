@@ -58,24 +58,13 @@ function setup(block)
 	tsamp = 1;
 	port = 2;
 	ip = 3;
-	id = 4;
-	input_type = 5;
 	%% Register number of input and output ports
-	if block.DialogPrm(input_type).Data
-		block.NumInputPorts = 2;
-		block.InputPort(1).Dimensions = 1;
-		block.InputPort(1).Complexity = 'Real';
-		block.InputPort(1).DirectFeedthrough = false;
-		block.InputPort(1).SamplingMode = 'sample';
-		block.InputPort(2).Complexity = 'Real';
-		block.InputPort(2).DirectFeedthrough = false;
-		block.InputPort(2).SamplingMode = 'sample';
-	else 
-		block.NumInputPorts = 1;
-		block.InputPort(1).Complexity = 'Real';
-		block.InputPort(1).DirectFeedthrough = false;
-		block.InputPort(1).SamplingMode = 'sample';
-	end
+
+	block.NumInputPorts = 1;
+	block.InputPort(1).Complexity = 'Real';
+	block.InputPort(1).DirectFeedthrough = false;
+	block.InputPort(1).SamplingMode = 'sample';
+
 	block.NumOutputPorts = 0;
 
 	
@@ -136,12 +125,8 @@ function Update(block)
 function WriteRTW(block)
 	port = 2;
 	ip = 3;
-	id = 4;
-	input_type = 5;
 
 	block.WriteRTWParam('string', 'port', num2str(block.DialogPrm(port).Data));
 	block.WriteRTWParam('string', 'ip', ['"' block.DialogPrm(ip).Data '"']);
-	block.WriteRTWParam('string', 'id', num2str(block.DialogPrm(id).Data));
-	block.WriteRTWParam('string', 'input_type', num2str(block.DialogPrm(input_type).Data));
 
 %%******************************* end of sfcn_UDPSend.m **********************

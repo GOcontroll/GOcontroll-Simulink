@@ -61,11 +61,9 @@ function setup(block)
 
   % Number of S-Function parameters expected
 
-  tsamp = 1;
-
   % (tsamp, buffer_length, port, ip, broadcast)
-  block.NumDialogPrms     = 4;
-  block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+  block.NumDialogPrms     = 3;
+  block.SampleTimes = [1 0];
   %% -----------------------------------------------------------------
   %% Register methods called at run-time
   %% -----------------------------------------------------------------
@@ -132,9 +130,9 @@ function Terminate(block)
 %endfunction
 
 function WriteRTW(block)
-	port = 2;
-	ip = 3;
-	broadcast = 4;
+	port = 1;
+	ip = 2;
+	broadcast = 3;
 	block.WriteRTWParam('string', 'port', num2str(block.DialogPrm(port).Data));
 	block.WriteRTWParam('string', 'ip', ['"' block.DialogPrm(ip).Data '"']);
 	block.WriteRTWParam('string', 'broadcast' , num2str(block.DialogPrm(broadcast).Data));

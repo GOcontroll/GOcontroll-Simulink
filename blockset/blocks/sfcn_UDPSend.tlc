@@ -42,31 +42,12 @@
 	%<UdpCommonBlockTypeSetup()>
 %endfunction
 
+%function BlockInstanceSetup(block, system) void
+
 %function Start(block, system) Output
 	%if EXISTS(::udp_config_present) == 0
 		%<LibBlockReportError(block, "No udp configuration block present at this moment in time.")>
 	%endif
-
-	%if ISEQUAL(0, %<block.ParamSettings.input_type>)
-		%assign buff_size  = LibBlockInputSignalWidth(0) + 1
-		
-	%else
-		%assign buff_size = LibBlockInputSignalWidth(1) + 1
-	%endif
-
-	%openfile tmpBuf
-		%assign addr = send%<>
-		struct sockaddr_in 
-		uint8_t %<addr>_buff[%<buff_size>];
-
-	%closefile tmpBuf
-
-	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBuf)>
-
-	%<addr>.sin_family = AF_INET;
-	%<addr>.sin_port = htons(%<block.ParamSettings.port>);
-	%<addr>.sind_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
-	memset(%<addr>_buff, 0, %<buff_size>);
 %endfunction
 
 
@@ -76,19 +57,14 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	/* %<Type> Block: %<Name> */
-	%assign addr = LibGetBlockName(block)
-	%if ISEQUAL(0, %<block.ParamSettings.input_type>)
-	memcpy(%<addr>_buff, %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>);
-	%<addr>_buff[0] = (uint8_t) %<block.ParamSettings.id>;
-	%%UdpSend(%<block.ParamSettings.port>, %<block.ParamSettings.ip>, (uint8_t) %<block.ParamSettings.id>, (uint8_t*) %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>);
-	%else
-	memcpy(%<addr>_buff, %<LibBlockInputSignalAddr(1, "", "", 0)>, %<LibBlockInputSignalWidth(1)>);
-	%<addr>_buff[0] = (uint8_t) %<LibBlockInputSignal(0, "", "", 0)>;
-	%%UdpSend(%<block.ParamSettings.port>, %<block.ParamSettings.ip>, (uint8_t) %<LibBlockInputSignal(0, "", "", 0)>, (uint8_t*) %<LibBlockInputSignalAddr(1, "", "", 0)>, %<LibBlockInputSignalWidth(1)>);
-	%endif
-	if (sendto(udp_socket, %<addr>_buff, sizeof(%<addr>_buff), 0,
-			(struct sockaddr*)&%<addr>, sizeof(%<addr>)) < 0){
+	/* UDP send */
+	struct sockaddr_in client_addr;
+	client_addr.sin_family = AF_INET;
+	client_addr.sin_port = htons(%<block.ParamSettings.port>);
+	client_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
+
+	if (sendto(udp_socket, %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>, 0,
+			(struct sockaddr*)&client_addr, sizeof(client_addr)) < 0){
 		fprintf(stderr, "Can't send UDP packet\n");
 	}
 %endfunction

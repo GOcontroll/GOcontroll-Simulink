@@ -56,32 +56,19 @@ function sfcn_UDPReceive(block)
 
 function setup(block)
 	tsamp = 1;
-	id = 2;
-	buff_len = 3;
-	input_type = 4;
+	buff_len = 2;
 
 	%% Register number of input and output ports
-	if block.DialogPrm(input_type).Data
-		block.NumInputPorts = 1;
-		block.InputPort(1).Dimensions = 1;
-		block.InputPort(1).Complexity = 'Real';
-		block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-		block.InputPort(1).SamplingMode = 'sample';
-	else
-		block.NumInputPorts = 0;
-	end
+	block.NumInputPorts = 0;
 
 	block.NumOutputPorts = 2;
 
 	%% maybe ID
 
-	%% new message
-	block.OutputPort(1).Dimensions = 1;
-	block.OutputPort(1).DatatypeID = 8;
-	block.OutputPort(1).Complexity = 'Real';
-	block.OutputPort(1).SamplingMode = 'sample';
+	%% function call
+	%block.OutputPort(1); %Somehow set this to a function call?
 	%% message
-	block.OutputPort(2).Dimensions = block.DialogPrm(3).Data;
+	block.OutputPort(2).Dimensions = block.DialogPrm(buff_len).Data;
 	block.OutputPort(2).DatatypeID = 3;
 	block.OutputPort(2).Complexity = 'Real';
 	block.OutputPort(2).SamplingMode = 'sample';
@@ -89,7 +76,7 @@ function setup(block)
 	% Number of S-Function parameters expected
 
 	% (tsamp, id)
-	block.NumDialogPrms     = 4;
+	block.NumDialogPrms     = 2;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
@@ -142,12 +129,8 @@ function Update(block)
 %endfunction
 
 function WriteRTW(block)
-	id = 2;
-	buff_len = 3;
-	input_type = 4;
+	buff_len = 2;
 
-	block.WriteRTWParam('string', 'id', num2str(block.DialogPrm(id).Data));
 	block.WriteRTWParam('string', 'buff_len', num2str(block.DialogPrm(buff_len).Data));
-	block.WriteRTWParam('string', 'input_type', num2str(block.DialogPrm(input_type).Data));
 
 %%******************************* end of sfcn_UDPReceive.m **********************
