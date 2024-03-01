@@ -31,16 +31,33 @@
 %%***************************************************************************************
 
 %implements sfcn_UDPConfig "C"
-
-%<LibAddToCommonIncludes("UDP.h")>
+%include "udp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
-%% Purpose:
-%%      Code generation for configuration
-%%
-%function BlockTypeSetup(block, system) void
+%% Runs once for the block type, no matter how many blocks are present in the model
 
+%function BlockTypeSetup(block, system) void
+	%assign ::udp_config_present = 1
+	%<UdpCommonBlockTypeSetup()>
+
+	%openfile tmpBufDecls
+		int udp_socket;
+	%closefile tmpBufDecls
+
+	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+%endfunction
+
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Runs once for every instance of the block in the model
+
+%function BlockInstanceSetup(block, system) void
+	%if EXISTS("upd_config_in_model") == 0
+		%assign ::udp_config_in_model = 1
+	%else
+		%<LibBlockReportError(block, "Only one UDP config block is allowed in the model at this point in time")>
+	%endif
 %endfunction
 
 %% Function: Start ==========================================================
@@ -49,8 +66,29 @@
 %%      initialize the reconnect_state struct
 %%
 %function Start(block, system) Output
-	initUdpBuffers();
-  UdpInitialize(%<block.RTWdata.port>, "%<block.RTWdata.ip>", %<block.RTWdata.broadcast>);
+	// Create UDP socket:
+	udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+
+	if(udp_socket < 0){
+		fprintf(stderr, "Error while creating UDP socket\n");
+		return;
+	}
+
+	int broadcast = %<block.ParamSettings.broadcast>;
+	if (broadcast) {
+		if (setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
+			fprintf(stderr, "Could set socket to broadcast\n");
+	}
+	struct sockaddr_in server_addr;
+	// Set port and IP:
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(%<block.ParamSettings.port>);
+	server_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
+
+	// Bind to the set port and IP:
+	if(bind(udp_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
+		fprintf(stderr,"Couldn't bind to the port\n");
+	}
 %endfunction
 
 %% Function: Output ==========================================================
@@ -59,7 +97,6 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-  UdpReceive();
 %endfunction
 
 %% Function: Terminate ==========================================================
@@ -68,8 +105,6 @@
 %%      Code generation for signal output
 %%
 %function Terminate (block, system) Output
-  %%
-  /* Close UDP socket and free buffers */
-  UdpTerminate();
-  %%
+	/* Close UDP socket */
+	close(udp_socket);
 %endfunction

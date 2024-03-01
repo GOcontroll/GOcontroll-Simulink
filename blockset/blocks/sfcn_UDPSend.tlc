@@ -31,8 +31,7 @@
 %%***************************************************************************************
 
 %implements sfcn_UDPSend "C"
-
-%<LibAddToCommonIncludes("UDP.h")>
+%include "udp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -40,8 +39,15 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-
+	%<UdpCommonBlockTypeSetup()>
 %endfunction
+
+%function Start(block, system) Output
+	%if EXISTS(::udp_config_present) == 0
+		%<LibBlockReportError(block, "No udp configuration block present at this moment in time.")>
+	%endif
+%endfunction
+
 
 %% Function: Output ==========================================================
 %%
@@ -49,10 +55,16 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	/* %<Type> Block: %<Name> */
-	%if ISEQUAL(0, %<block.RTWdata.input_type>)
-	UdpSend(%<block.RTWdata.port>, "%<block.RTWdata.ip>", (uint8_t) %<block.RTWdata.input_type>, (uint8_t*) %<LibBlockInputSignalAddr(1, "", "", 0)>, %<LibBlockInputSignalWidth(1)>);
-	%else
-	UdpSend(%<block.RTWdata.port>, "%<block.RTWdata.ip>", (uint8_t) %<LibBlockInputSignal(0, "", "", 0)>, (uint8_t*) %<LibBlockInputSignalAddr(1, "", "", 0)>, %<LibBlockInputSignalWidth(1)>);
-	%endif
+	{
+		/* UDP send */
+		struct sockaddr_in client_addr;
+		client_addr.sin_family = AF_INET;
+		client_addr.sin_port = htons(%<block.ParamSettings.port>);
+		client_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
+
+		if (sendto(udp_socket, %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>, 0,
+				(struct sockaddr*)&client_addr, sizeof(client_addr)) < 0){
+			fprintf(stderr, "Can't send UDP packet\n");
+		}
+	}
 %endfunction

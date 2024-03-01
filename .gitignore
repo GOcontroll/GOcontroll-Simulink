@@ -2,6 +2,7 @@
 /blockset_*
 /slprj/*
 /builds/*
+/blockset/blocks/*.mex*
 ~*
 *.elf
 *.a2l

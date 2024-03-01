@@ -48,6 +48,20 @@ end
 addpath([pwd filesep 'blockset']);
 addpath([pwd filesep 'blockset' filesep 'blocks']);
 addpath([pwd filesep 'blockset' filesep 'code']);
+addpath([pwd filesep 'blockset' filesep 'utility_functions']);
+
+% compile mex files
+d = dir(['blockset' filesep 'blocks']);
+files = {d.name};
+for idx = 1:length(files)
+	name = char(files(1,idx));
+	if contains(name, ".c") && contains(name, "sfcn")
+		[~, fname, ~] = fileparts(name);
+		if exist(fname) ~= 3
+			mex(['blockset' filesep 'blocks' filesep fname '.c'], '-outdir', ['blockset' filesep 'blocks']);
+		end
+	end
+end
 
 % find every folder that matches the blockset_* format and execute the
 % librarySetup.m script located in this folder
@@ -55,8 +69,8 @@ addpath([pwd filesep 'blockset' filesep 'code']);
 % Wiki on how to get started (link to be added).
 d = dir("blockset_*");
 folders = {d.name};
-for i = 1:length(folders)
-    name=char(folders(1,i));
+for idx = 1:length(folders)
+    name=char(folders(1,idx));
 	setupScript = [pwd filesep name filesep 'librarySetup.m'];
     if isfile(setupScript)
     	run(setupScript);
@@ -65,7 +79,7 @@ for i = 1:length(folders)
     end
 end
 
-clear setupScript i d folders name path path1 OS
+clear setupScript idx d folders name path path1 OS files fname
 
 warning off Simulink:SL_LoadMdlParameterizedLink;
 warning off Simulink:Commands:LoadMdlParameterizedLink;
