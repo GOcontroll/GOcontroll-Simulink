@@ -52,7 +52,7 @@
 %function Outputs(block, system) Output
 	%%
 	/* Get the contact voltage in Mv */
-	GocontrollProcessorboardSupply_Voltage(%<block.RTWdata.k15pin> +1,%<LibBlockOutputSignalAddr(0, "", "", 0)>);
+	GocontrollProcessorboardSupply_Voltage(%<block.ParamSettings.k15pin> +1,%<LibBlockOutputSignalAddr(0, "", "", 0)>);
   %%
 %endfunction
 

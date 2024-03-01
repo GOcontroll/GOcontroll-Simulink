@@ -48,47 +48,51 @@ function sfcn_exec_shell(block)
 
 
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 1;
-  block.NumOutputPorts = 0;
-  %% configurable input module channel 1
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).DatatypeID = 8;
-  block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(1).SamplingMode = 'sample';
+	tsamp = 1;
+	command = 2;
+	%% Register number of input and output ports
+	block.NumInputPorts = 1;
+	block.NumOutputPorts = 0;
+	%% configurable input module channel 1
+	block.InputPort(1).Dimensions = 1;
+	block.InputPort(1).DatatypeID = 8;
+	block.InputPort(1).Complexity = 'Real';
+	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
+	block.InputPort(1).SamplingMode = 'sample';
 
-  % Number of S-Function parameters expected
-  % (tsamp, command)
-  block.NumDialogPrms     = 2;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	% Number of S-Function parameters expected
+	% (tsamp, command)
+	block.NumDialogPrms     = 2;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+
+	block.RegBlockMethod('WriteRTW', @WriteRTW);
 %endfunction
 
 function Start(block)
@@ -111,5 +115,9 @@ function Update(block)
 
 %endfunction
 
+function WriteRTW(block)
+	command = 2;
+
+	block.WriteRTWParam('string', 'command', ['"' block.DialogPrm(command).Data '"']);
 
 %%******************************* end of sfcn_exec_shell.m *****************************

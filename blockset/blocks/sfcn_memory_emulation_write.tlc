@@ -50,17 +50,14 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-  %%
-	static float oldValue%<block.RTWdata.key> = 0xffffffff;
-	if(%<block.RTWdata.memType> == 1) /* index 1 means eMMC memory */
 	{
-	MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.RTWdata.key>",%<LibBlockInputSignal(0, "", "", 0)>, &oldValue%<block.RTWdata.key>);
+		static float oldValue%<block.ParamSettings.key> = 0xffffffff;
+		if(%<block.ParamSettings.memType> == 1) { /* index 1 means eMMC memory */
+			MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.ParamSettings.key>",%<LibBlockInputSignal(0, "", "", 0)>, &oldValue%<block.ParamSettings.key>);
+		} else {
+			MemoryEmulation_WriteToMemory("/dev/shm/%<block.ParamSettings.key>",%<LibBlockInputSignal(0, "", "", 0)>, &oldValue%<block.ParamSettings.key>);
+		}
 	}
-	else
-	{
-	MemoryEmulation_WriteToMemory("/dev/shm/%<block.RTWdata.key>",%<LibBlockInputSignal(0, "", "", 0)>, &oldValue%<block.RTWdata.key>);
-	}
-  %%
 %endfunction
 
 

@@ -61,7 +61,7 @@
 %function Outputs(block, system) Output
   %%
   /* Control LED according to the given settings */
-  GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
+  GocontrollProcessorboard_LedControl((uint8_t)%<block.ParamSettings.led>,(_ledColor)%<block.ParamSettings.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
   %%
 %endfunction
 
@@ -74,7 +74,7 @@
 %function Terminate (block, system) Output
   %%
   /* If program receives the SIGTERM command, the leds will be switched off */
-  GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, 0);
+  GocontrollProcessorboard_LedControl((uint8_t)%<block.ParamSettings.led>,(_ledColor)%<block.ParamSettings.color>, 0);
   %%
 %endfunction
 

@@ -27,7 +27,7 @@
 %% DEALINGS IN THE SOFTWARE.
 %%
 %%***************************************************************************************
-function sfcn_gocontroll_output_module(block)
+function sfcn_gocontroll_bridge_module(block)
   setup(block);
 %endfunction
 
@@ -55,54 +55,57 @@ function sfcn_gocontroll_output_module(block)
 %% BOOLEAN =  8
 
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 2;
-  block.NumOutputPorts = 0;
-  %% configurable input module channel 1
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(1).SamplingMode = 'sample';
-  %% configurable input module channel 2
-  block.InputPort(2).Dimensions = 1;
-  block.InputPort(2).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(2).Complexity = 'Real';
-  block.InputPort(2).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(2).SamplingMode = 'sample';
+	tsamp = 1;
+	%% Register number of input and output ports
+	block.NumInputPorts = 2;
+	block.NumOutputPorts = 0;
+	%% configurable input module channel 1
+	block.InputPort(1).Dimensions = 1;
+	block.InputPort(1).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
+	block.InputPort(1).Complexity = 'Real';
+	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
+	block.InputPort(1).SamplingMode = 'sample';
+	%% configurable input module channel 2
+	block.InputPort(2).Dimensions = 1;
+	block.InputPort(2).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
+	block.InputPort(2).Complexity = 'Real';
+	block.InputPort(2).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
+	block.InputPort(2).SamplingMode = 'sample';
 
-  % Number of S-Function parameters expected
+	% Number of S-Function parameters expected
 
-  % (tsamp, canBus, canID)
-  block.NumDialogPrms     = 6;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	% (tsamp, moduleSlot, C1func, C1freq, C2func, C2freq)
+	block.NumDialogPrms     = 6;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+
+	block.RegBlockMethod('WriteRTW', @WriteRTW);
 %endfunction
 
 function Start(block)
@@ -130,5 +133,19 @@ function Terminate(block)
   %% No Terminate
 
 %endfunction
+
+function WriteRTW(block)
+	moduleSlot = 2;
+	C1func = 3;
+	C1freq = 4;
+	C2func = 5;
+	C2freq = 6;
+
+	block.WriteRTWParam('string', 'moduleSlot', num2str(block.DialogPrm(moduleSlot).Data));
+	block.WriteRTWParam('string', 'C1func', num2str(block.DialogPrm(C1func).Data));
+	block.WriteRTWParam('string', 'C1freq', num2str(block.DialogPrm(C1freq).Data));
+	block.WriteRTWParam('string', 'C2func', num2str(block.DialogPrm(C2func).Data));
+	block.WriteRTWParam('string', 'C2freq', num2str(block.DialogPrm(C2freq).Data));
+
 
 %%******************************* end of sfcn_gocontroll_bridge_module.m **********************

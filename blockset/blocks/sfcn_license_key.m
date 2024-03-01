@@ -45,25 +45,47 @@ function sfcn_license_key(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 0;
+	key = 1;
+	iv = 2;
+	license = 3;
+	check_file = 4;
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = 0;
 
-  % Number of S-Function parameters expected
-  % (tsamp, key, iv, license, check)
-  block.NumDialogPrms     = 5;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	% Number of S-Function parameters expected
+	% (key, iv, license, check_file)
+	block.NumDialogPrms     = 4;
+	block.SampleTimes = [1 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
+
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
+
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+
+	block.RegBlockMethod('WriteRTW', @WriteRTW);
 %endfunction
 
 function Start(block)
@@ -71,7 +93,6 @@ function Start(block)
   %% No start
 
 %endfunction
-
 
 function Outputs(block)
 
@@ -86,5 +107,16 @@ function Update(block)
 
 %endfunction
 
+function WriteRTW(block)
+	key = 1;
+	iv = 2;
+	license = 3;
+	check_file = 4;
+
+	block.WriteRTWParam('matrix', 'key', block.DialogPrm(key).Data);
+	block.WriteRTWParam('string', 'key_len', num2str(length(block.DialogPrm(key).Data)));
+	block.WriteRTWParam('string', 'iv', ['"' block.DialogPrm(iv).Data '"']);
+	block.WriteRTWParam('string', 'license', ['"' block.DialogPrm(license).Data '"']);
+	block.WriteRTWParam('string', 'check_file', ['"' block.DialogPrm(check_file).Data '"']);
 
 %%******************************* end of sfcn_license_key.m *****************************

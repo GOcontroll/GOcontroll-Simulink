@@ -39,9 +39,25 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-  %%
-
-  %%
+	%assign slot = "::slot%<block.ParamSettings.moduleSlot>"
+	%assign slotmon = "::slot%<block.ParamSettings.moduleSlot>mon"
+	%if EXISTS(%<slot>) == 0
+		%<LibBlockReportError(block, "No corresponding bridge module block found in the same slot")>
+	%else
+		%assign tmp = %<slot>
+		%assign type = "bridge module"
+		%if ISEQUAL(tmp, type)
+			%if EXISTS(%<slotmon>) == 0
+				%assign %<slotmon> = type
+			%else
+				%assign warning = "Module slot %<block.ParamSettings.moduleSlot> is already being monitored, if that is your intention you can ignore this warning"
+				%<LibBlockReportWarning(block, warning)>
+			%endif
+		%else
+			%assign error = "The corresponding slot is configured as a %<tmp>, not a bridge module"
+			%<LibBlockReportError(block, error)>
+		%endif
+	%endif
 %endfunction
 
 %% Function: Output ==========================================================
@@ -52,10 +68,10 @@
 %function Outputs(block, system) Output
 	%%
 
-	%<LibBlockOutputSignal(0, "", "", 0)> = bridgeModule%<block.RTWdata.moduleSlot>.temperature;
-	%<LibBlockOutputSignal(1, "", "", 0)> = bridgeModule%<block.RTWdata.moduleSlot>.ground;
-	%<LibBlockOutputSignal(3, "", "", 0)> = bridgeModule%<block.RTWdata.moduleSlot>.current[0];
-	%<LibBlockOutputSignal(4, "", "", 0)> = bridgeModule%<block.RTWdata.moduleSlot>.current[1];
+	%<LibBlockOutputSignal(0, "", "", 0)> = bridgeModule%<block.ParamSettings.moduleSlot>.temperature;
+	%<LibBlockOutputSignal(1, "", "", 0)> = bridgeModule%<block.ParamSettings.moduleSlot>.ground;
+	%<LibBlockOutputSignal(2, "", "", 0)> = bridgeModule%<block.ParamSettings.moduleSlot>.current[0];
+	%<LibBlockOutputSignal(3, "", "", 0)> = bridgeModule%<block.ParamSettings.moduleSlot>.current[1];
 
   %%
 %endfunction

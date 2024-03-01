@@ -102,6 +102,8 @@ function setup(block)
   %%   C-Mex counterpart: mdlTerminate
   %%
   block.RegBlockMethod('Terminate', @Terminate);
+
+  block.RegBlockMethod('WriteRTW', @WriteRTW);
 %endfunction
 
 function Start(block)
@@ -131,5 +133,11 @@ function Terminate(block)
 
 %endfunction
 
+function WriteRTW(block)
+	led = 1;
+	color = 2;
+
+	block.WriteRTWParam('string', 'led', num2str(block.DialogPrm(led).Data));
+	block.WriteRTWParam('string', 'color', num2str(block.DialogPrm(color).Data));
 
 %%******************************* end of sfcn_gocontroll_status_led.m **********************

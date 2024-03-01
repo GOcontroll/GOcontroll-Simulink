@@ -27,8 +27,8 @@
 %% DEALINGS IN THE SOFTWARE.
 %%
 %%***************************************************************************************
-function sfcn_gocontroll_contact_voltage(block)
-  setup(block);
+function sfcn_gocontroll_k15_voltage(block)
+	setup(block);
 %endfunction
 
 
@@ -54,45 +54,49 @@ function sfcn_gocontroll_contact_voltage(block)
 %% BOOLEAN =  8
 
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 1;
-  %% Override ports
-  block.OutputPort(1).Dimensions = 1;
-  block.OutputPort(1).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
-  block.OutputPort(1).Complexity = 'Real';
-  block.OutputPort(1).SamplingMode = 'sample';
-  % Number of S-Function parameters expected
-  block.NumDialogPrms     = 2;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
+	tsamp = 1;
+	k15pin = 2;
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = 1;
+	%% Override ports
+	block.OutputPort(1).Dimensions = 1;
+	block.OutputPort(1).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
+	block.OutputPort(1).Complexity = 'Real';
+	block.OutputPort(1).SamplingMode = 'sample';
+	% Number of S-Function parameters expected
+	block.NumDialogPrms     = 2;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+
+	block.RegBlockMethod('WriteRTW', @WriteRTW);
 %endfunction
 
 function Start(block)
@@ -114,6 +118,11 @@ function Update(block)
   %% No update
 
 %endfunction
+
+function WriteRTW(block)
+	k15pin = 2;
+
+	block.WriteRTWParam('string', 'k15pin', num2str(block.DialogPrm(k15pin).Data));
 
 %%******************************* end of sfcn_gocontroll_contact_voltage.m *****************************
 

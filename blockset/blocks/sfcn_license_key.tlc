@@ -42,11 +42,6 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-	%% get the name of the model's source file.
-    %assign srcFile = LibGetModelDotCFile()
-
-    %% create a frame that can be used for storing data for message transmissions.
-    %%<LibSetSourceFileSection(srcFile, "Declarations", "struct can_frame sendframe;\n")>
 %endfunction
 
 
@@ -56,7 +51,19 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	GocontrollProcessorboard_VerifyLicense((uint8_t [])%<block.RTWdata.key>, "%<block.RTWdata.iv>", "%<block.RTWdata.license>", "%<block.RTWdata.check>", sizeof((uint8_t [])%<block.RTWdata.key>)); /* Verify license key */
+	%assign keylen = %<block.ParamSettings.key_len>
+	%assign key = ParamSettings.key[0]
+	%assign keyOut = "{"
+	%foreach k = keylen - 1
+		%assign tmp = key[k]
+		%assign keyOut = keyOut + "%<tmp>,"
+	%endforeach
+	%assign tmp = key[keylen -1]
+	%assign keyOut = keyOut + "%<tmp>}"
+	{
+		uint8_t key[] = %<keyOut>;
+		GocontrollProcessorboard_VerifyLicense(key, %<block.ParamSettings.iv>, %<block.ParamSettings.license>, %<block.ParamSettings.check_file>, sizeof(key)); /* Verify license key */
+	}
 %endfunction
 
 %% Function: Update ==========================================================

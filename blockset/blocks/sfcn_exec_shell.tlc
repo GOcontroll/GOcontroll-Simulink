@@ -41,7 +41,7 @@
 %%
 %function Outputs(block, system) Output
 	if (%<LibBlockInputSignal(0, "", "", 0)>){
-        system("%<block.RTWdata.command>");
+        system(%<block.ParamSettings.command>);
     }
 %endfunction
 

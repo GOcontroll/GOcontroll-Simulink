@@ -29,32 +29,33 @@
 %%***************************************************************************************
 function sfcn_gocontroll_bridge_module_monitor(block)
 	setup(block);
-  %endfunction
-  
-  
-  %% Function: setup ===================================================
-  %% Abstract:
-  %%   Set up the S-function block's basic characteristics such as:
-  %%   - Input ports
-  %%   - Output ports
-  %%   - Dialog parameters
-  %%   - Options
-  %%
-  %%   Required         : Yes
-  %%   C-Mex counterpart: mdlInitializeSizes
-  
-  %% DatatypeID's
-  %% DOUBLE  =  0
-  %% SINGLE  =  1
-  %% INT8    =  2
-  %% UINT8   =  3
-  %% INT16   =  4
-  %% UINT16  =  5
-  %% INT32   =  6
-  %% UINT32  =  7
-  %% BOOLEAN =  8
-  
-  function setup(block)
+%endfunction
+
+
+%% Function: setup ===================================================
+%% Abstract:
+%%   Set up the S-function block's basic characteristics such as:
+%%   - Input ports
+%%   - Output ports
+%%   - Dialog parameters
+%%   - Options
+%%
+%%   Required         : Yes
+%%   C-Mex counterpart: mdlInitializeSizes
+
+%% DatatypeID's
+%% DOUBLE  =  0
+%% SINGLE  =  1
+%% INT8    =  2
+%% UINT8   =  3
+%% INT16   =  4
+%% UINT16  =  5
+%% INT32   =  6
+%% UINT32  =  7
+%% BOOLEAN =  8
+
+function setup(block)
+	tsamp = 1;
 	%% Register number of input and output ports
 	block.NumInputPorts = 0;
 	block.NumOutputPorts = 4;
@@ -69,19 +70,19 @@ function sfcn_gocontroll_bridge_module_monitor(block)
 	block.OutputPort(2).Complexity = 'Real';
 	block.OutputPort(2).SamplingMode = 'sample';
 	%% Output channel 1
+	block.OutputPort(3).Dimensions = 1;
+	block.OutputPort(3).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
+	block.OutputPort(3).Complexity = 'Real';
+	block.OutputPort(3).SamplingMode = 'sample';
+	%% Output channel 2
 	block.OutputPort(4).Dimensions = 1;
 	block.OutputPort(4).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
 	block.OutputPort(4).Complexity = 'Real';
 	block.OutputPort(4).SamplingMode = 'sample';
-	%% Output channel 2
-	block.OutputPort(5).Dimensions = 1;
-	block.OutputPort(5).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-	block.OutputPort(5).Complexity = 'Real';
-	block.OutputPort(5).SamplingMode = 'sample';
 	% Number of S-Function parameters expected
 	% (tsamp, canBus, canID)
-	block.NumDialogPrms     = 3;
-	block.SampleTimes = [block.DialogPrm(1).Data 0];
+	block.NumDialogPrms     = 2;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------
@@ -109,28 +110,33 @@ function sfcn_gocontroll_bridge_module_monitor(block)
 	%%   C-Mex counterpart: mdlUpdate
 	%%
 	block.RegBlockMethod('Update', @Update);
-  %endfunction
-  
-  function Start(block)
-  
-	%% No start
-  
-  %endfunction
-  
-  
-  function Outputs(block)
-  
-	%% No output
-  
-  %endfunction
-  
-  
-  function Update(block)
-  
-	%% No update
-  
-  %endfunction
-  
-  
-  %%******************************* end of sfcn_gocontroll_bridge_module_monitor.m **********************
-  
+
+	block.RegBlockMethod('WriteRTW', @WriteRTW);
+%endfunction
+
+function Start(block)
+
+%% No start
+
+%endfunction
+
+
+function Outputs(block)
+
+%% No output
+
+%endfunction
+
+
+function Update(block)
+
+%% No update
+
+%endfunction
+
+function WriteRTW(block)
+	moduleSlot = 2;
+
+	block.WriteRTWParam('string', 'moduleSlot', num2str(block.DialogPrm(moduleSlot).Data));
+
+%%******************************* end of sfcn_gocontroll_bridge_module_monitor.m **********************

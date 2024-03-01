@@ -39,32 +39,28 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-  %%
-  	%% Mechanism to create a global declared float which hold value from memory
+	%% Mechanism to create a global declared float which hold value from memory
 
 	%openfile tmpBuf
-	float memorySimulation_%<block.RTWdata.key>;
+	float memorySimulation_%<block.ParamSettings.key>;
 	%closefile tmpBuf
 
 	%assign srcFile = LibGetModelDotCFile()
 	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
 
-  	if(%<block.RTWdata.memType> == 1) /* index 1 means eMMC memory */
-	{
-	MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
-	/* Ensure the value is loaded before step starts */
-	MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-	}
-	else
-	{
-	MemoryEmulation_WriteToMemory("/dev/shm/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
-	/* Ensure the value is loaded before step starts */
-	MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+  	if(%<block.ParamSettings.memType> == 1) { /* index 1 means eMMC memory */
+		MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.ParamSettings.key>",%<block.RTWdata.init>, NULL);
+		/* Ensure the value is loaded before step starts */
+		MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.ParamSettings.key>", &memorySimulation_%<block.RTWdata.key>);
+	} else {
+		MemoryEmulation_WriteToMemory("/dev/shm/%<block.ParamSettings.key>",%<block.RTWdata.init>, NULL);
+		/* Ensure the value is loaded before step starts */
+		MemoryEmulation_ReadFromMemory("/dev/shm/%<block.ParamSettings.key>", &memorySimulation_%<block.RTWdata.key>);
 	}
 
-	%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
+	%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.ParamSettings.key>;
 
-  %%
+
 %endfunction
 
 %% Function: Output ==========================================================
@@ -73,26 +69,20 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-  %%
+
 	/* Write memory value to output of the block */
-	if(%<block.RTWdata.memRead> == 2)
-	{
-	  	if(%<block.RTWdata.memType> == 1) /* index 1 means eMMC memory */
-		{
-		MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+	if(%<block.ParamSettings.memRead> == 2) {
+	  	if(%<block.ParamSettings.memType> == 1) { /* index 1 means eMMC memory */
+			MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.ParamSettings.key>", &memorySimulation_%<block.RTWdata.key>);
+		} else {
+			MemoryEmulation_ReadFromMemory("/dev/shm/%<block.ParamSettings.key>", &memorySimulation_%<block.RTWdata.key>);
 		}
-		else
-		{
-		MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-		}
-	%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
-	}
-	else
-	{
-	%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
+		%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.ParamSettings.key>;
+	} else {
+		%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.ParamSettings.key>;
 	}
 
-  %%
+
 %endfunction
 
 

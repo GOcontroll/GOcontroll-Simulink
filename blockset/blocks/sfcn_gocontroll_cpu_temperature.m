@@ -55,47 +55,46 @@ function sfcn_gocontroll_cpu_temperature(block)
 %% BOOLEAN =  8
 
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 1;
+	tsamp = 1;
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = 1;
+
+	block.OutputPort(1).Dimensions = 1;
+	block.OutputPort(1).DatatypeID = 1;
+	block.OutputPort(1).Complexity = 'Real';
+	block.OutputPort(1).SamplingMode = 'sample';
 
 
+	block.NumDialogPrms     = 1;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  block.OutputPort(1).Dimensions = 1;
-  block.OutputPort(1).DatatypeID = 1;
-  block.OutputPort(1).Complexity = 'Real';
-  block.OutputPort(1).SamplingMode = 'sample';
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  block.NumDialogPrms     = 1;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
-
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
-
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
-
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
 %endfunction
 
 function Start(block)
