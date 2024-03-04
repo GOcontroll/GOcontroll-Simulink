@@ -29,7 +29,7 @@
 %%***************************************************************************************
 function sfcn_gocontroll_bridge_module(block)
   setup(block);
-%endfunction
+end
 
 
 %% Function: setup ===================================================
@@ -105,34 +105,23 @@ function setup(block)
 	%%
 	block.RegBlockMethod('Update', @Update);
 
+	block.RegBlockMethod('Terminate', @Terminate);
+
 	block.RegBlockMethod('WriteRTW', @WriteRTW);
-%endfunction
+end
 
-function Start(block)
-
-  %% No start
-
-%endfunction
+function Start(~)
+end
 
 
-function Outputs(block)
+function Outputs(~)
+end
 
-  %% No output
+function Update(~)
+end
 
-%endfunction
-
-
-function Update(block)
-
-  %% No update
-
-%endfunction
-
-function Terminate(block)
-
-  %% No Terminate
-
-%endfunction
+function Terminate(~)
+end
 
 function WriteRTW(block)
 	moduleSlot = 2;
@@ -146,6 +135,6 @@ function WriteRTW(block)
 	block.WriteRTWParam('string', 'C1freq', num2str(block.DialogPrm(C1freq).Data));
 	block.WriteRTWParam('string', 'C2func', num2str(block.DialogPrm(C2func).Data));
 	block.WriteRTWParam('string', 'C2freq', num2str(block.DialogPrm(C2freq).Data));
-
+end
 
 %%******************************* end of sfcn_gocontroll_bridge_module.m **********************

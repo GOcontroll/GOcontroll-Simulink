@@ -66,9 +66,4 @@
 	}
 %endfunction
 
-%% Function: Update ==========================================================
-%%
-%% Purpose:
-%%      Code generation for signal input
-%%
 %%******************************* end of sfcn_license_key.tlc ******************************

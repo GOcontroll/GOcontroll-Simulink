@@ -29,8 +29,7 @@
 %%***************************************************************************************
 function sfcn_gocontroll_bridge_module_monitor(block)
 	setup(block);
-%endfunction
-
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -80,63 +79,35 @@ function setup(block)
 	block.OutputPort(4).Complexity = 'Real';
 	block.OutputPort(4).SamplingMode = 'sample';
 	% Number of S-Function parameters expected
-	% (tsamp, canBus, canID)
+	% (tsamp, moduleSlot)
 	block.NumDialogPrms     = 2;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------
-  
-	%%
-	%% Start:
-	%%   Functionality    : Called in order to initialize state and work
-	%%                      area values
-	%%   C-Mex counterpart: mdlStart
-	%%
+	
 	block.RegBlockMethod('Start', @Start);
-  
-	%%
-	%% Outputs:
-	%%   Functionality    : Called to generate block outputs in
-	%%                      simulation step
-	%%   C-Mex counterpart: mdlOutputs
-	%%
+
 	block.RegBlockMethod('Outputs', @Outputs);
-  
-	%%
-	%% Update:
-	%%   Functionality    : Called to update discrete states
-	%%                      during simulation step
-	%%   C-Mex counterpart: mdlUpdate
-	%%
+
 	block.RegBlockMethod('Update', @Update);
 
 	block.RegBlockMethod('WriteRTW', @WriteRTW);
-%endfunction
+end
 
-function Start(block)
+function Start(~)
+end
 
-%% No start
+function Outputs(~)
+end
 
-%endfunction
-
-
-function Outputs(block)
-
-%% No output
-
-%endfunction
-
-
-function Update(block)
-
-%% No update
-
-%endfunction
+function Update(~)
+end
 
 function WriteRTW(block)
 	moduleSlot = 2;
-
 	block.WriteRTWParam('string', 'moduleSlot', num2str(block.DialogPrm(moduleSlot).Data));
+end
 
 %%******************************* end of sfcn_gocontroll_bridge_module_monitor.m **********************

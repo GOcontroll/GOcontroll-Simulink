@@ -66,16 +66,10 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	%%
-
 	%<LibBlockOutputSignal(0, "", "", 0)> = bridgeModule%<block.ParamSettings.moduleSlot>.temperature;
 	%<LibBlockOutputSignal(1, "", "", 0)> = bridgeModule%<block.ParamSettings.moduleSlot>.ground;
 	%<LibBlockOutputSignal(2, "", "", 0)> = bridgeModule%<block.ParamSettings.moduleSlot>.current[0];
 	%<LibBlockOutputSignal(3, "", "", 0)> = bridgeModule%<block.ParamSettings.moduleSlot>.current[1];
-
-  %%
 %endfunction
-
-
 
 %%******************************* end of sfcn_gocontroll_bridge_module_monitor.tlc ***************************

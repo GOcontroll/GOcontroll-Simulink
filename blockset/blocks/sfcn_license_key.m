@@ -31,7 +31,7 @@
 %%***************************************************************************************
 function sfcn_license_key(block)
   setup(block);
-%endfunction
+end
 
 
 %% Function: setup ===================================================
@@ -45,10 +45,6 @@ function sfcn_license_key(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
-	key = 1;
-	iv = 2;
-	license = 3;
-	check_file = 4;
 	%% Register number of input and output ports
 	block.NumInputPorts = 0;
 	block.NumOutputPorts = 0;
@@ -61,51 +57,23 @@ function setup(block)
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------
 
-	%%
-	%% Start:
-	%%   Functionality    : Called in order to initialize state and work
-	%%                      area values
-	%%   C-Mex counterpart: mdlStart
-	%%
 	block.RegBlockMethod('Start', @Start);
 
-	%%
-	%% Outputs:
-	%%   Functionality    : Called to generate block outputs in
-	%%                      simulation step
-	%%   C-Mex counterpart: mdlOutputs
-	%%
 	block.RegBlockMethod('Outputs', @Outputs);
 
-	%%
-	%% Update:
-	%%   Functionality    : Called to update discrete states
-	%%                      during simulation step
-	%%   C-Mex counterpart: mdlUpdate
-	%%
 	block.RegBlockMethod('Update', @Update);
 
 	block.RegBlockMethod('WriteRTW', @WriteRTW);
-%endfunction
+end
 
-function Start(block)
+function Start(~)
+end
 
-  %% No start
+function Outputs(~)
+end
 
-%endfunction
-
-function Outputs(block)
-
-  %% No output
-
-%endfunction
-
-
-function Update(block)
-
-  %% No update
-
-%endfunction
+function Update(~)
+end
 
 function WriteRTW(block)
 	key = 1;
@@ -118,5 +86,6 @@ function WriteRTW(block)
 	block.WriteRTWParam('string', 'iv', ['"' block.DialogPrm(iv).Data '"']);
 	block.WriteRTWParam('string', 'license', ['"' block.DialogPrm(license).Data '"']);
 	block.WriteRTWParam('string', 'check_file', ['"' block.DialogPrm(check_file).Data '"']);
+end
 
 %%******************************* end of sfcn_license_key.m *****************************

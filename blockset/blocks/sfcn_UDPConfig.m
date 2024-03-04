@@ -29,7 +29,7 @@
 %%***************************************************************************************
 function sfcn_UDPConfig(block)
   setup(block);
-%endfunction
+end
 
 
 %% Function: setup ===================================================
@@ -68,66 +68,30 @@ function setup(block)
   %% Register methods called at run-time
   %% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
   block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
   block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
   block.RegBlockMethod('Update', @Update);
 
-  %%
-  %% Terminate:
-  %%   Functionality    : Called to terminate discrete states
-  %%                      during simulation termination
-  %%   C-Mex counterpart: mdlTerminate
-  %%
   block.RegBlockMethod('Terminate', @Terminate);
 
   block.RegBlockMethod('WriteRTW', @WriteRTW);
-%endfunction
+end
 
-function Start(block)
-
-  %% No start
-
-%endfunction
+function Start(~)
+end
 
 
-function Outputs(block)
-
-  %% No output
-
-%endfunction
+function Outputs(~)
+end
 
 
-function Update(block)
+function Update(~)
+end
 
-  %% No update
-
-%endfunction
-
-function Terminate(block)
-
-  %% No Terminate
-
-%endfunction
+function Terminate(~)
+end
 
 function WriteRTW(block)
 	port = 1;
@@ -136,6 +100,6 @@ function WriteRTW(block)
 	block.WriteRTWParam('string', 'port', num2str(block.DialogPrm(port).Data));
 	block.WriteRTWParam('string', 'ip', ['"' block.DialogPrm(ip).Data '"']);
 	block.WriteRTWParam('string', 'broadcast' , num2str(block.DialogPrm(broadcast).Data));
-
+end
 
 %%******************************* end of sfcn_UDPConfig.m **********************
