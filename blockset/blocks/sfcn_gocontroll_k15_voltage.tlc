@@ -32,6 +32,7 @@
 
 %% add required include files
 %<LibAddToCommonIncludes("GocontrollProcessorboardSupply.h")>
+%<LibAddToCommonIncludes("pthread.h")>
 
 %% Function: Start ==========================================================
 %%
@@ -39,9 +40,16 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-  %%
+	%if EXISTS("adc_thread") == 0
+		%assign ::adc_thread = 1
+		%openfile buff
+		pthread_t adc_thread;
+		%closefile buff
 
-  %%
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", buff)>
+
+		pthread_create(&adc_thread, NULL, GocontrollProcessorboardSupply_ReadAdcThread, NULL);
+	%endif
 %endfunction
 
 %% Function: Outputs ==========================================================
@@ -50,14 +58,17 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	%%
-	/* Get the contact voltage in Mv */
+	/* Get the contact voltage in mV */
 	GocontrollProcessorboardSupply_Voltage(%<block.ParamSettings.k15pin> +1,%<LibBlockOutputSignalAddr(0, "", "", 0)>);
-  %%
 %endfunction
 
-
+%function Terminate(block, system) Output
+	%% Kill the adc thread
+	%if EXISTS("terminate_adc_thread") == 0
+		%assign ::terminate_adc_thread = 1
+		pthread_cancel(adc_thread);
+		pthread_join(adc_thread, NULL);
+	%endif
+%endfunction
 
 %%******************************* end of sfcn_gocontroll_k15_voltage.tlc ***************************
-
-

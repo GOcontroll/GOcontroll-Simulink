@@ -256,46 +256,49 @@ static int remove_directory(const char *path) {
 /***************************************************************************************
 ** \brief	Function that stores and provides the memory locations for each module
 ** \		data holder.
-** \param	Module slot on which the module is installed to. Value from 1 to 8
+** \param	diagType diagnostic type, a value from 1 to 5
+** \param	index
 ** \return	If requested, the memory location of the modules data holder.
 **
 ****************************************************************************************/
 uint32_t MemoryDiagnostic_DiagCodeOnIndex(uint8_t diagType,uint16_t index)
 {
-	/* Create string from diagnostic type */
-	char diagTypeStr[5];
-	sprintf(diagTypeStr, "%u",(int)diagType);
-	/* Combine string to construct proper path name */
-	char path[20] = {0};
-	strcat(path, "/usr/mem-diag/");
-	strcat(path, diagTypeStr);
+	if (1 <= diagType && diagType <= 5){
+		/* Create string from diagnostic type */
+		char diagTypeStr[5];
+		sprintf(diagTypeStr, "%u",(int)diagType);
+		/* Combine string to construct proper path name */
+		char path[20] = {0};
+		strcat(path, "/usr/mem-diag/");
+		strcat(path, diagTypeStr);
 
-	DIR *d;
-	struct dirent *dir;
-	d = opendir(path);
+		DIR *d;
+		struct dirent *dir;
+		d = opendir(path);
 
-	uint16_t indexCounter = 0;
+		uint16_t indexCounter = 0;
 
-	if (d) {
-		while ((dir = readdir(d)) != NULL) {
+		if (d) {
+			while ((dir = readdir(d)) != NULL) {
 
-			/* Skip the names "." and ".." as we don't want to recurse on them. */
-			if (!strcmp(dir->d_name, ".") || !strcmp(dir->d_name, "..")){
-             continue;
+				/* Skip the names "." and ".." as we don't want to recurse on them. */
+				if (!strcmp(dir->d_name, ".") || !strcmp(dir->d_name, "..")){
+				continue;
+				}
+				/* Check if the actual file location meets the index number */
+				if(indexCounter == index)
+				{
+					/* At this point we have a match on index */
+					uint32_t code = strtol(dir->d_name, NULL, 10);
+					closedir(d);
+					/* Debug purpose */
+					//printf("code: %d\n",code);
+					return code;
+				}
+				indexCounter++;
 			}
-			/* Check if the actual file location meets the index number */
-			if(indexCounter == index)
-			{
-				/* At this point we have a match on index */
-				uint32_t code = strtol(dir->d_name, NULL, 10);
-				closedir(d);
-				/* Debug purpose */
-				//printf("code: %d\n",code);
-				return code;
-			}
-			indexCounter++;
+			closedir(d);
 		}
-		closedir(d);
 	}
 	return(0);
 }

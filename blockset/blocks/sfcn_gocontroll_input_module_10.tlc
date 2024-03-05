@@ -33,6 +33,17 @@
 %% add required include files
 %<LibAddToCommonIncludes("GocontrollInputModule.h")>
 
+%function BlockInstanceSetup(block, system) void
+	%%check if slot is already occupied
+	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
+	%if EXISTS(%<slot>) == 0
+		%assign %<slot> = "10 channel input module"
+	%else
+		%assign tmp = %<slot>
+		%assign error = "Module slot %<block.RTWdata.moduleSlot> is already occupied by a %<tmp>"
+		%<LibBlockReportError(block, error)>
+	%endif
+%endfunction
 
 %% Function: Start ==========================================================
 %%
@@ -46,7 +57,6 @@
 
 	%openfile tmpBuf
 	_inputModule inputModule%<block.RTWdata.moduleSlot>;
-	const char *moduleslot%<block.RTWdata.moduleSlot> = "occupied by 10 channel output module";
 	%closefile tmpBuf
 
 	%assign srcFile = LibGetModelDotCFile()

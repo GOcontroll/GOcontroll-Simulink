@@ -39,9 +39,25 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-  %%
-
-  %%
+	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
+	%assign slotmon = "::slot%<block.RTWdata.moduleSlot>mon"
+	%if EXISTS(%<slot>) == 0
+		%<LibBlockReportError(block, "No corresponding 6 channel output module block found in the same slot")>
+	%else
+		%assign tmp = %<slot>
+		%assign type = "6 channel output module"
+		%if ISEQUAL(tmp, type)
+			%if EXISTS(%<slotmon>) == 0
+				%assign %<slotmon> = type
+			%else
+				%assign warning = "Module slot %<block.RTWdata.moduleSlot> is already being monitored, if that is your intention you can ignore this warning"
+				%<LibBlockReportWarning(block, warning)>
+			%endif
+		%else
+			%assign error = "The corresponding slot is configured as a %<tmp>, not a 6 channel output module"
+			%<LibBlockReportError(block, error)>
+		%endif
+	%endif
 %endfunction
 
 %% Function: Output ==========================================================

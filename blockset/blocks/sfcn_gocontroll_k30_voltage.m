@@ -29,7 +29,7 @@
 %%***************************************************************************************
 function sfcn_gocontroll_k30_voltage(block)
 	setup(block);
-%endfunction
+end
 
 
 %% Function: setup ===================================================
@@ -71,50 +71,27 @@ function setup(block)
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------
 
-	%%
-	%% Start:
-	%%   Functionality    : Called in order to initialize state and work
-	%%                      area values
-	%%   C-Mex counterpart: mdlStart
-	%%
 	block.RegBlockMethod('Start', @Start);
 
-	%%
-	%% Outputs:
-	%%   Functionality    : Called to generate block outputs in
-	%%                      simulation step
-	%%   C-Mex counterpart: mdlOutputs
-	%%
 	block.RegBlockMethod('Outputs', @Outputs);
 
-	%%
-	%% Update:
-	%%   Functionality    : Called to update discrete states
-	%%                      during simulation step
-	%%   C-Mex counterpart: mdlUpdate
-	%%
 	block.RegBlockMethod('Update', @Update);
-%endfunction
 
-function Start(block)
+	block.RegBlockMethod('Terminate', @Terminate);
+end
 
-  %% No start
-
-%endfunction
-
-
-function Outputs(block)
-
-  %% No output
-
-%endfunction
+function Start(~)
+end
 
 
-function Update(block)
+function Outputs(~)
+end
 
-  %% No update
 
-%endfunction
+function Update(~)
+end
+
+function Terminate(~)
+end
 
 %%******************************* end of sfcn_gocontroll_k30_voltage.m *****************************
-

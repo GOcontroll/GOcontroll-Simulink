@@ -42,6 +42,18 @@
 
 %endfunction
 
+%function BlockInstanceSetup(block, system) void
+	%%check if slot is already occupied
+	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
+	%if EXISTS(%<slot>) == 0
+		%assign %<slot> = "6 channel output module "
+	%else
+		%assign tmp = %<slot>
+		%assign error = "Module slot %<block.RTWdata.moduleSlot> is already occupied by a %<tmp>"
+		%<LibBlockReportError(block, error)>
+	%endif
+%endfunction
+
 
 %% Function: Start ==========================================================
 %%
@@ -55,7 +67,6 @@
 
 	%openfile tmpBuf
 	_outputModule outputModule%<block.RTWdata.moduleSlot>;
-	const char *moduleslot%<block.RTWdata.moduleSlot> = "occupied by 6 channel output module";
 	%closefile tmpBuf
 
 	%assign srcFile = LibGetModelDotCFile()

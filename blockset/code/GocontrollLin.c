@@ -191,7 +191,7 @@ uint8_t GocontrollLin_LinMessageScheduler(uint8_t id, uint8_t action)
 			return 1;
 		}
 	}
-	/* Initialization call. Sore all ID, used in the model */
+	/* Initialization call. Store all ID, used in the model */
 	else if(action == 1)
 	{
 	storedId[storedIds++] = id;

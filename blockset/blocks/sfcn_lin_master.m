@@ -30,8 +30,7 @@
 %%***************************************************************************************
 function sfcn_lin_master(block)
   setup(block);
-%endfunction
-
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -44,80 +43,67 @@ function sfcn_lin_master(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 8;
-  block.NumOutputPorts = 8;
+	tsamp = 1;
+	id = 2;
+	direction = 3;
+	dataLength = 4;
+	check = 5;
 
-  %% [sw] rest poorten van 2 t/m 9 ipv 1 t/m 8
-  %% Override ports
-  for inputCounter = 1:8
-      block.InputPort(inputCounter).Dimensions = 1;
-      block.InputPort(inputCounter).DatatypeID = 3; %% 3 = uint8
-      block.InputPort(inputCounter).Complexity = 'Real';
-      block.InputPort(inputCounter).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-      block.InputPort(inputCounter).SamplingMode = 'sample';
-  end
+	switch block.DialogPrm(dataLength).Data
+		case 1
+			ports = 2;
+		case 2
+			ports = 4;
+		case 3
+			ports = 8;
+		otherwise
+			error('Incorrect data length setting');
+	end
 
-  for outputCounter = 1:8
-      block.OutputPort(outputCounter).Dimensions = 1;
-      block.OutputPort(outputCounter).DatatypeID = 3; %% 3 = uint8
-      block.OutputPort(outputCounter).Complexity = 'Real';
-      block.OutputPort(outputCounter).SamplingMode = 'sample';
-  end
+	if block.DialogPrm(direction).Data == 1
+		block.NumOutputPorts = ports;
+		block.NumInputPorts = 0;
+		for outputCounter = 1:ports
+			block.OutputPort(outputCounter).Dimensions = 1;
+			block.OutputPort(outputCounter).DatatypeID = 3; %% 3 = uint8
+			block.OutputPort(outputCounter).Complexity = 'Real';
+			block.OutputPort(outputCounter).SamplingMode = 'sample';
+		end
+	else
+		block.NumOutputPorts = 0;
+		block.NumInputPorts = ports;
+		for inputCounter = 1:ports
+			block.InputPort(inputCounter).Dimensions = 1;
+			block.InputPort(inputCounter).DatatypeID = 3; %% 3 = uint8
+			block.InputPort(inputCounter).Complexity = 'Real';
+			block.InputPort(inputCounter).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
+			block.InputPort(inputCounter).SamplingMode = 'sample';
+		end
+	end
 
-  % Number of S-Function parameters expected
-  % (tsamp, canBus, frameType, inputNumber, dataType, byteOrder)
-  block.NumDialogPrms     = 5;
+	% Number of S-Function parameters expected
+	% (tsamp, canBus, frameType, inputNumber, dataType, byteOrder)
+	block.NumDialogPrms     = 5;
 
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
+	block.RegBlockMethod('Update', @Update);
+end
 
-function Start(block)
+function Start(~)
+end
 
-  %% No start
+function Outputs(~)
+end
 
-%endfunction
-
-
-function Outputs(block)
-
-  %% No output
-
-%endfunction
-
-
-function Update(block)
-
-  %% No update
-
-%endfunction
-
+function Update(~)
+end
 
 %%******************************* end of sfcn_lin_master.m ********************************

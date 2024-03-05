@@ -59,8 +59,8 @@ function setup(block)
   block.NumInputPorts = 0;
   block.NumOutputPorts = 0;
 
-  block.NumDialogPrms     = 2;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
+  block.NumDialogPrms     = 1;
+  block.SampleTimes = [-1 0];
   %% -----------------------------------------------------------------
   %% Register methods called at run-time
   %% -----------------------------------------------------------------

@@ -29,7 +29,7 @@
 %%***************************************************************************************
 function sfcn_memory_diagnostic_write_freeze(block)
   setup(block);
-%endfunction
+end
 
 
 %% Function: setup ===================================================
@@ -55,77 +55,70 @@ function sfcn_memory_diagnostic_write_freeze(block)
 %% BOOLEAN =  8
 
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 11;
-  block.NumOutputPorts = 0;
-  %% configurable inputs on diagnostic block
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).DatatypeID = 7;
-  %%block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(1).SamplingMode = 'sample';
+	diagType = 1;
+	signals = 2;
+	% signalsDataRaw = block.DialogPrm(signals).Data;
+	% signalsData = splitlines(signalsDataRaw);
+	signalsData = block.DialogPrm(signals).Data;
+	numSignals = length(signalsData);
+	%% Register number of input and output ports
+	block.NumInputPorts = numSignals+1;
+	block.NumOutputPorts = 0;
+	%% configurable inputs on diagnostic block
+	block.InputPort(diagType).Dimensions = 1;
+	block.InputPort(diagType).DatatypeID = 7;
+	%%block.InputPort(1).Complexity = 'Real';
+	block.InputPort(diagType).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
+	block.InputPort(diagType).SamplingMode = 'sample';
 
-  for inputCounter = 2:11
-  %%block.InputPort(inputCounter).Dimensions = 1;
-  block.InputPort(inputCounter).DatatypeID = 1;
-  block.InputPort(inputCounter).Complexity = 'Real';
-  block.InputPort(inputCounter).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(inputCounter).SamplingMode = 'sample';
-  end
+	for inputCounter = 2:numSignals+1
+	%%block.InputPort(inputCounter).Dimensions = 1;
+	block.InputPort(inputCounter).DatatypeID = 1;
+	block.InputPort(inputCounter).Complexity = 'Real';
+	block.InputPort(inputCounter).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
+	block.InputPort(inputCounter).SamplingMode = 'sample';
+	end
 
-  % Number of S-Function parameters expected
+	% Number of S-Function parameters expected
 
-  % (tsamp, canBus, canID)
-  block.NumDialogPrms     = 12;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	% (diagType, signals)
+	block.NumDialogPrms     = 2;
+	block.SampleTimes = [-1 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
+	block.RegBlockMethod('Update', @Update);
 
-function Start(block)
+	block.RegBlockMethod('WriteRTW', @WriteRTW);
+end
 
-  %% No start
-
-%endfunction
+function Start(~)
+end
 
 
-function Outputs(block)
-
-  %% No output
-
-%endfunction
+function Outputs(~)
+end
 
 
-function Update(block)
+function Update(~)
+end
 
-  %% No update
-
-%endfunction
-
+function WriteRTW(block)
+	diagType = 1;
+	signals = 2;
+	signalsData = block.DialogPrm(signals).Data;
+	block.WriteRTWParam('string', 'diagType', num2str(block.DialogPrm(diagType).Data));
+	block.WriteRTWParam('string', 'num_signals', num2str(length(signalsData)));
+	for idx = 0:length(signalsData)-1
+		sigName = char(sprintf("signal%d",idx));
+		data = char(signalsData(idx+1));
+		block.WriteRTWParam('string', sigName, data);
+	end
+end
 
 %%******************************* end of sfcn_memory_diagnostic_write_freeze.m **********************

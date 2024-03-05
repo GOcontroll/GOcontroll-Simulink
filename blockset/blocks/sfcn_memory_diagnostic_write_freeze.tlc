@@ -39,9 +39,6 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-  %%
-
-  %%
 %endfunction
 
 %% Function: Output ==========================================================
@@ -50,21 +47,12 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-  %%
 	MemoryDiagnostic_WriteToMemory(%<block.RTWdata.diagType> ,%<LibBlockInputSignal(0, "", "", 0)>,"",0,DIAGNOSTICSTART);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam1>",%<LibBlockInputSignal(1, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam2>",%<LibBlockInputSignal(2, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam3>",%<LibBlockInputSignal(3, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam4>",%<LibBlockInputSignal(4, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam5>",%<LibBlockInputSignal(5, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam6>",%<LibBlockInputSignal(6, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam7>",%<LibBlockInputSignal(7, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam8>",%<LibBlockInputSignal(8, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam9>",%<LibBlockInputSignal(9, "", "", 0)>,DIAGNOSTICFREEZE);
-	MemoryDiagnostic_WriteToMemory(0,0,"%<block.RTWdata.FreezeParam10>",%<LibBlockInputSignal(10, "", "", 0)>,DIAGNOSTICFREEZE);
+	%foreach count = %<block.ParamSettings.num_signals>
+		%assign signal = block.ParamSettings.signal%<count>
+		MemoryDiagnostic_WriteToMemory(0,0,"%<signal>",%<LibBlockInputSignal(1, "", "", 0)>,DIAGNOSTICFREEZE);
+	%endforeach
 	MemoryDiagnostic_WriteToMemory(0,0,"",0,DIAGNOSTICSTOP);
-
-  %%
 %endfunction
 
 

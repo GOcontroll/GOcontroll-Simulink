@@ -39,7 +39,6 @@
   #include <CANdriver.h>
   #include "GocontrollProcessorboard.h"
   #include "GocontrollProcessorboardSupply.h"	/*For adc thread functionality */
-  //#include "GocontrollMqtt"
 
   #ifndef TRUE
   #define TRUE true
@@ -80,12 +79,8 @@ void killModel(void) {
 	//shut down threads before terminating, otherwise there might be a race condition that enables the outputs just before the model exits
 	pthread_cancel(model_step_thread);
 	pthread_cancel(xcp_thread);
-	pthread_cancel(adc_thread);
-	//pthread_cancel(mqtt_thread);
 	pthread_join(model_step_thread, NULL);
 	pthread_join(xcp_thread, NULL);
-	pthread_join(adc_thread, NULL);
-	//pthread_join(mqtt_thread, NULL);
 	//run block terminate functions
 	%<modelName>_terminate();
 	exit(0);
@@ -142,7 +137,6 @@ int_T main(int_T argc, const char_T *argv[]){
 	/* Declare thread for model step and XCP*/
 	model_step_thread = (pthread_t) NULL;
 	xcp_thread = (pthread_t) NULL;
-	adc_thread = (pthread_t) NULL;
 
 	/* Lock memory to prevent swapping pages */
 	if(mlockall(MCL_FUTURE|MCL_CURRENT))
@@ -167,9 +161,6 @@ int_T main(int_T argc, const char_T *argv[]){
 	/* Create xcp thread */
 	pthread_create(&xcp_thread, NULL, &XcpInitialize, NULL);
 
-	/* Create a dedicated thread to read the ADC values from the voltage supply ADC convertor */
-	pthread_create(&adc_thread, NULL, GocontrollProcessorboardSupply_ReadAdcThread, NULL);
-
 	/* Make a struct for the timer setup */
 	struct itimerval timer_setup = { .it_interval = {0, %<CompiledModel.SampleTime[0].ClockTickStepSize * 1000000> },	/* Automatically updated from the base sample time of the model */
 	                                    .it_value = {0, 1000 } };		/* Start in 1 millisecond to give time for other functions to finish */
@@ -185,9 +176,6 @@ int_T main(int_T argc, const char_T *argv[]){
 
 	/* suspend current thread until xcp_thread returns */
 	pthread_join(xcp_thread, NULL);
-
-	/* suspend current thread until adc_thread returns */
-	pthread_join(adc_thread, NULL);
 
 	/* Terminate function for the model */
 	/* This function is called by the SIGTERM detection */

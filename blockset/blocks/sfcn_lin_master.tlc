@@ -62,26 +62,35 @@
 %%      Code generation for signal input
 %%
 %function Update(block, system) Output
+	%switch (%<block.RTWdata.dataLength>)
+		%case 1
+			%assign ports = 2
+			%break
+		%case 2
+			%assign ports = 4
+			%break
+		%case 3
+			%assign ports = 8
+			%break
+		%default
+			%<LibBlockReportError(block, "Somehow received an incorrect data length")>
+	%endswitch
 
-	if (GocontrollLin_LinMessageScheduler(%<block.RTWdata.id>,2))
-	{
-	static uint8_t data_%<block.RTWdata.id>_%<block.RTWdata.direction>_%<block.RTWdata.dataLength>[8];
-		if(%<block.RTWdata.direction> == 1)
-		{
-		GocontrollLin_MasterRetrieveData(%<block.RTWdata.id>,%<block.RTWdata.dataLength>,data_%<block.RTWdata.id>_%<block.RTWdata.direction>_%<block.RTWdata.dataLength>,%<block.RTWdata.check>);
-			%foreach counter = 8
+	if (GocontrollLin_LinMessageScheduler(%<block.RTWdata.id>,2)) {
+		static uint8_t data_%<block.RTWdata.id>_%<block.RTWdata.direction>_%<block.RTWdata.dataLength>[8];
+		%if ISEQUAL(%<block.RTWdata.direction>, 1)
+			GocontrollLin_MasterRetrieveData(%<block.RTWdata.id>,%<block.RTWdata.dataLength>,data_%<block.RTWdata.id>_%<block.RTWdata.direction>_%<block.RTWdata.dataLength>,%<block.RTWdata.check>);
+			%foreach counter = %<ports>
 				%<LibBlockOutputSignal(counter, "", "", 0)> = data_%<block.RTWdata.id>_%<block.RTWdata.direction>_%<block.RTWdata.dataLength>[%<counter>];
 			%endforeach
-		}
-		else if(%<block.RTWdata.direction> == 2)
-		{
+		%else
 			/* prepare the data */
-			%foreach counter = 8
+			%foreach counter = %<ports>
 				data_%<block.RTWdata.id>_%<block.RTWdata.direction>_%<block.RTWdata.dataLength>[%<counter>] = %<LibBlockInputSignal(counter, "", "", 0)>;
 			%endforeach
 
-		GocontrollLin_MasterSendData(%<block.RTWdata.id>,%<block.RTWdata.dataLength>,data_%<block.RTWdata.id>_%<block.RTWdata.direction>_%<block.RTWdata.dataLength>,%<block.RTWdata.check>);
-		}
+			GocontrollLin_MasterSendData(%<block.RTWdata.id>,%<block.RTWdata.dataLength>,data_%<block.RTWdata.id>_%<block.RTWdata.direction>_%<block.RTWdata.dataLength>,%<block.RTWdata.check>);
+		%endif
 	}
 %endfunction
 

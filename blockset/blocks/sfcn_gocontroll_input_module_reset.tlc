@@ -39,9 +39,19 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-  %%
-
-  %%
+	%%check if the corresponding block is a 6 channel input block
+	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
+	%assign slotmon = "::slot%<block.RTWdata.moduleSlot>mon"
+	%if EXISTS(%<slot>) == 0
+		%<LibBlockReportError(block, "No corresponding 6 channel input module block found in the same slot")>
+	%else
+		%assign tmp = %<slot>
+		%assign type = "6 channel input module"
+		%if ISEQUAL(tmp, type) == 0
+			%assign error = "The corresponding slot is configured as a %<tmp>, not a 6 channel input module"
+			%<LibBlockReportError(block, error)>
+		%endif
+	%endif
 %endfunction
 
 %% Function: Output ==========================================================
@@ -50,11 +60,8 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	%%
-
     /* Reset a specific channel from a input module to the given value */
-	InputModule_ResetPulsCounter(&inputModule%<block.RTWdata.moduleSlot>, %<block.RTWdata.inputChannel>,%<LibBlockInputSignal(1, "", "", 0)>,%<LibBlockInputSignal(0, "", "", 0)>);
-  %%
+	InputModule_ResetPulsCounter(&inputModule%<block.RTWdata.moduleSlot>, %<block.RTWdata.channel>,%<LibBlockInputSignal(1, "", "", 0)>,%<LibBlockInputSignal(0, "", "", 0)>);
 %endfunction
 
 

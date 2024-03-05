@@ -105,15 +105,6 @@ switch hookMethod
 		% licensed use.
 		%uiwait(warndlg(sprintf('You are using an educational version of HANcoder\n\nCommercial usage is not allowed in any way\n\nContact hancoder@han.nl for more information'),'HANcoder','modal'));
 
-		% Clear the UDP variables
-		if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
-			assignin('base','UDPBUFFNUM',0);
-		end
-
-		if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
-			assignin('base','UDPBUFFSIZE',0);
-		end
-
 		% Check if the code generation is started from the correct path
 
 		model_path = get_param(bdroot, 'FileName');
@@ -142,20 +133,6 @@ switch hookMethod
 		% Valid arguments at this stage are hookMethod, modelName, and
 		% buildArgs
 		%% get the necessary information from the model
-		% [nrOfUDPReceiveBuffers,UDPBuffSize] = searchUDPreceive(modelName);
-		% UDPBuffSize = getUDPBuffSize(modelName);
-
-		if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
-			nrOfUDPReceiveBuffers = evalin('base','UDPBUFFNUM') + 1;
-		else
-			nrOfUDPReceiveBuffers = 0;
-		end
-
-		if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
-			UDPBuffSize = evalin('base','UDPBUFFSIZE') + 1;
-		else
-			UDPBuffSize = 0;
-		end
 
 		nrOfCANreceiveBlocks = searchCANreceive(modelName);
 			% Add software version to the SYS_config.h file.
@@ -183,8 +160,6 @@ switch hookMethod
 		fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
 		fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
 		fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
-		fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBuffers);
-		fprintf(file, '#define UDPBUFFSIZE                    %d\n', UDPBuffSize);
 		fprintf(file, '#endif');
 		fclose(file);
 
@@ -225,15 +200,8 @@ switch hookMethod
 		ASAP2file = sprintf('%s.a2l', modelName);
 		MAPfile = ['..' filesep modelName '.map'];
 
-		matlab_year = str2num(erase(version('-release'),{'a','b'}));
-		if matlab_year >= 2023
-			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget); %this has to be a seperate function call, because matlab gives syntax errors if it isn't
-		else
-			fprintf('### Post-processing ASAP2 file\n');
-			% Postprocess the ASAP2file
-			ASAP2Post(ASAP2file, MAPfile, LinuxTarget, stationID, 0, 0, XCPport,XCPaddress);
-		end
-		
+		create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget); %this has to be a seperate function call, because matlab gives syntax errors if it isn't
+
 		% Moving the A2L file to the user directory and the map file away
 		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
 		movefile(['..' filesep modelName '.map'],[modelName '.map']);
