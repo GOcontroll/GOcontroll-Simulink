@@ -54,8 +54,8 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	// Receive client's message:
-	while ((%<LibBlockOutputSignal(2, "", "", 0)> = recvfrom(udp_socket, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<LibBlockOutputSignalWidth(1)>, MSG_DONTWAIT, NULL, NULL)) > 0){
+	/* UDP Receive */
+	while ((%<LibBlockOutputSignal(2, "", "", 0)> = recvfrom(udp_socket%<block.SFcnParamSettings.socket_id>, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<LibBlockOutputSignalWidth(1)>, MSG_DONTWAIT, NULL, NULL)) > 0){
 		%% Call a function to process the received message via function-call subsystem
 	    %foreach callIdx = NumSFcnSysOutputCalls
 		%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")

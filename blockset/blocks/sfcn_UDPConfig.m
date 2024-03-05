@@ -61,8 +61,8 @@ function setup(block)
 
   % Number of S-Function parameters expected
 
-  % (tsamp, buffer_length, port, ip, broadcast)
-  block.NumDialogPrms     = 3;
+  % (port, ip, broadcast, socket_id)
+  block.NumDialogPrms     = 4;
   block.SampleTimes = [1 0];
   %% -----------------------------------------------------------------
   %% Register methods called at run-time
@@ -97,9 +97,11 @@ function WriteRTW(block)
 	port = 1;
 	ip = 2;
 	broadcast = 3;
+	socket_id = 4;
 	block.WriteRTWParam('string', 'port', num2str(block.DialogPrm(port).Data));
 	block.WriteRTWParam('string', 'ip', ['"' block.DialogPrm(ip).Data '"']);
 	block.WriteRTWParam('string', 'broadcast' , num2str(block.DialogPrm(broadcast).Data));
+	block.WriteRTWParam('string', 'socket_id', block.DialogPrm(socket_id).Data);
 end
 
 %%******************************* end of sfcn_UDPConfig.m **********************

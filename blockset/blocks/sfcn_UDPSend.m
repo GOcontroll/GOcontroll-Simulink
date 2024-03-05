@@ -65,7 +65,7 @@ function setup(block)
 
 	block.NumOutputPorts = 0;
 
-	block.NumDialogPrms     = 3;
+	block.NumDialogPrms     = 4;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
@@ -94,9 +94,10 @@ end
 function WriteRTW(block)
 	port = 2;
 	ip = 3;
-
+	socket_id = 4;
 	block.WriteRTWParam('string', 'port', num2str(block.DialogPrm(port).Data));
 	block.WriteRTWParam('string', 'ip', ['"' block.DialogPrm(ip).Data '"']);
+	block.WriteRTWParam('string', 'socket_id', block.DialogPrm(socket_id).Data);
 end
 
 %%******************************* end of sfcn_UDPSend.m **********************
