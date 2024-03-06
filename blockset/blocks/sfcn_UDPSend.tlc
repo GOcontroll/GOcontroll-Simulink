@@ -43,8 +43,9 @@
 %endfunction
 
 %function Start(block, system) Output
-	%if EXISTS(::udp_config_present) == 0
-		%<LibBlockReportError(block, "No udp configuration block present at this moment in time.")>
+	%if EXISTS(::%<block.ParamSettings.socket_id>) == 0
+		%assign error = "No UDP Configuration block present with the socket ID %<block.ParamSettings.socket_id>"
+		%<LibBlockReportError(block, error)>
 	%endif
 %endfunction
 

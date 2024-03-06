@@ -44,9 +44,9 @@
 	%if EXISTS(%<slot>) == 0
 		%<LibBlockReportError(block, "No corresponding bridge module block found in the same slot")>
 	%else
-		%assign tmp = %<slot>
+		%assign module = %<slot>
 		%assign type = "bridge module"
-		%if ISEQUAL(tmp, type)
+		%if ISEQUAL(module, type)
 			%if EXISTS(%<slotmon>) == 0
 				%assign %<slotmon> = type
 			%else
@@ -54,7 +54,7 @@
 				%<LibBlockReportWarning(block, warning)>
 			%endif
 		%else
-			%assign error = "The corresponding slot is configured as a %<tmp>, not a bridge module"
+			%assign error = "The corresponding slot is configured as a %<module>, not a bridge module"
 			%<LibBlockReportError(block, error)>
 		%endif
 	%endif

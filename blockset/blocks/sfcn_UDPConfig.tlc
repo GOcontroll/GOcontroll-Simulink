@@ -38,14 +38,7 @@
 %% Runs once for the block type, no matter how many blocks are present in the model
 
 %function BlockTypeSetup(block, system) void
-	%assign ::udp_config_present = 1
 	%<UdpCommonBlockTypeSetup()>
-
-	%openfile tmpBufDecls
-		int udp_socket%<block.ParamSettings.socket_id>;
-	%closefile tmpBufDecls
-
-	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
 %endfunction
 
 %% Function: BlockInstanceSetup ==========================================================
@@ -53,11 +46,11 @@
 %% Runs once for every instance of the block in the model
 
 %function BlockInstanceSetup(block, system) void
-	%if EXISTS("upd_config_in_model") == 0
-		%assign ::udp_config_in_model = 1
-	%else
-		%<LibBlockReportError(block, "Only one UDP config block is allowed in the model at this point in time")>
-	%endif
+%openfile tmpBufDecls
+		int udp_socket%<block.ParamSettings.socket_id>;
+	%closefile tmpBufDecls
+	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+	%assign ::%<block.ParamSettings.socket_id> = 1
 %endfunction
 
 %% Function: Start ==========================================================
@@ -67,27 +60,29 @@
 %%
 %function Start(block, system) Output
 	// Create UDP socket:
-	udp_socket%<block.ParamSettings.socket_id> = socket(AF_INET, SOCK_DGRAM, 0);
+	{
+		udp_socket%<block.ParamSettings.socket_id> = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if(udp_socket%<block.ParamSettings.socket_id> < 0){
-		fprintf(stderr, "Error while creating UDP socket\n");
-		return;
-	}
+		if(udp_socket%<block.ParamSettings.socket_id> < 0){
+			fprintf(stderr, "Error while creating UDP socket\n");
+			return;
+		}
+		// Set broadcast mode
+		int broadcast = %<block.ParamSettings.broadcast>;
+		if (broadcast) {
+			if (setsockopt(udp_socket%<block.ParamSettings.socket_id>, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
+				fprintf(stderr, "Could set socket to broadcast\n");
+		}
+		struct sockaddr_in server_addr;
+		// Set port and IP:
+		server_addr.sin_family = AF_INET;
+		server_addr.sin_port = htons(%<block.ParamSettings.port>);
+		server_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
 
-	int broadcast = %<block.ParamSettings.broadcast>;
-	if (broadcast) {
-		if (setsockopt(udp_socket%<block.ParamSettings.socket_id>, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
-			fprintf(stderr, "Could set socket to broadcast\n");
-	}
-	struct sockaddr_in server_addr;
-	// Set port and IP:
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(%<block.ParamSettings.port>);
-	server_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
-
-	// Bind to the set port and IP:
-	if(bind(udp_socket%<block.ParamSettings.socket_id>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
-		fprintf(stderr,"Couldn't bind to the port\n");
+		// Bind to the set port and IP:
+		if(bind(udp_socket%<block.ParamSettings.socket_id>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
+			fprintf(stderr,"Couldn't bind to the port\n");
+		}
 	}
 %endfunction
 

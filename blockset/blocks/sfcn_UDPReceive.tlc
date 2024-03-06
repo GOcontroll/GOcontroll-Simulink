@@ -43,8 +43,16 @@
 %endfunction
 
 %function Start(block, system) Output
-	%if EXISTS(::udp_config_present) == 0
-		%<LibBlockReportError(block, "No udp configuration block present at this moment in time.")>
+	%if EXISTS(::%<block.SFcnParamSettings.socket_id>) == 0
+		%assign error = "No UDP Configuration block present with the socket ID %<block.SFcnParamSettings.socket_id>"
+		%<LibBlockReportError(block, error)>
+	%endif
+	%assign receive_socket = "::receive%<block.SFcnParamSettings.socket_id>"
+	%if EXISTS(%<receive_socket>) == 0
+		%assign %<receive_socket> = 1
+	%else
+		%assign error = "There is already a UDP Receive block for the socket ID %<block.SFcnParamSettings.socket_id>, there is only supposed to be one receiver per socket."
+		%<LibBlockReportError(block,error)>
 	%endif
 %endfunction
 
@@ -58,11 +66,11 @@
 	while ((%<LibBlockOutputSignal(2, "", "", 0)> = recvfrom(udp_socket%<block.SFcnParamSettings.socket_id>, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<LibBlockOutputSignalWidth(1)>, MSG_DONTWAIT, NULL, NULL)) > 0){
 		%% Call a function to process the received message via function-call subsystem
 	    %foreach callIdx = NumSFcnSysOutputCalls
-		%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
-		  %continue
-		%endif
-		%% call the downstream system
-		%<LibBlockExecuteFcnCall(block, callIdx)>\
+			%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+				%continue
+			%endif
+			%% call the downstream system
+			%<LibBlockExecuteFcnCall(block, callIdx)>\
 	    %endforeach
 	}
 %endfunction

@@ -48,8 +48,8 @@
 	%if EXISTS(%<slot>) == 0
 		%assign %<slot> = "bridge module"
 	%else
-		%assign tmp = %<slot>
-		%assign error = "Module slot %<block.ParamSettings.moduleSlot> is already occupied by a %<tmp>"
+		%assign module = %<slot>
+		%assign error = "Module slot %<block.ParamSettings.moduleSlot> is already occupied by a %<module>"
 		%<LibBlockReportError(block, error)>
 	%endif
 %endfunction
