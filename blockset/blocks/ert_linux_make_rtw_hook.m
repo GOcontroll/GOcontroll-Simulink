@@ -200,7 +200,7 @@ switch hookMethod
 		ASAP2file = sprintf('%s.a2l', modelName);
 		MAPfile = ['..' filesep modelName '.map'];
 
-		create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget); %this has to be a seperate function call, because matlab gives syntax errors if it isn't
+		create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile); %this has to be a seperate function call, because matlab gives syntax errors if it isn't
 
 		% Moving the A2L file to the user directory and the map file away
 		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);

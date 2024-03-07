@@ -52,7 +52,6 @@
  /* declarations for threading and timer */
 pthread_t model_step_thread;
 pthread_t xcp_thread;
-pthread_t adc_thread;
 //extern pthread_t mqtt_thread;
 
 #define MODEL %<modelName>
@@ -117,8 +116,9 @@ static void * model_step(void *arg)
 		/* Run model code */
 		%<modelName>_step();
 		XcpDataTransmission();
-		if(DEBUG == 1)
-			fprintf(stdout,"Some DEBUG text can be placed here");
+		#if(DEBUG == 1)
+			fprintf(stderr,"Model step\n");
+		#endif
 	}
 
 	return NULL;
@@ -166,7 +166,8 @@ int_T main(int_T argc, const char_T *argv[]){
 	                                    .it_value = {0, 1000 } };		/* Start in 1 millisecond to give time for other functions to finish */
 
 	/* Start timer */
-	setitimer(ITIMER_REAL, &timer_setup, NULL); /* set kind of timer, set new_value, no need to store old value */
+	if (setitimer(ITIMER_REAL, &timer_setup, NULL)) /* set kind of timer, set new_value, no need to store old value */
+		fprintf(stderr, "WARNING, Failed to set timer");
 
 	/* Create model step thread */
 	pthread_create(&model_step_thread, NULL, &model_step, (void *) &set);
