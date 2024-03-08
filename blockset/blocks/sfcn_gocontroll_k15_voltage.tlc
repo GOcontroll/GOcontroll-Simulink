@@ -34,6 +34,16 @@
 %<LibAddToCommonIncludes("GocontrollProcessorboardSupply.h")>
 %<LibAddToCommonIncludes("pthread.h")>
 
+%function BlockInstanceSetup(block, system) void
+	%if EXISTS(::lowest_adc_sample_time)
+		%if %<block.ParamSettings.sample_time> < %<::lowest_adc_sample_time>
+			%assign ::lowest_adc_sample_time = %<block.ParamSettings.sample_time>
+		%endif
+	%else
+		%assign ::lowest_adc_sample_time = %<block.ParamSettings.sample_time>
+	%endif
+%endfunction
+
 %% Function: Start ==========================================================
 %%
 %% Purpose:
@@ -44,11 +54,14 @@
 		%assign ::adc_thread = 1
 		%openfile buff
 		pthread_t adc_thread;
+		struct ControllerSupplyThreadArgs adc_thread_args;
 		%closefile buff
 
 		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", buff)>
 
-		pthread_create(&adc_thread, NULL, GocontrollProcessorboardSupply_ReadAdcThread, NULL);
+		adc_thread_args.sample_time = 0.01;
+		adc_thread_args.thread_run = 1;
+		pthread_create(&adc_thread, NULL, GocontrollProcessorboardSupply_ReadAdcThread, &adc_thread_args);
 	%endif
 %endfunction
 
@@ -66,7 +79,7 @@
 	%% Kill the adc thread
 	%if EXISTS("terminate_adc_thread") == 0
 		%assign ::terminate_adc_thread = 1
-		pthread_cancel(adc_thread);
+		adc_thread_args.thread_run = 0;
 		pthread_join(adc_thread, NULL);
 	%endif
 %endfunction

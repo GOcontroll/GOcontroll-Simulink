@@ -45,25 +45,15 @@
 #include "GocontrollProcessorboardSupply.h"
 #include "GocontrollProcessorboard.h"
 
-/*Thread references */
-#include "pthread.h"
 #include "iio.h"
 
 /****************************************************************************************
 * Data declarations to store supply voltages
 ****************************************************************************************/
-typedef struct{
-	uint16_t batteryVoltage;
-	uint16_t k15aVoltage;
-	uint16_t k15bVoltage;
-	uint16_t k15cVoltage;
-}_controllerSupply;
 
 _controllerSupply controllerSupply;
 
-
 extern _hardwareConfig hardwareConfig;
-extern struct iio_context *iioContext;
 
 struct iio_device *iioMCP;
 struct iio_channel *adcChannels[4];
@@ -71,27 +61,6 @@ struct iio_channel *adcChannels[4];
 /****************************************************************************************
 * Function prototypes
 ****************************************************************************************/
-
-/****************************************************************************************/
-
-// void GocontrollProcessorboardSupply_InitAdc(void){
-// 	/* set up the mcp3004 iio channels*/
-// 	if(hardwareConfig.adcControl==ADC_MCP3004) {
-// 		uint8_t channel_count;
-// 		iioMCP = iio_context_find_device(iioContext, "mcp3004");
-// 		//loop through the channels available to this device
-// 		for (uint8_t i = 0; i < iio_device_get_channels_count(iioMCP); ++i) {
-// 			struct iio_channel *chn = iio_device_get_channel(iioMCP, i);
-// 			//filter out the channels that have 2 attributes, these are the voltage channels
-// 			if (iio_channel_get_attrs_count(chn) == 2) {
-// 				adcChannels[channel_count] = chn;
-// 				channel_count++;
-// 			}
-// 		}
-// 	}
-// }
-
-/****************************************************************************************/
 
 int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t* value)
 {
@@ -240,8 +209,12 @@ return 0;
 
 void *GocontrollProcessorboardSupply_ReadAdcThread(void *arg)
 {
+	struct ControllerSupplyThreadArgs *args = (struct ControllerSupplyThreadArgs *)arg;
+	struct iio_context *iioContext;
+	__useconds_t sample_time = (__useconds_t) 1000000.0 * args->sample_time;
 	/* set up the mcp3004 iio channels*/
 	if(hardwareConfig.adcControl==ADC_MCP3004) {
+		iioContext = iio_create_local_context();
 		uint8_t channel_count;
 		iioMCP = iio_context_find_device(iioContext, "mcp3004");
 		//loop through the channels available to this device
@@ -254,14 +227,14 @@ void *GocontrollProcessorboardSupply_ReadAdcThread(void *arg)
 			}
 		}
 	}
-	for(;;)
-	{
+	while(args->thread_run) {
 		/* Execute actual conversions of the adc */
 		GocontrollProcessorboardSupply_ReadAdc(1,&controllerSupply.batteryVoltage);
 		GocontrollProcessorboardSupply_ReadAdc(2,&controllerSupply.k15aVoltage);
 		GocontrollProcessorboardSupply_ReadAdc(3,&controllerSupply.k15bVoltage);
 		GocontrollProcessorboardSupply_ReadAdc(4,&controllerSupply.k15cVoltage);
-		usleep(10*1000);
+		usleep(sample_time);
 	}
+	iio_context_destroy(iioContext);
 	return 0;
 }

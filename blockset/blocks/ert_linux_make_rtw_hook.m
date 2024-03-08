@@ -163,21 +163,6 @@ switch hookMethod
 		fprintf(file, '#endif');
 		fclose(file);
 
-		d = dir(['..' filesep 'blockset_*']);
-		folders = {d.name};
-		for i = 1:length(folders)
-			name=char(folders(1,i));
-			make_hook_script_orig = [pwd filesep '..' filesep name filesep 'makeHook.m'];
-			make_hook_script_dest = [pwd filesep 'makeHook.m'];
-			if isfile(make_hook_script_orig)
-				copyfile(make_hook_script_orig, make_hook_script_dest);
-				run(make_hook_script_dest);
-				delete(make_hook_script_dest);
-			else
-				fprintf('No makeHook script found for %s\n',name);
-			end
-		end
-
 	case 'before_make'
 		% Called after code generation is complete, and just prior to kicking
 		% off make process (assuming code generation only is not selected.)  All
@@ -197,7 +182,6 @@ switch hookMethod
 		% Get the Linux target from the model parameters tab
 		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
 
-		ASAP2file = sprintf('%s.a2l', modelName);
 		MAPfile = ['..' filesep modelName '.map'];
 
 		create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile); %this has to be a seperate function call, because matlab gives syntax errors if it isn't

@@ -36,17 +36,17 @@
 
 #include <stdint.h>
 
-// extern struct iio_context *iioContext;
+typedef struct{
+	uint16_t batteryVoltage;
+	uint16_t k15aVoltage;
+	uint16_t k15bVoltage;
+	uint16_t k15cVoltage;
+}_controllerSupply;
 
-// extern struct iio_device *iioMCP;
-// extern struct iio_channel *adcChannels[4];
-
-/***************************************************************************************
-** \brief     Initialize the structs for the ADC, automatically gets called by the ReadAdcThread. \
-** \brief     !!! Only manually call this function if this thread is not used. !!!
-** \return    None
-****************************************************************************************/
-// void GocontrollProcessorboardSupply_InitAdc(void);
+struct ControllerSupplyThreadArgs{
+	uint8_t thread_run;
+	double sample_time;
+};
 
 /***************************************************************************************
 ** \brief     Utility function to serve ADC data to function blocks, reads from the ADC Thread.

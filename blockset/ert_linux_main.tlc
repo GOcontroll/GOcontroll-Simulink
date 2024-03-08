@@ -134,9 +134,6 @@ static void * model_step(void *arg)
 int_T main(int_T argc, const char_T *argv[]){
 	sigset_t set;	/* Signal set to hold signal mask */
 	int result;		/* General variable to check function returns */
-	/* Declare thread for model step and XCP*/
-	model_step_thread = (pthread_t) NULL;
-	xcp_thread = (pthread_t) NULL;
 
 	/* Lock memory to prevent swapping pages */
 	if(mlockall(MCL_FUTURE|MCL_CURRENT))

@@ -68,7 +68,6 @@
 //#define _GNU_SOURCE /*Added using CC flag. See makefile */
 #include <sched.h>
 
-
 /* SPI includes */
 #include <getopt.h>
 #include <sys/ioctl.h>
@@ -83,11 +82,7 @@
 #include <MemoryEmulation.h>
 #include <MemoryDiagnostic.h>
 
-#include "iio.h"
-
-
 _hardwareConfig hardwareConfig;
-struct iio_context *iioContext;
 
 /****************************************************************************************
 * Data declarations (SPI mapping)
@@ -195,13 +190,6 @@ static void 	GocontrollProcessorboard_GetHardwareVersion(void);
 
 /**************************************************************************************
 ** \brief     Function that creates a local iio context with all iio devices on the controller
-** \param     none
-** \return    none
-****************************************************************************************/
-void 			GocontrollProcessorboard_GetIIOContext(void);
-
-/**************************************************************************************
-** \brief     Function that creates a local iio context with all iio devices on the controller
 ** \param     slot module slot (0-7)
 ** \param	  rx the bootloader rx buffer
 ** \return    none
@@ -216,8 +204,6 @@ void GocontrollProcessorboard_Initialize(void)
 
 	/* Retrieve hardware version */
 	GocontrollProcessorboard_GetHardwareVersion();
-
-	GocontrollProcessorboard_GetIIOContext();
 
 	/*Start with modules in reset state so we can do other stuff during reset*/
 	for(uint8_t m = 0; m < hardwareConfig.moduleNumber; m++)
@@ -721,24 +707,24 @@ static void GocontrollProcessorboard_ProgramStop(int x, siginfo_t * y, void* z)
 
 void GocontrollProcessorboard_ExitProgram(void* Terminate)
 {
-static void (*TerminateFunction)(void);
+	static void (*TerminateFunction)(void);
 
-if(Terminate != NULL)
-{
-static struct sigaction _sigact;
+	if(Terminate != NULL)
+	{
+		static struct sigaction _sigact;
 
-memset(&_sigact, 0, sizeof(_sigact));
-_sigact.sa_sigaction = GocontrollProcessorboard_ProgramStop;
-_sigact.sa_flags = SA_SIGINFO;
+		memset(&_sigact, 0, sizeof(_sigact));
+		_sigact.sa_sigaction = GocontrollProcessorboard_ProgramStop;
+		_sigact.sa_flags = SA_SIGINFO;
 
-/* Add CTRL-C action to list which triggers a gentle shutdown */
-sigaction(SIGINT, &_sigact, NULL);
-/* Add Deamon terminate to list which triggers a gentle shutdown */
-sigaction(SIGTERM, &_sigact, NULL);
+		/* Add CTRL-C action to list which triggers a gentle shutdown */
+		sigaction(SIGINT, &_sigact, NULL);
+		/* Add Deamon terminate to list which triggers a gentle shutdown */
+		sigaction(SIGTERM, &_sigact, NULL);
 
-TerminateFunction = Terminate;
-return;
-}
+		TerminateFunction = Terminate;
+		return;
+	}
 	XcpStopConnection();
 	/* Execute the termination of the program */
 	TerminateFunction();
@@ -753,174 +739,174 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	/* Open the file that contains the hardware version of the controller */
 	if((fileId = open("/sys/firmware/devicetree/base/hardware", O_RDONLY | O_NONBLOCK)) <= 0)
 	{
-	/* Here means the file is not opend properly */
-	/* To be sure it is closed, force a close */
-	close(fileId);
-	/* Set default values */
-	hardwareConfig.moduleNumber = 8;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	printf("Failed to detected hardware! Set default.");
-	return;
-	}
+		/* Here means the file is not opend properly */
+		/* To be sure it is closed, force a close */
+		close(fileId);
+		/* Set default values */
+		hardwareConfig.moduleNumber = 8;
+		hardwareConfig.ledControl = LED_RUKR;
+		hardwareConfig.adcControl = ADC_MCP3004;
+		printf("Failed to detected hardware! Set default.");
+		return;
+		}
 
-	/* If we are here, we have acces to a valid file */
-	char tempValue[30] = {0};
-	/* Read the content of the file */
-	read(fileId, &tempValue[0], 30);
-	/* Close the file descriptor */
-	close(fileId);
+		/* If we are here, we have acces to a valid file */
+		char tempValue[30] = {0};
+		/* Read the content of the file */
+		read(fileId, &tempValue[0], 30);
+		/* Close the file descriptor */
+		close(fileId);
 
-	printf("Detected hardware: ");
+		printf("Detected hardware: ");
 
-	/*	Compare strings to see which hardware it is
-		Check production hardware first since those are the most likely */
-	if(strcmp (tempValue, "Moduline IV V3.06")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 8;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		/*	Compare strings to see which hardware it is
+			Check production hardware first since those are the most likely */
+		if(strcmp (tempValue, "Moduline IV V3.06")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 8;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.11")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 4;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		else if(strcmp (tempValue, "Moduline Mini V1.11")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 4;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	/* Less common hardware versions */
-	/* Minis*/
-	else if(strcmp (tempValue, "Moduline Mini V1.03")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 4;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_ADS1015;
-	}
+		/* Less common hardware versions */
+		/* Minis*/
+		else if(strcmp (tempValue, "Moduline Mini V1.03")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 4;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_ADS1015;
+			}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.05")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 4;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		else if(strcmp (tempValue, "Moduline Mini V1.05")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 4;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.06")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 4;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		else if(strcmp (tempValue, "Moduline Mini V1.06")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 4;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.07")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 4;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		else if(strcmp (tempValue, "Moduline Mini V1.07")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 4;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.10")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 4;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		else if(strcmp (tempValue, "Moduline Mini V1.10")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 4;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	/* IVs*/
-	else if(strcmp (tempValue, "Moduline IV V3.00")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 8;
-	hardwareConfig.ledControl = LED_GPIO;
-	hardwareConfig.adcControl = ADC_ADS1015;
-	}
+		/* IVs*/
+		else if(strcmp (tempValue, "Moduline IV V3.00")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 8;
+			hardwareConfig.ledControl = LED_GPIO;
+			hardwareConfig.adcControl = ADC_ADS1015;
+		}
 
-	else if(strcmp (tempValue, "Moduline IV V3.01")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 8;
-	hardwareConfig.ledControl = LED_GPIO;
-	hardwareConfig.adcControl = ADC_ADS1015;
-	}
+		else if(strcmp (tempValue, "Moduline IV V3.01")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 8;
+			hardwareConfig.ledControl = LED_GPIO;
+			hardwareConfig.adcControl = ADC_ADS1015;
+		}
 
-	else if(strcmp (tempValue, "Moduline IV V3.02")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 8;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_ADS1015;
-	}
+		else if(strcmp (tempValue, "Moduline IV V3.02")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 8;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_ADS1015;
+		}
 
-	else if(strcmp (tempValue, "Moduline IV V3.03")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 8;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_ADS1015;
-	}
+		else if(strcmp (tempValue, "Moduline IV V3.03")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 8;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_ADS1015;
+		}
 
-	else if(strcmp (tempValue, "Moduline IV V3.04")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 8;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_ADS1015;
-	}
+		else if(strcmp (tempValue, "Moduline IV V3.04")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 8;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_ADS1015;
+		}
 
-	else if(strcmp (tempValue, "Moduline IV V3.05")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 8;
-	hardwareConfig.ledControl = LED_RUKR;
-	hardwareConfig.adcControl = ADC_ADS1015;
-	}
+		else if(strcmp (tempValue, "Moduline IV V3.05")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 8;
+			hardwareConfig.ledControl = LED_RUKR;
+			hardwareConfig.adcControl = ADC_ADS1015;
+		}
 
-	/* Displays */
-	else if(strcmp (tempValue, "Moduline Display V1.01")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 2;
-	hardwareConfig.ledControl = NOT_INSTALLED;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		/* Displays */
+		else if(strcmp (tempValue, "Moduline Display V1.01")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 2;
+			hardwareConfig.ledControl = NOT_INSTALLED;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	else if(strcmp (tempValue, "Moduline Display V1.02")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 2;
-	hardwareConfig.ledControl = NOT_INSTALLED;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		else if(strcmp (tempValue, "Moduline Display V1.02")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 2;
+			hardwareConfig.ledControl = NOT_INSTALLED;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	else if(strcmp (tempValue, "Moduline Display V1.03")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 2;
-	hardwareConfig.ledControl = NOT_INSTALLED;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		else if(strcmp (tempValue, "Moduline Display V1.03")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 2;
+			hardwareConfig.ledControl = NOT_INSTALLED;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	else if(strcmp (tempValue, "Moduline Display V1.04")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 2;
-	hardwareConfig.ledControl = NOT_INSTALLED;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
+		else if(strcmp (tempValue, "Moduline Display V1.04")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 2;
+			hardwareConfig.ledControl = NOT_INSTALLED;
+			hardwareConfig.adcControl = ADC_MCP3004;
+		}
 
-	else if(strcmp (tempValue, "Moduline Display V1.05")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 2;
-	hardwareConfig.ledControl = NOT_INSTALLED;
-	hardwareConfig.adcControl = ADC_MCP3004;
+		else if(strcmp (tempValue, "Moduline Display V1.05")==0)
+		{
+			printf(tempValue);
+			hardwareConfig.moduleNumber = 2;
+			hardwareConfig.ledControl = NOT_INSTALLED;
+			hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
 printf("\n");
@@ -1057,12 +1043,6 @@ void GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char
 	fprintf(stderr, "license verified!\n");
 	free(_b.out);
 	return;
-}
-
-/****************************************************************************************/
-
-void GocontrollProcessorboard_GetIIOContext(void){
-    iioContext = iio_create_local_context();
 }
 
 /****************************************************************************************/

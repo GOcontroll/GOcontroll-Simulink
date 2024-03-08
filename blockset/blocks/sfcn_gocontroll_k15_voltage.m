@@ -98,9 +98,11 @@ function Terminate(~)
 end
 
 function WriteRTW(block)
+	tsamp = 1;
 	k15pin = 2;
 
 	block.WriteRTWParam('string', 'k15pin', num2str(block.DialogPrm(k15pin).Data));
+	block.WriteRTWParam('string', 'sample_time', num2str(block.DialogPrm(tsamp).Data));
 end
 
 %%******************************* end of sfcn_gocontroll_contact_voltage.m *****************************

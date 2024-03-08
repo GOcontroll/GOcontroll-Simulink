@@ -78,6 +78,8 @@ function setup(block)
 	block.RegBlockMethod('Update', @Update);
 
 	block.RegBlockMethod('Terminate', @Terminate);
+
+	block.RegBlockMethod('WriteRTW', @WriteRTW);
 end
 
 function Start(~)
@@ -92,6 +94,12 @@ function Update(~)
 end
 
 function Terminate(~)
+end
+
+function WriteRTW(block)
+	tsamp = 1;
+
+	block.WriteRTWParam('string', 'sample_time', num2str(block.DialogPrm(tsamp).Data));
 end
 
 %%******************************* end of sfcn_gocontroll_k30_voltage.m *****************************
