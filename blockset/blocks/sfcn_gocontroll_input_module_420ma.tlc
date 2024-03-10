@@ -62,9 +62,14 @@
 	%assign srcFile = LibGetModelDotCFile()
 	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
 
-	inputModule420ma%<block.RTWdata.moduleSlot>.moduleSlot = %<block.RTWdata.moduleSlot>-1;
+	inputModule420ma%<block.RTWdata.moduleSlot>.moduleSlot 		= %<block.RTWdata.moduleSlot>-1;
 
-	inputModule420ma%<block.RTWdata.moduleSlot>.supply16va 			= %<block.RTWdata.Sup16va>-1;
+	inputModule420ma%<block.RTWdata.moduleSlot>.supply16ch[0]	= %<block.RTWdata.Sup16ch12>-1;
+	inputModule420ma%<block.RTWdata.moduleSlot>.supply16ch[1]	= %<block.RTWdata.Sup16ch34>-1;
+	inputModule420ma%<block.RTWdata.moduleSlot>.supply16ch[2]	= %<block.RTWdata.Sup16ch56>-1;
+	inputModule420ma%<block.RTWdata.moduleSlot>.supply16ch[3]	= %<block.RTWdata.Sup16ch78>-1;
+	inputModule420ma%<block.RTWdata.moduleSlot>.supply16ch[4]	= %<block.RTWdata.Sup16ch910>-1;
+	
 	/* Send configuration to the module */
 	InputModule420ma_Configuration(&inputModule420ma%<block.RTWdata.moduleSlot>);
 

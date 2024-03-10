@@ -73,7 +73,7 @@ function setup(block)
   end
 
   % Number of S-Function parameters expected
-  block.NumDialogPrms     = 3;
+  block.NumDialogPrms     = 7;
   block.SampleTimes = [block.DialogPrm(1).Data 0];
 
   %% -----------------------------------------------------------------

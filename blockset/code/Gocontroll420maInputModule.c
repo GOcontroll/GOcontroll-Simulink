@@ -56,8 +56,11 @@ uint8_t dataPointer = 6;
 	{
 		inputModule420maDataTx[dataPointer++]				= inputModule420ma->configuration[pointer];
 	}
-
-inputModule420maDataTx[16] = inputModule420ma->supply16va;
+	
+	for(uint8_t pointer = 0; pointer <5; pointer++)
+	{
+		inputModule420maDataTx[16+pointer] = inputModule420ma->supply16ch[pointer];
+	}
 
 GocontrollProcessorboard_SendSpi(inputModule420ma->moduleSlot, INPUTMODULE420MAMESSAGELENGTH, 1,13,2,1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0],0);
 }

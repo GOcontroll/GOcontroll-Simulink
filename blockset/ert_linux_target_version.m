@@ -1,6 +1,6 @@
 %%***************************************************************************************
 %% file         ert_linux_target_version.m
-%% brief        Allows calling the flashtool automatically.
+%% brief        Changelog and versioning of the Simulink blockset.
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
@@ -30,8 +30,11 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V3.6.0';
+version = 'GOcontroll V3.7.0';
 
+%% V3.7.0.Update 10-3-2024:
+%% Improved 4-20mA module mask and functionality. This update requires 4-20 mA module HW 3 and firmware V1.0.0
+%%
 %% V3.6.0.Update 6-2-2024:
 %% Added status output to 4-20 mA input module
 %% Added module slot to SPI communication
