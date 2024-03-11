@@ -149,11 +149,11 @@ switch hookMethod
 				error('### failed to open SYS_config.h');
 		end
 		if numel(stationID) > 255
-			msg = sprintf('Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n');
-				% Display error message in the matlab command window.
-				fprintf(msg);
-				% Abort and display pop-up window with error message.
-				error(msg);
+			msg = 'Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n';
+			% Display error message in the matlab command window.
+			fprintf(msg);
+			% Abort and display pop-up window with error message.
+			error(msg);
 		end
 		fprintf(file, '#ifndef __SYS_CONFIG_H__ \n#define __SYS_CONFIG_H__\n');
 		fprintf(file, '#define kXcpStationIdString            "%s"\n', stationID);

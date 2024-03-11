@@ -62,7 +62,6 @@
 		client_addr.sin_family = AF_INET;
 		client_addr.sin_port = htons(%<block.ParamSettings.port>);
 		client_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
-
 		if (sendto(udp_socket%<block.ParamSettings.socket_id>, %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>, 0,
 				(struct sockaddr*)&client_addr, sizeof(client_addr)) < 0){
 			fprintf(stderr, "Can't send UDP packet\n");

@@ -29,7 +29,7 @@
 %%***************************************************************************************
 function sfcn_gocontroll_input_module_420ma(block)
   setup(block);
-%endfunction
+end
 
 
 %% Function: setup ===================================================
@@ -103,27 +103,15 @@ function setup(block)
   %%   C-Mex counterpart: mdlUpdate
   %%
   block.RegBlockMethod('Update', @Update);
-%endfunction
+end
 
-function Start(block)
+function Start(~)
+end
 
-  %% No start
+function Outputs(~)
+end
 
-%endfunction
-
-
-function Outputs(block)
-
-  %% No output
-
-%endfunction
-
-
-function Update(block)
-
-  %% No update
-
-%endfunction
-
+function Update(~)
+end
 
 %%******************************* end of sfcn_gocontroll_input_module_420ma.m **********************

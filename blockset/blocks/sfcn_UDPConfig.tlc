@@ -46,7 +46,7 @@
 %% Runs once for every instance of the block in the model
 
 %function BlockInstanceSetup(block, system) void
-%openfile tmpBufDecls
+	%openfile tmpBufDecls
 		int udp_socket%<block.ParamSettings.socket_id>;
 	%closefile tmpBufDecls
 	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
