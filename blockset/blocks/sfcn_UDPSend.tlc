@@ -56,13 +56,15 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
+	%assign send_buffer = LibBlockInputSignalAddr(0, "", "", 0)
+	%assign send_buffer_size = LibBlockInputSignalWidth(0)
+	%assign socket = "udp_socket_%<block.ParamSettings.socket_id>"
 	{
-		/* UDP send */
 		struct sockaddr_in client_addr;
 		client_addr.sin_family = AF_INET;
 		client_addr.sin_port = htons(%<block.ParamSettings.port>);
 		client_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
-		if (sendto(udp_socket%<block.ParamSettings.socket_id>, %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>, 0,
+		if (sendto(%<socket>, %<send_buffer>, %<send_buffer_size>, 0,
 				(struct sockaddr*)&client_addr, sizeof(client_addr)) < 0){
 			fprintf(stderr, "Can't send UDP packet\n");
 		}

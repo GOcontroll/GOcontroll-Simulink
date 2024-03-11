@@ -43,15 +43,16 @@
 %endfunction
 
 %function Start(block, system) Output
-	%if EXISTS(::%<block.SFcnParamSettings.socket_id>) == 0
-		%assign error = "No UDP Configuration block present with the socket ID %<block.SFcnParamSettings.socket_id>"
+	%assign socket_id = block.SFcnParamSettings.socket_id
+	%if EXISTS(::%<socket_id>) == 0
+		%assign error = "No UDP Configuration block present with the socket ID %<socket_id>"
 		%<LibBlockReportError(block, error)>
 	%endif
-	%assign receive_socket = "::receive%<block.SFcnParamSettings.socket_id>"
+	%assign receive_socket = "::receive_%<socket_id>"
 	%if EXISTS(%<receive_socket>) == 0
 		%assign %<receive_socket> = 1
 	%else
-		%assign error = "There is already a UDP Receive block for the socket ID %<block.SFcnParamSettings.socket_id>, there is only supposed to be one receiver per socket."
+		%assign error = "There is already a UDP Receive block for the socket ID %<socket_id>, there is only supposed to be one receiver per socket."
 		%<LibBlockReportError(block,error)>
 	%endif
 %endfunction
@@ -62,11 +63,15 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	/* UDP Receive */
+	%assign bytes_read = LibBlockOutputSignal(2, "", "", 0) %% uint32
+	%assign receive_buffer = LibBlockOutputSignalAddr(1, "", "", 0) %% uint8[]
+	%assign receive_buffer_size = LibBlockOutputSignalWidth(1)
+	%assign socket_id = "udp_socket_%<block.SFcnParamSettings.socket_id>"
 	{
+		%% bytes_read is unsigned but the output of recvfrom is a signed int, so we need to check for errors before writing the value into bytes_read
 		int32_t n = 0;
-		while ((n = recvfrom(udp_socket%<block.SFcnParamSettings.socket_id>, %<LibBlockOutputSignalAddr(1, "", "", 0)>, %<LibBlockOutputSignalWidth(1)>, MSG_DONTWAIT, NULL, NULL)) > 0){
-			%<LibBlockOutputSignal(2, "", "", 0)> = n;
+		while ((n = recvfrom(%<socket_id>, %<receive_buffer>, %<receive_buffer_size>, MSG_DONTWAIT, NULL, NULL)) > 0){
+			%<bytes_read> = n;
 			%% Call a function to process the received message via function-call subsystem
 			%foreach callIdx = NumSFcnSysOutputCalls
 				%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")

@@ -47,7 +47,7 @@
 
 %function BlockInstanceSetup(block, system) void
 	%openfile tmpBufDecls
-		int udp_socket%<block.ParamSettings.socket_id>;
+		int udp_socket_%<block.ParamSettings.socket_id>;
 	%closefile tmpBufDecls
 	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
 	%assign ::%<block.ParamSettings.socket_id> = 1
@@ -57,20 +57,20 @@
 %%
 %% Purpose:
 %%      initialize the reconnect_state struct
-%%
-%function Start(block, system) Output
-	// Create UDP socket:
-	{
-		udp_socket%<block.ParamSettings.socket_id> = socket(AF_INET, SOCK_DGRAM, 0);
 
-		if(udp_socket%<block.ParamSettings.socket_id> < 0){
+%function Start(block, system) Output
+	%assign socket = "udp_socket_%<block.ParamSettings.socket_id>"
+	{
+		%<socket> = socket(AF_INET, SOCK_DGRAM, 0);
+
+		if(%<socket> < 0){
 			fprintf(stderr, "Error while creating UDP socket\n");
 			return;
 		}
 		// Set broadcast mode
 		int broadcast = %<block.ParamSettings.broadcast>;
 		if (broadcast) {
-			if (setsockopt(udp_socket%<block.ParamSettings.socket_id>, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
+			if (setsockopt(%<socket>, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
 				fprintf(stderr, "Could set socket to broadcast\n");
 		}
 		struct sockaddr_in server_addr;
@@ -80,7 +80,7 @@
 		server_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
 
 		// Bind to the set port and IP:
-		if(bind(udp_socket%<block.ParamSettings.socket_id>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
+		if(bind(%<socket>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
 			fprintf(stderr,"Couldn't bind to the port\n");
 		}
 	}
@@ -90,7 +90,7 @@
 %%
 %% Purpose:
 %%      Code generation for signal output
-%%
+
 %function Outputs(block, system) Output
 %endfunction
 
@@ -98,8 +98,7 @@
 %%
 %% Purpose:
 %%      Code generation for signal output
-%%
+
 %function Terminate (block, system) Output
-	/* Close UDP socket */
-	close(udp_socket%<block.ParamSettings.socket_id>);
+	close(udp_socket_%<block.ParamSettings.socket_id>);
 %endfunction
