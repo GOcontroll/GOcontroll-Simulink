@@ -131,10 +131,12 @@ void OutputModule_SendValues(_outputModule *outputModule)
 			outputModule->temperature 	= *(int16_t*)&outputModuleDataRx[6];
 			outputModule->ground 		= *(uint16_t*)&outputModuleDataRx[8];
 			outputModule->errorCode 	= *(uint32_t*)&outputModuleDataRx[22];
+			outputModule->supply		= *(uint16_t*)&outputModuleDataRx[41];
 
 			for (uint8_t channel = 0; channel <6; channel++)
 			{
-				outputModule->current[channel] = *(int16_t*)&outputModuleDataRx[(channel*2)+10];
+				outputModule->current[channel] 		= *(int16_t*)&outputModuleDataRx[(channel*2)+10];
+				outputModule->dutyCycle[channel] 	= *(uint16_t*)&outputModuleDataRx[(channel*2)+26];
 			}
 			/* Correct reception so decrease the error counter */
 			if(outputModule->communicationCheck > 0)

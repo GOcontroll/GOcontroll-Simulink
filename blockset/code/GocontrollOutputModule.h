@@ -95,6 +95,7 @@ typedef struct
 {
 uint8_t 	configuration[10];
 uint16_t 	value[10];
+uint16_t 	dutyCycle[10];
 uint32_t 	syncCounter[6];
 int16_t 	current[6];
 uint16_t 	currentMax[6];
@@ -102,6 +103,7 @@ uint16_t 	peakCurrent[10];
 uint16_t 	peakTime[10];
 int16_t 	temperature;
 uint16_t 	ground;
+uint16_t	supply;
 uint16_t 	totalCurrent;
 uint16_t 	inputVoltage;
 uint32_t 	errorCode;
