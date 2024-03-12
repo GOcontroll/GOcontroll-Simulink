@@ -46,7 +46,7 @@
 	%%check if slot is already occupied
 	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
 	%if EXISTS(%<slot>) == 0
-		%assign %<slot> = "6 channel output module "
+		%assign %<slot> = "6 channel output module"
 	%else
 		%assign tmp = %<slot>
 		%assign error = "Module slot %<block.RTWdata.moduleSlot> is already occupied by a %<tmp>"
