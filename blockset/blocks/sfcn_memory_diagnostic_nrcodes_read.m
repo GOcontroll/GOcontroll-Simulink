@@ -28,9 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_memory_diagnostic_nrcodes_read(block)
-  setup(block);
+	setup(block);
 end
-
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -43,39 +42,25 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
 	tsamp = 1;
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 1;
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = 1;
 
-  block.OutputPort(1).Dimensions = 1;
-  block.OutputPort(1).DatatypeID = 4;
-  block.OutputPort(1).Complexity = 'Real';
-  block.OutputPort(1).SamplingMode = 'sample';
+	addSimpleOutput(block, 1, DatatypeID.Int16);
 
-  block.NumDialogPrms     = 2;
-  block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	block.NumDialogPrms     = 1;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  block.RegBlockMethod('Start', @Start);
+	block.RegBlockMethod('Start', @Start);
 
-  block.RegBlockMethod('Outputs', @Outputs);
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  block.RegBlockMethod('Update', @Update);
+	block.RegBlockMethod('Update', @Update);
 end
 
 function Start(~)

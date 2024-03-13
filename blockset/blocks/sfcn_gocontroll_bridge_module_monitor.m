@@ -42,45 +42,27 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-	tsamp = 1;
 	%% Register number of input and output ports
 	block.NumInputPorts = 0;
 	block.NumOutputPorts = 4;
-	%% Module Temperature
-	block.OutputPort(1).Dimensions = 1;
-	block.OutputPort(1).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-	block.OutputPort(1).Complexity = 'Real';
-	block.OutputPort(1).SamplingMode = 'sample';
-	%% Module groundshift
-	block.OutputPort(2).Dimensions = 1;
-	block.OutputPort(2).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
-	block.OutputPort(2).Complexity = 'Real';
-	block.OutputPort(2).SamplingMode = 'sample';
-	%% Output channel 1
-	block.OutputPort(3).Dimensions = 1;
-	block.OutputPort(3).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-	block.OutputPort(3).Complexity = 'Real';
-	block.OutputPort(3).SamplingMode = 'sample';
-	%% Output channel 2
-	block.OutputPort(4).Dimensions = 1;
-	block.OutputPort(4).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-	block.OutputPort(4).Complexity = 'Real';
-	block.OutputPort(4).SamplingMode = 'sample';
+
+	moduleTemp = 1;
+	addSimpleOutput(block, moduleTemp, DatatypeID.Int16);
+
+	moduleGnd = 2;
+	addSimpleOutput(block, moduleGnd, DatatypeID.Uint16);
+
+	channel1 = 3;
+	addSimpleOutput(block, channel1, DatatypeID.Int16);
+
+	channel2 = 4;
+	addSimpleOutput(block, channel2, DatatypeID.Int16);
+
 	% Number of S-Function parameters expected
-	% (tsamp, moduleSlot)
-	block.NumDialogPrms     = 2;
+	tsamp = 1;
+
+	block.NumDialogPrms     = 1;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 
 	%% -----------------------------------------------------------------
@@ -92,8 +74,6 @@ function setup(block)
 	block.RegBlockMethod('Outputs', @Outputs);
 
 	block.RegBlockMethod('Update', @Update);
-
-	block.RegBlockMethod('WriteRTW', @WriteRTW);
 end
 
 function Start(~)
@@ -103,11 +83,6 @@ function Outputs(~)
 end
 
 function Update(~)
-end
-
-function WriteRTW(block)
-	moduleSlot = 2;
-	block.WriteRTWParam('string', 'moduleSlot', num2str(block.DialogPrm(moduleSlot).Data));
 end
 
 %%******************************* end of sfcn_gocontroll_bridge_module_monitor.m **********************

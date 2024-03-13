@@ -28,8 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_gocontroll_input_module_reset(block)
-  setup(block);
-%endfunction
+	setup(block);
+end
 
 
 %% Function: setup ===================================================
@@ -43,87 +43,70 @@ function sfcn_gocontroll_input_module_reset(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 2;
-  block.NumOutputPorts = 0;
-  %% configurable input module channel 1
+	%% Register number of input and output ports
+	block.NumInputPorts = 2;
+	block.NumOutputPorts = 0;
+	%% configurable input module channel 1
 
+	trigger = 1;
+	addSimpleInput(block, trigger, DatatypeID.Uint8);
 
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).DatatypeID = 3;
-  block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(1).SamplingMode = 'sample';
+	value = 2;
+	addSimpleInput(block, value, DatatypeID.Int32);
 
-  block.InputPort(2).Dimensions = 1;
-  block.InputPort(2).DatatypeID = 6;
-  block.InputPort(2).Complexity = 'Real';
-  block.InputPort(2).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(2).SamplingMode = 'sample';
+	%% Number of S-Function parameters expected
+	tsamp = 1;
 
-  % Number of S-Function parameters expected
-  block.NumDialogPrms     = 4;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	block.NumDialogPrms     = 1;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+end
 
-function Start(block)
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
-
+end
 
 %%******************************* end of sfcn_gocontroll_input_module_reset.m **********************

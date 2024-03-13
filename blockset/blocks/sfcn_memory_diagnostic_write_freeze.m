@@ -28,7 +28,7 @@
 %%
 %%***************************************************************************************
 function sfcn_memory_diagnostic_write_freeze(block)
-  setup(block);
+	setup(block);
 end
 
 
@@ -43,45 +43,30 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-	diagType = 1;
+
+	% dialog params
+	% diagType = 1;
 	signals = 2;
-	% signalsDataRaw = block.DialogPrm(signals).Data;
-	% signalsData = splitlines(signalsDataRaw);
+
 	signalsData = block.DialogPrm(signals).Data;
 	numSignals = length(signalsData);
+
+	% inputs
+	diagCode = 1;
+	signals = 2:numSignals+1;
+
 	%% Register number of input and output ports
 	block.NumInputPorts = numSignals+1;
 	block.NumOutputPorts = 0;
-	%% configurable inputs on diagnostic block
-	block.InputPort(diagType).Dimensions = 1;
-	block.InputPort(diagType).DatatypeID = 7;
-	%%block.InputPort(1).Complexity = 'Real';
-	block.InputPort(diagType).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(diagType).SamplingMode = 'sample';
 
-	for inputCounter = 2:numSignals+1
-	%%block.InputPort(inputCounter).Dimensions = 1;
-	block.InputPort(inputCounter).DatatypeID = 1;
-	block.InputPort(inputCounter).Complexity = 'Real';
-	block.InputPort(inputCounter).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(inputCounter).SamplingMode = 'sample';
+	addSimpleInput(block,diagCode, DatatypeID.Uint32);
+
+	for inputCounter = signals
+		addSimpleInput(block, inputCounter, DatatypeID.Single);
 	end
 
-	% Number of S-Function parameters expected
-
-	% (diagType, signals)
+	%% Number of S-Function parameters expected
 	block.NumDialogPrms     = 2;
 	block.SampleTimes = [-1 0];
 	%% -----------------------------------------------------------------

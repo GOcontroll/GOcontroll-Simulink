@@ -29,7 +29,7 @@
 %%
 %%***************************************************************************************
 function sfcn_lin_master(block)
-  setup(block);
+	setup(block);
 end
 
 %% Function: setup ===================================================
@@ -43,11 +43,12 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
+	%% dialog params
 	tsamp = 1;
-	id = 2;
-	direction = 3;
-	dataLength = 4;
-	check = 5;
+	direction = 2;
+	dataLength = 3;
+
+	%% set up in and outputs
 
 	switch block.DialogPrm(dataLength).Data
 		case 1
@@ -64,27 +65,18 @@ function setup(block)
 		block.NumOutputPorts = ports;
 		block.NumInputPorts = 0;
 		for outputCounter = 1:ports
-			block.OutputPort(outputCounter).Dimensions = 1;
-			block.OutputPort(outputCounter).DatatypeID = 3; %% 3 = uint8
-			block.OutputPort(outputCounter).Complexity = 'Real';
-			block.OutputPort(outputCounter).SamplingMode = 'sample';
+			addSimpleOutput(block, outputCounter, DatatypeID.Uint8);
 		end
 	else
 		block.NumOutputPorts = 0;
 		block.NumInputPorts = ports;
 		for inputCounter = 1:ports
-			block.InputPort(inputCounter).Dimensions = 1;
-			block.InputPort(inputCounter).DatatypeID = 3; %% 3 = uint8
-			block.InputPort(inputCounter).Complexity = 'Real';
-			block.InputPort(inputCounter).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-			block.InputPort(inputCounter).SamplingMode = 'sample';
+			addSimpleInput(block, inputCounter, DatatypeID.Uint8);
 		end
 	end
 
-	% Number of S-Function parameters expected
-	% (tsamp, canBus, frameType, inputNumber, dataType, byteOrder)
-	block.NumDialogPrms     = 5;
-
+	%% Number of S-Function parameters expected
+	block.NumDialogPrms     = 3;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time

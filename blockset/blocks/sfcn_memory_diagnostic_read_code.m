@@ -28,7 +28,7 @@
 %%
 %%***************************************************************************************
 function sfcn_memory_diagnostic_read_code(block)
-  setup(block);
+	setup(block);
 end
 
 
@@ -43,40 +43,23 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
 	tsamp = 1;
 	%% Register number of input and output ports
 	block.NumInputPorts = 2;
 	block.NumOutputPorts = 1;
 
-	%% configurable inputs on diagnostic block
-	block.InputPort(1).Dimensions = 1;
-	block.InputPort(1).DatatypeID = 3;
-	block.InputPort(1).Complexity = 'Real';
-	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(1).SamplingMode = 'sample';
-	%% configurable inputs on diagnostic block
-	block.InputPort(2).Dimensions = 1;
-	block.InputPort(2).DatatypeID = 5;
-	block.InputPort(2).Complexity = 'Real';
-	block.InputPort(2).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(2).SamplingMode = 'sample';
+	% inputs
+	type = 1;
+	index = 2;
 
-	block.OutputPort(1).Dimensions = 1;
-	block.OutputPort(1).DatatypeID = 7;
-	block.OutputPort(1).Complexity = 'Real';
-	block.OutputPort(1).SamplingMode = 'sample';
+	% outputs
+	code = 1;
+
+	addSimpleInput(block, type, DatatypeID.Uint8);
+	addSimpleInput(block, index, DatatypeID.Uint16);
+
+	addSimpleOutput(block, code, DatatypeID.Uint32);
 
 	block.NumDialogPrms     = 1;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];

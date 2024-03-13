@@ -28,9 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_UDPConfig(block)
-  setup(block);
+	setup(block);
 end
-
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -43,40 +42,25 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 0;
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = 0;
 
-  % Number of S-Function parameters expected
+	%% Number of S-Function parameters expected
+	block.NumDialogPrms     = 0;
+	block.SampleTimes = [1 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  % (port, ip, broadcast, socket_id)
-  block.NumDialogPrms     = 4;
-  block.SampleTimes = [1 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	block.RegBlockMethod('Start', @Start);
 
-  block.RegBlockMethod('Start', @Start);
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  block.RegBlockMethod('Outputs', @Outputs);
+	block.RegBlockMethod('Update', @Update);
 
-  block.RegBlockMethod('Update', @Update);
-
-  block.RegBlockMethod('Terminate', @Terminate);
-
-  block.RegBlockMethod('WriteRTW', @WriteRTW);
+	block.RegBlockMethod('Terminate', @Terminate);
 end
 
 function Start(~)
@@ -91,17 +75,6 @@ function Update(~)
 end
 
 function Terminate(~)
-end
-
-function WriteRTW(block)
-	port = 1;
-	ip = 2;
-	broadcast = 3;
-	socket_id = 4;
-	block.WriteRTWParam('string', 'port', num2str(block.DialogPrm(port).Data));
-	block.WriteRTWParam('string', 'ip', ['"' block.DialogPrm(ip).Data '"']);
-	block.WriteRTWParam('string', 'broadcast' , num2str(block.DialogPrm(broadcast).Data));
-	block.WriteRTWParam('string', 'socket_id', block.DialogPrm(socket_id).Data);
 end
 
 %%******************************* end of sfcn_UDPConfig.m **********************

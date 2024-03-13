@@ -47,10 +47,10 @@
 
 %function BlockInstanceSetup(block, system) void
 	%openfile tmpBufDecls
-		int udp_socket_%<block.ParamSettings.socket_id>;
+		int udp_socket_%<block.RTWdata.socket_id>;
 	%closefile tmpBufDecls
 	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
-	%assign ::%<block.ParamSettings.socket_id> = 1
+	%assign ::%<block.RTWdata.socket_id> = 1
 %endfunction
 
 %% Function: Start ==========================================================
@@ -59,7 +59,7 @@
 %%      initialize the reconnect_state struct
 
 %function Start(block, system) Output
-	%assign socket = "udp_socket_%<block.ParamSettings.socket_id>"
+	%assign socket = "udp_socket_%<block.RTWdata.socket_id>"
 	{
 		%<socket> = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -68,7 +68,7 @@
 			return;
 		}
 		// Set broadcast mode
-		int broadcast = %<block.ParamSettings.broadcast>;
+		int broadcast = %<block.RTWdata.broadcast>;
 		if (broadcast) {
 			if (setsockopt(%<socket>, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
 				fprintf(stderr, "Could set socket to broadcast\n");
@@ -76,8 +76,8 @@
 		struct sockaddr_in server_addr;
 		// Set port and IP:
 		server_addr.sin_family = AF_INET;
-		server_addr.sin_port = htons(%<block.ParamSettings.port>);
-		server_addr.sin_addr.s_addr = inet_addr(%<block.ParamSettings.ip>);
+		server_addr.sin_port = htons(%<block.RTWdata.port>);
+		server_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
 
 		// Bind to the set port and IP:
 		if(bind(%<socket>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
@@ -100,5 +100,5 @@
 %%      Code generation for signal output
 
 %function Terminate (block, system) Output
-	close(udp_socket_%<block.ParamSettings.socket_id>);
+	close(udp_socket_%<block.RTWdata.socket_id>);
 %endfunction

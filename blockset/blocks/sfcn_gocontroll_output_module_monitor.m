@@ -43,67 +43,49 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-	%% Register number of input and output ports
-	block.NumInputPorts = 0;
-	num_duty = 0;
-	for idx = 4:9
-		if block.DialogPrm(idx).Data == 1
-			num_duty = num_duty + 1;
-		end
-	end
-	block.NumOutputPorts = 10+num_duty;
-	%% Module Temperature
-	block.OutputPort(1).Dimensions = 1;
-	block.OutputPort(1).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-	block.OutputPort(1).Complexity = 'Real';
-	block.OutputPort(1).SamplingMode = 'sample';
-	%% Module groundshift
-	block.OutputPort(2).Dimensions = 1;
-	block.OutputPort(2).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
-	block.OutputPort(2).Complexity = 'Real';
-	block.OutputPort(2).SamplingMode = 'sample';
-	%% Module supply
-	block.OutputPort(3).Dimensions = 1;
-	block.OutputPort(3).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
-	block.OutputPort(3).Complexity = 'Real';
-	block.OutputPort(3).SamplingMode = 'sample';
-	%% Module status
-	block.OutputPort(4).Dimensions = 1;
-	block.OutputPort(4).DatatypeID = 7; %% uint16 is type 5, see rtwtypes.h
-	block.OutputPort(4).Complexity = 'Real';
-	block.OutputPort(4).SamplingMode = 'sample';
+	%% Dialog parameters
+	tsamp = 1;
+	% moduleSlot = 2;
+	C1duty = 3;
+	% C2duty = 4;
+	% C3duty = 5;
+	% C4duty = 6;
+	% C5duty = 7;
+	C6duty = 8;
 
-	offset = 1;
-	for idx = 4:9
-		block.OutputPort(idx+offset).Dimensions = 1;
-		block.OutputPort(idx+offset).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-		block.OutputPort(idx+offset).Complexity = 'Real';
-		block.OutputPort(idx+offset).SamplingMode = 'sample';
-		if block.DialogPrm(idx).Data == 1
-			offset = offset + 1;
-			block.OutputPort(idx+offset).Dimensions = 1;
-			block.OutputPort(idx+offset).DatatypeID = 5; %% int16 is type 4, see rtwtypes.h
-			block.OutputPort(idx+offset).Complexity = 'Real';
-			block.OutputPort(idx+offset).SamplingMode = 'sample';
+	% Number of S-Function parameters expected
+	block.NumDialogPrms     = 8;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+
+	%% Register number of input and output ports
+	baseOutputs = 10;
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = baseOutputs;
+
+	moduleTemp = 1;
+	addSimpleOutput(block, moduleTemp, DatatypeID.Int16);
+
+	moduleGnd = 2;
+	addSimpleOutput(block, moduleGnd, DatatypeID.Uint16);
+
+	moduleSup = 3;
+	addSimpleOutput(block, moduleSup, DatatypeID.Uint16);
+
+	moduleStat = 4;
+	addSimpleOutput(block, moduleStat, DatatypeID.Uint32);
+
+	moduleChannelsStart = 5;
+	offset = moduleChannelsStart-C1duty; % offset between output port number and dialog parameter number.
+	for idx = C1duty:C6duty
+		addSimpleOutput(block, idx+offset, DatatypeID.Int16);
+		if block.DialogPrm(idx).Data == 1 % this port receives duty cycle feedback
+			block.NumOutputPorts = block.NumOutputPorts + 1; % increment number of output ports to add the new duty cycle output
+			offset = offset + 1; % we've added another output port so we need to increase the offset
+			addSimpleOutput(block, idx+offset, DatatypeID.Uint16);
 		end
 	end
 	
-	% Number of S-Function parameters expected
-	% (tsamp, canBus, canID)
-	block.NumDialogPrms     = 9;
-	block.SampleTimes = [block.DialogPrm(1).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------

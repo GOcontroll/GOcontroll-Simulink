@@ -31,7 +31,6 @@ function sfcn_gocontroll_k15_voltage(block)
 	setup(block);
 end
 
-
 %% Function: setup ===================================================
 %% Abstract:
 %%   Set up the S-function block's basic characteristics such as:
@@ -42,29 +41,19 @@ end
 %%
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
 
 function setup(block)
-	tsamp = 1;
-	k15pin = 2;
 	%% Register number of input and output ports
 	block.NumInputPorts = 0;
 	block.NumOutputPorts = 1;
-	%% Override ports
-	block.OutputPort(1).Dimensions = 1;
-	block.OutputPort(1).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
-	block.OutputPort(1).Complexity = 'Real';
-	block.OutputPort(1).SamplingMode = 'sample';
-	% Number of S-Function parameters expected
+	
+	k15Voltage = 1;
+	addSimpleOutput(block, k15Voltage, DatatypeID.Uint16);
+
+	%% Number of S-Function parameters expected
+	tsamp = 1;
+	% k15pin = 2;
+
 	block.NumDialogPrms     = 2;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 

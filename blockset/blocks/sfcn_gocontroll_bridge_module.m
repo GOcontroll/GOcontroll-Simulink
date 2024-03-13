@@ -28,9 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_gocontroll_bridge_module(block)
-  setup(block);
+	setup(block);
 end
-
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -43,39 +42,21 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-	tsamp = 1;
 	%% Register number of input and output ports
 	block.NumInputPorts = 2;
 	block.NumOutputPorts = 0;
-	%% configurable input module channel 1
-	block.InputPort(1).Dimensions = 1;
-	block.InputPort(1).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-	block.InputPort(1).Complexity = 'Real';
-	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(1).SamplingMode = 'sample';
-	%% configurable input module channel 2
-	block.InputPort(2).Dimensions = 1;
-	block.InputPort(2).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-	block.InputPort(2).Complexity = 'Real';
-	block.InputPort(2).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(2).SamplingMode = 'sample';
+
+	channel1 = 1;
+	addSimpleInput(block, channel1, DatatypeID.Int32);
+
+	channel2 = 2;
+	addSimpleInput(block, channel2, DatatypeID.Int32);
 
 	% Number of S-Function parameters expected
+	tsamp = 1;
 
-	% (tsamp, moduleSlot, C1func, C1freq, C2func, C2freq)
-	block.NumDialogPrms     = 6;
+	block.NumDialogPrms     = 1;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
@@ -106,8 +87,6 @@ function setup(block)
 	block.RegBlockMethod('Update', @Update);
 
 	block.RegBlockMethod('Terminate', @Terminate);
-
-	block.RegBlockMethod('WriteRTW', @WriteRTW);
 end
 
 function Start(~)
@@ -121,20 +100,6 @@ function Update(~)
 end
 
 function Terminate(~)
-end
-
-function WriteRTW(block)
-	moduleSlot = 2;
-	C1func = 3;
-	C1freq = 4;
-	C2func = 5;
-	C2freq = 6;
-
-	block.WriteRTWParam('string', 'moduleSlot', num2str(block.DialogPrm(moduleSlot).Data));
-	block.WriteRTWParam('string', 'C1func', num2str(block.DialogPrm(C1func).Data));
-	block.WriteRTWParam('string', 'C1freq', num2str(block.DialogPrm(C1freq).Data));
-	block.WriteRTWParam('string', 'C2func', num2str(block.DialogPrm(C2func).Data));
-	block.WriteRTWParam('string', 'C2freq', num2str(block.DialogPrm(C2freq).Data));
 end
 
 %%******************************* end of sfcn_gocontroll_bridge_module.m **********************

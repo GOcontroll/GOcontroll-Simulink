@@ -28,9 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_UDPSend(block)
-  setup(block);
+	setup(block);
 end
-
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -57,15 +56,16 @@ end
 function setup(block)
 	tsamp = 1;
 	%% Register number of input and output ports
-
+	% manually configure input without defined dimensions.
 	block.NumInputPorts = 1;
 	block.InputPort(1).Complexity = 'Real';
 	block.InputPort(1).DirectFeedthrough = false;
 	block.InputPort(1).SamplingMode = 'sample';
+	block.InputPort(1).DatatypeID = double(DatatypeID.Uint8);
 
 	block.NumOutputPorts = 0;
 
-	block.NumDialogPrms     = 4;
+	block.NumDialogPrms     = 1;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
@@ -76,8 +76,6 @@ function setup(block)
 	block.RegBlockMethod('Outputs', @Outputs);
 
 	block.RegBlockMethod('Update', @Update);
-
-	block.RegBlockMethod('WriteRTW', @WriteRTW);
 end
 
 function Start(~)
@@ -89,15 +87,6 @@ end
 
 
 function Update(~)
-end
-
-function WriteRTW(block)
-	port = 2;
-	ip = 3;
-	socket_id = 4;
-	block.WriteRTWParam('string', 'port', num2str(block.DialogPrm(port).Data));
-	block.WriteRTWParam('string', 'ip', ['"' block.DialogPrm(ip).Data '"']);
-	block.WriteRTWParam('string', 'socket_id', block.DialogPrm(socket_id).Data);
 end
 
 %%******************************* end of sfcn_UDPSend.m **********************

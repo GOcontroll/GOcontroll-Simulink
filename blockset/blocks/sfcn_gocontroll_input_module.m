@@ -28,8 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_gocontroll_input_module(block)
-  setup(block);
-%endfunction
+	setup(block);
+end
 
 
 %% Function: setup ===================================================
@@ -43,104 +43,69 @@ function sfcn_gocontroll_input_module(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 6;
-  %% configurable input module channel 1
-  block.OutputPort(1).Dimensions = 1;
-  block.OutputPort(1).DatatypeID = 6;
-  block.OutputPort(1).Complexity = 'Real';
-  block.OutputPort(1).SamplingMode = 'sample';
-  %% configurable input module channel 2
-  block.OutputPort(2).Dimensions = 1;
-  block.OutputPort(2).DatatypeID = 6;
-  block.OutputPort(2).Complexity = 'Real';
-  block.OutputPort(2).SamplingMode = 'sample';
-  %% configurable input module channel 3
-  block.OutputPort(3).Dimensions = 1;
-  block.OutputPort(3).DatatypeID = 6;
-  block.OutputPort(3).Complexity = 'Real';
-  block.OutputPort(3).SamplingMode = 'sample';
-  %% configurable input module channel 4
-  block.OutputPort(4).Dimensions = 1;
-  block.OutputPort(4).DatatypeID = 6;
-  block.OutputPort(4).Complexity = 'Real';
-  block.OutputPort(4).SamplingMode = 'sample';
-    %% configurable input module channel 5
-  block.OutputPort(5).Dimensions = 1;
-  block.OutputPort(5).DatatypeID = 6;
-  block.OutputPort(5).Complexity = 'Real';
-  block.OutputPort(5).SamplingMode = 'sample';
-    %% configurable input module channel 6
-  block.OutputPort(6).Dimensions = 1;
-  block.OutputPort(6).DatatypeID = 6;
-  block.OutputPort(6).Complexity = 'Real';
-  block.OutputPort(6).SamplingMode = 'sample';
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = 6;
 
-  % Number of S-Function parameters expected
-  block.NumDialogPrms     = 42;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
+	%configure moduel outputs
+	for idx = 1:6
+		addSimpleOutput(block, idx, DatatypeID.Int32);
+	end
 
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	%% Number of S-Function parameters expected
+	tsamp = 1;
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	block.NumDialogPrms     = 1;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-function Start(block)
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
+
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+end
+
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
-
+end
 
 %%******************************* end of sfcn_gocontroll_input_module.m **********************

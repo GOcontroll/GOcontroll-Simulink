@@ -28,8 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_gocontroll_input_module_10(block)
-  setup(block);
-%endfunction
+	setup(block);
+end
 
 
 %% Function: setup ===================================================
@@ -43,82 +43,69 @@ function sfcn_gocontroll_input_module_10(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 10;
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = 10;
 
-  for i = 1:10
-  %% configurable input module channel 1
-  block.OutputPort(i).Dimensions = 1;
-  block.OutputPort(i).DatatypeID = 6;
-  block.OutputPort(i).Complexity = 'Real';
-  block.OutputPort(i).SamplingMode = 'sample';
-  end
+	% configure the channel outputs
+	for i = 1:10
+		addSimpleOutput(block, i, DatatypeID.Int32);
+	end
 
-  % Number of S-Function parameters expected
-  block.NumDialogPrms     = 33;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
+	%% dialog params
+	tsamp = 1;
 
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	block.NumDialogPrms     = 1;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-function Start(block)
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+end
+
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
-
+end
 
 %%******************************* end of sfcn_gocontroll_input_module_10.m **********************

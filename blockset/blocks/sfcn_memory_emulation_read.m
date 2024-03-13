@@ -28,9 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_memory_emulation_read(block)
-  setup(block);
-%endfunction
-
+	setup(block);
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -43,29 +42,15 @@ function sfcn_memory_emulation_read(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
 	tsamp = 1;
 	%% Register number of input and output ports
 	block.NumInputPorts = 0;
 	block.NumOutputPorts = 1;
 
-	block.OutputPort(1).Dimensions = 1;
-	block.OutputPort(1).DatatypeID = 1;
-	block.OutputPort(1).Complexity = 'Real';
-	block.OutputPort(1).SamplingMode = 'sample';
+	addSimpleOutput(block, 1, DatatypeID.Single);
 
-	block.NumDialogPrms     = 5;
+	block.NumDialogPrms     = 1;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
@@ -94,39 +79,26 @@ function setup(block)
 	%%   C-Mex counterpart: mdlUpdate
 	%%
 	block.RegBlockMethod('Update', @Update);
+end
 
-	block.RegBlockMethod('WriteRTW', @WriteRTW);
-%endfunction
-
-function Start(block)
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
-
-function WriteRTW(block)
-	memRead = 2;
-	memType = 3;
-	key = 4;
-	init = 5;
-
-	block.WriteRTWParam('string', 'memRead', num2str(block.DialogPrm(memRead).Data));
-	block.WriteRTWParam('string', 'memType', num2str(block.DialogPrm(memType).Data));
-	block.WriteRTWParam('string', 'key', num2str(block.DialogPrm(key).Data));
-	block.WriteRTWParam('string', 'init', num2str(block.DialogPrm(init).Data));
+end
 
 %%******************************* end of sfcn_memory_emulation_read.m **********************

@@ -44,12 +44,12 @@
 
 %function BlockInstanceSetup(block, system) void
 	%%check if slot is already occupied
-	%assign slot = "::slot%<block.ParamSettings.moduleSlot>"
+	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
 	%if EXISTS(%<slot>) == 0
 		%assign %<slot> = "bridge module"
 	%else
 		%assign module = %<slot>
-		%assign error = "Module slot %<block.ParamSettings.moduleSlot> is already occupied by a %<module>"
+		%assign error = "Module slot %<block.RTWdata.moduleSlot> is already occupied by a %<module>"
 		%<LibBlockReportError(block, error)>
 	%endif
 %endfunction
@@ -61,18 +61,18 @@
 %%
 %function Start(block, system) Output
 	%openfile tmpBuf
-	_bridgeModule bridgeModule%<block.ParamSettings.moduleSlot>;
+	_bridgeModule bridgeModule%<block.RTWdata.moduleSlot>;
 	%closefile tmpBuf
 
 	%assign srcFile = LibGetModelDotCFile()
 	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
 
-	bridgeModule%<block.ParamSettings.moduleSlot>.moduleSlot = %<block.ParamSettings.moduleSlot> -1;
+	bridgeModule%<block.RTWdata.moduleSlot>.moduleSlot = %<block.RTWdata.moduleSlot> -1;
 
-	bridgeModule%<block.ParamSettings.moduleSlot>.configuration[0] = %<block.ParamSettings.C1freq> | (%<block.ParamSettings.C1func> <<4); %% LSB nibble contains the frequence of each channel
-	bridgeModule%<block.ParamSettings.moduleSlot>.configuration[1] = %<block.ParamSettings.C2freq> | (%<block.ParamSettings.C2func> <<4);
+	bridgeModule%<block.RTWdata.moduleSlot>.configuration[0] = %<block.RTWdata.C1freq> | (%<block.RTWdata.C1func> <<4); %% LSB nibble contains the frequence of each channel
+	bridgeModule%<block.RTWdata.moduleSlot>.configuration[1] = %<block.RTWdata.C2freq> | (%<block.RTWdata.C2func> <<4);
 
-	BridgeModule_Configuration(&bridgeModule%<block.ParamSettings.moduleSlot>);
+	BridgeModule_Configuration(&bridgeModule%<block.RTWdata.moduleSlot>);
 %endfunction
 
 %% Function: Output ==========================================================
@@ -82,12 +82,11 @@
 %%
 %function Outputs(block, system) Output
     /* send data to 6 channel output module */
-	bridgeModule%<block.ParamSettings.moduleSlot>.value[0] = %<LibBlockInputSignal(0, "", "", 0)>;
-	bridgeModule%<block.ParamSettings.moduleSlot>.value[1] = %<LibBlockInputSignal(1, "", "", 0)>;
+	bridgeModule%<block.RTWdata.moduleSlot>.value[0] = %<LibBlockInputSignal(0, "", "", 0)>;
+	bridgeModule%<block.RTWdata.moduleSlot>.value[1] = %<LibBlockInputSignal(1, "", "", 0)>;
 
-	BridgeModule_SendValues(&bridgeModule%<block.ParamSettings.moduleSlot>);
+	BridgeModule_SendValues(&bridgeModule%<block.RTWdata.moduleSlot>);
 %endfunction
-
 
 %% Function: Terminate ==========================================================
 %%
@@ -96,9 +95,9 @@
 %%
 %function Terminate (block, system) Output
   /* If program receives the SIGTERM command, the bridge modules are forced to let the outputs float*/
-	bridgeModule%<block.ParamSettings.moduleSlot>.configuration[0] = 0;
-	bridgeModule%<block.ParamSettings.moduleSlot>.configuration[1] = 0;
+	bridgeModule%<block.RTWdata.moduleSlot>.configuration[0] = 0;
+	bridgeModule%<block.RTWdata.moduleSlot>.configuration[1] = 0;
 
-	BridgeModule_Configuration(&bridgeModule%<block.ParamSettings.moduleSlot>);
+	BridgeModule_Configuration(&bridgeModule%<block.RTWdata.moduleSlot>);
 %endfunction
 %%******************************* end of sfcn_gocontroll_bridge_module.tlc ***************************

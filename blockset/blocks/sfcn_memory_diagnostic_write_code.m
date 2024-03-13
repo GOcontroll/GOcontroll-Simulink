@@ -28,7 +28,7 @@
 %%
 %%***************************************************************************************
 function sfcn_memory_diagnostic_write_code(block)
-  setup(block);
+	setup(block);
 end
 
 %% Function: setup ===================================================
@@ -42,39 +42,25 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 1;
-  block.NumOutputPorts = 0;
-  %% configurable inputs on diagnostic block
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).DatatypeID = 7;
-  block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(1).SamplingMode = 'sample';
+	%% Register number of input and output ports
+	block.NumInputPorts = 1;
+	block.NumOutputPorts = 0;
 
-  block.NumDialogPrms     = 1;
-  block.SampleTimes = [-1 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	%% configurable inputs on diagnostic block
+	addSimpleInput(block, 1, DatatypeID.Uint32);
 
-  block.RegBlockMethod('Start', @Start);
+	block.NumDialogPrms     = 0;
+	block.SampleTimes = [-1 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  block.RegBlockMethod('Outputs', @Outputs);
+	block.RegBlockMethod('Start', @Start);
 
-  block.RegBlockMethod('Update', @Update);
+	block.RegBlockMethod('Outputs', @Outputs);
+
+	block.RegBlockMethod('Update', @Update);
 end
 
 function Start(~)

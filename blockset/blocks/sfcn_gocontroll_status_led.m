@@ -29,9 +29,8 @@
 %%
 %%***************************************************************************************
 function sfcn_gocontroll_status_led(block)
-  setup(block);
-%endfunction
-
+	setup(block);
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -44,100 +43,80 @@ function sfcn_gocontroll_status_led(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%Our data type parameters:
-%2 int8
-%3 uint8
-%4 int16
-%5 uint16
-%6 int32
-%7 uint32
-%8 boolean
-
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 1;
-  block.NumOutputPorts = 0;
+	%% Register number of input and output ports
+	block.NumInputPorts = 1;
+	block.NumOutputPorts = 0;
 
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).DatatypeID = 3;
-  block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;
-  block.InputPort(1).SamplingMode = 'sample';
+	addSimpleInput(block, 1, DatatypeID.Uint8);
 
-  % Number of S-Function parameters expected
-  block.NumDialogPrms = 2;
+	%% Number of S-Function parameters expected
+	block.NumDialogPrms = 1;
+	tsamp = 1;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
 
-    %%
-  %% Terminate:
-  %%   Functionality    : Called to terminate discrete states
-  %%                      during simulation termination
-  %%   C-Mex counterpart: mdlTerminate
-  %%
-  block.RegBlockMethod('Terminate', @Terminate);
+	%%
+	%% Terminate:
+	%%   Functionality    : Called to terminate discrete states
+	%%                      during simulation termination
+	%%   C-Mex counterpart: mdlTerminate
+	%%
+	block.RegBlockMethod('Terminate', @Terminate);
+end
 
-  block.RegBlockMethod('WriteRTW', @WriteRTW);
-%endfunction
-
-function Start(block)
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
+end
 
 
-function Terminate(block)
+function Terminate(~)
 
   %% No Terminate
 
-%endfunction
-
-function WriteRTW(block)
-	led = 1;
-	color = 2;
-
-	block.WriteRTWParam('string', 'led', num2str(block.DialogPrm(led).Data));
-	block.WriteRTWParam('string', 'color', num2str(block.DialogPrm(color).Data));
+end
 
 %%******************************* end of sfcn_gocontroll_status_led.m **********************

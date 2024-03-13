@@ -20,9 +20,8 @@
 %%
 %%***************************************************************************************
 function sfcn_exec_shell(block)
-  setup(block);
-%endfunction
-
+	setup(block);
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -35,34 +34,18 @@ function sfcn_exec_shell(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
-
 function setup(block)
-	tsamp = 1;
-	command = 2;
 	%% Register number of input and output ports
 	block.NumInputPorts = 1;
 	block.NumOutputPorts = 0;
-	%% configurable input module channel 1
-	block.InputPort(1).Dimensions = 1;
-	block.InputPort(1).DatatypeID = 8;
-	block.InputPort(1).Complexity = 'Real';
-	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(1).SamplingMode = 'sample';
 
-	% Number of S-Function parameters expected
-	% (tsamp, command)
-	block.NumDialogPrms     = 2;
+	%% configurable input module channel 1
+	addSimpleInput(block, 1, DatatypeID.Boolean);
+
+	%% Number of S-Function parameters expected
+	tsamp = 1;
+
+	block.NumDialogPrms     = 1;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
@@ -91,33 +74,26 @@ function setup(block)
 	%%   C-Mex counterpart: mdlUpdate
 	%%
 	block.RegBlockMethod('Update', @Update);
+end
 
-	block.RegBlockMethod('WriteRTW', @WriteRTW);
-%endfunction
-
-function Start(block)
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
-
-function WriteRTW(block)
-	command = 2;
-
-	block.WriteRTWParam('string', 'command', ['"' block.DialogPrm(command).Data '"']);
+end
 
 %%******************************* end of sfcn_exec_shell.m *****************************

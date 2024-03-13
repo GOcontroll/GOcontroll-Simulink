@@ -29,7 +29,7 @@
 %%***************************************************************************************
 function sfcn_gocontroll_controller_active(block)
 	setup(block);
-%endfunction
+end
 
 
 %% Function: setup ===================================================
@@ -43,17 +43,15 @@ function sfcn_gocontroll_controller_active(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
-	tsamp = 1;
 	%% Register number of input and output ports
 	block.NumInputPorts = 1;
 	block.NumOutputPorts = 0;
-	%% Override ports
-	block.InputPort(1).Dimensions = 1;
-	block.InputPort(1).DatatypeID = 8; %% boolean is type 8, see rtwtypes.h
-	block.InputPort(1).Complexity = 'Real';
-	block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-	block.InputPort(1).SamplingMode = 'sample';
+	
+	addSimpleInput(block, 1, DatatypeID.Boolean);
+	
 	% Number of S-Function parameters expected
+	tsamp = 1;
+	
 	block.NumDialogPrms     = 1;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 
@@ -84,27 +82,26 @@ function setup(block)
 	%%   C-Mex counterpart: mdlUpdate
 	%%
 	block.RegBlockMethod('Update', @Update);
-%endfunction
+end
 
-function Start(block)
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
+end
 
 %%******************************* end of sfcn_gocontroll_controller_active.m *****************************
-

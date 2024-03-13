@@ -29,9 +29,8 @@
 %%
 %%***************************************************************************************
 function sfcn_set_brightness_display(block)
-  setup(block);
-%endfunction
-
+	setup(block);
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -44,26 +43,13 @@ function sfcn_set_brightness_display(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%Our data type parameters:
-%2 int8
-%3 uint8
-%4 int16
-%5 uint16
-%6 int32
-%7 uint32
-%8 boolean
-
 function setup(block)
 	tsamp = 1;
 	%% Register number of input and output ports
 	block.NumInputPorts = 1;
 	block.NumOutputPorts = 0;
 
-	block.InputPort(1).Dimensions = 1;
-	block.InputPort(1).DatatypeID = 3;
-	block.InputPort(1).Complexity = 'Real';
-	block.InputPort(1).DirectFeedthrough = false;
-	block.InputPort(1).SamplingMode = 'sample';
+	addSimpleInput(block, 1, DatatypeID.Uint8);
 
 	% Number of S-Function parameters expected
 	block.NumDialogPrms = 1;
@@ -103,34 +89,33 @@ function setup(block)
 	%%   C-Mex counterpart: mdlTerminate
 	%%
 	block.RegBlockMethod('Terminate', @Terminate);
-%endfunction
+end
 
-function Start(block)
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
+end
 
 
-function Terminate(block)
+function Terminate(~)
 
   %% No Terminate
 
-%endfunction
-
+end
 
 %%******************************* end of sfcn_set_brightness_display.m **********************

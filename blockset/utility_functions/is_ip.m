@@ -1,12 +1,8 @@
-
 function flag = is_ip(ipaddress)
-%======== VALIDATE_IPADDRESS function validates whether the ip address being input by a User is Valid or not======%. 
-%If the Ip address is valid then Flag will be set to 1 else Flag will be set to 0
-%======== Input Parameters =========%
-%ipaddress - String containing the Ip address given as input by the User.
-%======== Output Parameters ========%
-%flag - Output Value which indicates whether the Ipaddress being input is Valid or not.
-%==== Initialise the Variables ====%
+% IS_IP function validates whether an ip address is valid or not
+%
+% bool = IS_IP(ipaddress)
+
 Valid_lengths = (7:15);
 num_array = ones(1,4);
 Check_flag = 1;

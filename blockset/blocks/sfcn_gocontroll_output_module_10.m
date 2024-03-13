@@ -28,9 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_gocontroll_output_module_10(block)
-  setup(block);
-%endfunction
-
+	setup(block);
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -43,139 +42,75 @@ function sfcn_gocontroll_output_module_10(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 10;
-  block.NumOutputPorts = 0;
-  %% 10 channel output module channel 1
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(1).SamplingMode = 'sample';
-  %% 10 channel output module channel 2
-  block.InputPort(2).Dimensions = 1;
-  block.InputPort(2).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(2).Complexity = 'Real';
-  block.InputPort(2).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(2).SamplingMode = 'sample';
-  %% 10 channel output module channel 3
-  block.InputPort(3).Dimensions = 1;
-  block.InputPort(3).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(3).Complexity = 'Real';
-  block.InputPort(3).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(3).SamplingMode = 'sample';
-  %% 10 channel output module channel 4
-  block.InputPort(4).Dimensions = 1;
-  block.InputPort(4).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(4).Complexity = 'Real';
-  block.InputPort(4).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(4).SamplingMode = 'sample';
-  %% 10 channel output module channel 5
-  block.InputPort(5).Dimensions = 1;
-  block.InputPort(5).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(5).Complexity = 'Real';
-  block.InputPort(5).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(5).SamplingMode = 'sample';
-  %% 10 channel output module channel 6
-  block.InputPort(6).Dimensions = 1;
-  block.InputPort(6).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(6).Complexity = 'Real';
-  block.InputPort(6).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(6).SamplingMode = 'sample';
-  %% 10 channel output module channel 7
-  block.InputPort(7).Dimensions = 1;
-  block.InputPort(7).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(7).Complexity = 'Real';
-  block.InputPort(7).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(7).SamplingMode = 'sample';
-  %% 10 channel output module channel 8
-  block.InputPort(8).Dimensions = 1;
-  block.InputPort(8).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(8).Complexity = 'Real';
-  block.InputPort(8).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(8).SamplingMode = 'sample';
-  %% 10 channel output module channel 9
-  block.InputPort(9).Dimensions = 1;
-  block.InputPort(9).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(9).Complexity = 'Real';
-  block.InputPort(9).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(9).SamplingMode = 'sample';
-  %% 10 channel output module channel 10
-  block.InputPort(10).Dimensions = 1;
-  block.InputPort(10).DatatypeID = 5; %% int32 is type 6, see rtwtypes.h
-  block.InputPort(10).Complexity = 'Real';
-  block.InputPort(10).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(10).SamplingMode = 'sample';
-  % Number of S-Function parameters expected
+	%% Register number of input and output ports
+	block.NumInputPorts = 10;
+	block.NumOutputPorts = 0;
 
-  % (tsamp, canBus, canID)
-  block.NumDialogPrms     = 37;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	for idx = 1:10
+		addSimpleInput(block, idx, DatatypeID.Uint16);
+	end
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%% Number of S-Function parameters expected
+	tsamp = 1;
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	block.NumDialogPrms     = 1;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-function Start(block)
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
+
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+
+	block.RegBlockMethod('Terminate', @Terminate);
+end
+
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
+end
 
-function Terminate(block)
+function Terminate(~)
 
   %% No Terminate
 
-%endfunction
+end
 
 %%******************************* end of sfcn_gocontroll_output_module_10.m **********************
