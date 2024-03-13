@@ -28,8 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_gocontroll_output_module_monitor(block)
-  setup(block);
-%endfunction
+	setup(block);
+end
 
 
 %% Function: setup ===================================================
@@ -55,106 +55,103 @@ function sfcn_gocontroll_output_module_monitor(block)
 %% BOOLEAN =  8
 
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 9;
-  %% Module Temperature
-  block.OutputPort(1).Dimensions = 1;
-  block.OutputPort(1).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-  block.OutputPort(1).Complexity = 'Real';
-  block.OutputPort(1).SamplingMode = 'sample';
-  %% Module groundshift
-  block.OutputPort(2).Dimensions = 1;
-  block.OutputPort(2).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
-  block.OutputPort(2).Complexity = 'Real';
-  block.OutputPort(2).SamplingMode = 'sample';
-  %% Module status
-  block.OutputPort(3).Dimensions = 1;
-  block.OutputPort(3).DatatypeID = 7; %% uint16 is type 5, see rtwtypes.h
-  block.OutputPort(3).Complexity = 'Real';
-  block.OutputPort(3).SamplingMode = 'sample';
-  %% Output channel 1
-  block.OutputPort(4).Dimensions = 1;
-  block.OutputPort(4).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-  block.OutputPort(4).Complexity = 'Real';
-  block.OutputPort(4).SamplingMode = 'sample';
-  %% Output channel 2
-  block.OutputPort(5).Dimensions = 1;
-  block.OutputPort(5).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-  block.OutputPort(5).Complexity = 'Real';
-  block.OutputPort(5).SamplingMode = 'sample';
-  %% Output channel 3
-  block.OutputPort(6).Dimensions = 1;
-  block.OutputPort(6).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-  block.OutputPort(6).Complexity = 'Real';
-  block.OutputPort(6).SamplingMode = 'sample';
-  %% Output channel 4
-  block.OutputPort(7).Dimensions = 1;
-  block.OutputPort(7).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-  block.OutputPort(7).Complexity = 'Real';
-  block.OutputPort(7).SamplingMode = 'sample';
-  %% Output channel 5
-  block.OutputPort(8).Dimensions = 1;
-  block.OutputPort(8).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-  block.OutputPort(8).Complexity = 'Real';
-  block.OutputPort(8).SamplingMode = 'sample';
-  %% Output channel 6
-  block.OutputPort(9).Dimensions = 1;
-  block.OutputPort(9).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
-  block.OutputPort(9).Complexity = 'Real';
-  block.OutputPort(9).SamplingMode = 'sample';
-  % Number of S-Function parameters expected
-  % (tsamp, canBus, canID)
-  block.NumDialogPrms     = 3;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	num_duty = 0;
+	for idx = 4:9
+		if block.DialogPrm(idx).Data == 1
+			num_duty = num_duty + 1;
+		end
+	end
+	block.NumOutputPorts = 10+num_duty;
+	%% Module Temperature
+	block.OutputPort(1).Dimensions = 1;
+	block.OutputPort(1).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
+	block.OutputPort(1).Complexity = 'Real';
+	block.OutputPort(1).SamplingMode = 'sample';
+	%% Module groundshift
+	block.OutputPort(2).Dimensions = 1;
+	block.OutputPort(2).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
+	block.OutputPort(2).Complexity = 'Real';
+	block.OutputPort(2).SamplingMode = 'sample';
+	%% Module supply
+	block.OutputPort(3).Dimensions = 1;
+	block.OutputPort(3).DatatypeID = 5; %% uint16 is type 5, see rtwtypes.h
+	block.OutputPort(3).Complexity = 'Real';
+	block.OutputPort(3).SamplingMode = 'sample';
+	%% Module status
+	block.OutputPort(4).Dimensions = 1;
+	block.OutputPort(4).DatatypeID = 7; %% uint16 is type 5, see rtwtypes.h
+	block.OutputPort(4).Complexity = 'Real';
+	block.OutputPort(4).SamplingMode = 'sample';
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	offset = 1;
+	for idx = 4:9
+		block.OutputPort(idx+offset).Dimensions = 1;
+		block.OutputPort(idx+offset).DatatypeID = 4; %% int16 is type 4, see rtwtypes.h
+		block.OutputPort(idx+offset).Complexity = 'Real';
+		block.OutputPort(idx+offset).SamplingMode = 'sample';
+		if block.DialogPrm(idx).Data == 1
+			offset = offset + 1;
+			block.OutputPort(idx+offset).Dimensions = 1;
+			block.OutputPort(idx+offset).DatatypeID = 5; %% int16 is type 4, see rtwtypes.h
+			block.OutputPort(idx+offset).Complexity = 'Real';
+			block.OutputPort(idx+offset).SamplingMode = 'sample';
+		end
+	end
+	
+	% Number of S-Function parameters expected
+	% (tsamp, canBus, canID)
+	block.NumDialogPrms     = 9;
+	block.SampleTimes = [block.DialogPrm(1).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-function Start(block)
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+end
+
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
+end
 
 
 %%******************************* end of sfcn_gocontroll_output_module_monitor.m **********************

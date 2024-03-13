@@ -70,22 +70,20 @@
 
 	%<LibBlockOutputSignal(0, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.temperature;
 	%<LibBlockOutputSignal(1, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.ground;
-	%<LibBlockOutputSignal(2, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.errorCode;
-	%<LibBlockOutputSignal(3, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.current[0];
-	%<LibBlockOutputSignal(4, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.current[1];
-	%<LibBlockOutputSignal(5, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.current[2];
-	%<LibBlockOutputSignal(6, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.current[3];
-	%<LibBlockOutputSignal(7, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.current[4];
-	%<LibBlockOutputSignal(8, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.current[5];
-
+	%<LibBlockOutputSignal(2, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.supply;
+	%<LibBlockOutputSignal(3, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.errorCode;
+	%assign outputIdx = 4
+	%foreach channel = 6
+		%<LibBlockOutputSignal(outputIdx, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.current[%<channel>];
+		%assign outputIdx = outputIdx + 1
+		%assign duty = "block.RTWdata.C%<channel + 1>duty"
+		%assign y = "1"
+		%if ISEQUAL(%<duty>, y)
+			%<LibBlockOutputSignal(outputIdx, "", "", 0)> = outputModule%<block.RTWdata.moduleSlot>.dutyCycle[%<channel>];
+			%assign outputIdx = outputIdx + 1
+		%endif
+	%endforeach
   %%
 %endfunction
 
-
-
 %%******************************* end of sfcn_gocontroll_output_module_monitor.tlc ***************************
-
-
-
-
-
