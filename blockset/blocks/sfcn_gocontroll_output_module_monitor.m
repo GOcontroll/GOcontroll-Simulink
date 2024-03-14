@@ -62,7 +62,7 @@ function setup(block)
 	baseOutputs = 10;
 	block.NumInputPorts = 0;
 	num_duty = 0;
-	for idx = 4:9
+	for idx = C1duty:C6duty
 		if block.DialogPrm(idx).Data == 1
 			num_duty = num_duty + 1;
 		end
