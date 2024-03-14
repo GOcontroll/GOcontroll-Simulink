@@ -61,7 +61,13 @@ function setup(block)
 	%% Register number of input and output ports
 	baseOutputs = 10;
 	block.NumInputPorts = 0;
-	block.NumOutputPorts = baseOutputs;
+	num_duty = 0;
+	for idx = 4:9
+		if block.DialogPrm(idx).Data == 1
+			num_duty = num_duty + 1;
+		end
+	end
+	block.NumOutputPorts = baseOutputs+num_duty;
 
 	moduleTemp = 1;
 	addSimpleOutput(block, moduleTemp, DatatypeID.Int16);
@@ -80,7 +86,6 @@ function setup(block)
 	for idx = C1duty:C6duty
 		addSimpleOutput(block, idx+offset, DatatypeID.Int16);
 		if block.DialogPrm(idx).Data == 1 % this port receives duty cycle feedback
-			block.NumOutputPorts = block.NumOutputPorts + 1; % increment number of output ports to add the new duty cycle output
 			offset = offset + 1; % we've added another output port so we need to increase the offset
 			addSimpleOutput(block, idx+offset, DatatypeID.Uint16);
 		end
