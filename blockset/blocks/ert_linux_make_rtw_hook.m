@@ -137,8 +137,8 @@ switch hookMethod
 		nrOfCANreceiveBlocks = searchCANreceive(modelName);
 			% Add software version to the SYS_config.h file.
 		fprintf('\n### Adding data to SYS_config.h...\n');
-		formatOut = 'ddmmyy_HHMMSS';
-		daten = datestr(now, formatOut);
+		formatOut = 'ddMMyy_HHmmSS';
+		daten = char(datetime('now','Format', formatOut));
 		stationID = strcat(modelName,daten); %assign to static variable as it is needed in the after_make step
 		% Get XCP port
 		XCPport = get_param(modelName,'tlcXcpTcpPort');

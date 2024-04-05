@@ -9,3 +9,4 @@
 *.slx.autosave
 *.zip
 .vscode/settings.json
+crank_files/

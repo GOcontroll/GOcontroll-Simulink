@@ -15,7 +15,7 @@ function create_asap2(modelName, XCPport, XCPaddress, XCPstationID, Target, MAPf
 	% <a href="matlab:web('https://nl.mathworks.com/help/rtw/ref/coder.asap2.getecudescriptions.html')">getEcuDescriptions</a>
 	% <a href="matlab:web('https://nl.mathworks.com/help/rtw/ref/coder.asap2.export.html')">coder.asap2.export</a>
 	% <a href="matlab:web('https://nl.mathworks.com/help/rtw/ug/edit_template.html')">a2l base class</a>
-	fprintf('### Generating ASAP2 file');
+	fprintf('### Generating ASAP2 file\n');
 	%Get the XCPstationIDAddress
 	if exist(MAPfile, 'file')
 		MAPfileString = fileread(MAPfile);
@@ -42,4 +42,5 @@ function create_asap2(modelName, XCPport, XCPaddress, XCPstationID, Target, MAPf
 		end
 	end
 	coder.asap2.export(modelName, CustomEcuDescriptions=ecuDesc);
+	fprintf('### Created %s.a2l\n',modelName);
 end

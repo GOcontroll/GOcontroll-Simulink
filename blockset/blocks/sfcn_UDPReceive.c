@@ -44,7 +44,7 @@ enum params {
 };
 
 enum outputs {
-	OUT_FNC_CALL,
+	OUT_FCN_CALL,
 	OUT_MSG,
 	OUT_LEN,
 	OUT_COUNT
@@ -59,9 +59,9 @@ static void mdlInitializeSizes(SimStruct *S) {
 	if (!ssSetNumOutputPorts(S, OUT_COUNT))
 		return;
 
-	ssSetOutputPortWidth(S, OUT_FNC_CALL, 1);
-	ssSetOutputPortDataType(S, OUT_FNC_CALL, SS_FCN_CALL);
-	ssSetOutputPortComplexSignal(S, OUT_FNC_CALL, COMPLEX_NO);
+	ssSetOutputPortWidth(S, OUT_FCN_CALL, 1);
+	ssSetOutputPortDataType(S, OUT_FCN_CALL, SS_FCN_CALL);
+	ssSetOutputPortComplexSignal(S, OUT_FCN_CALL, COMPLEX_NO);
 
 	ssSetOutputPortWidth(S, OUT_MSG, (int_T)mxGetPr(ssGetSFcnParam(S, PARAM_BUFF_LEN))[0]);
 	ssSetOutputPortDataType(S, OUT_MSG, SS_UINT8);
