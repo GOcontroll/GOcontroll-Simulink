@@ -32,15 +32,15 @@ function [version] = ert_linux_target_version()
 
 version = 'GOcontroll V3.7.0';
 
-%% V3.7.0.Update 10-3-2024:
+%% V3.7.0 Update 10-3-2024:
 %% Improved 4-20mA module mask and functionality. This update requires 4-20 mA module HW 3 and firmware V1.0.0
 %%
-%% V3.6.0.Update 6-2-2024:
+%% V3.6.0 Update 6-2-2024:
 %% Added status output to 4-20 mA input module
 %% Added module slot to SPI communication
 %% Tested block with 4-20 mA serie production module HW 3 and firmware V0.0.3
 %%
-%% V3.5.1.Update 24-1-2024:
+%% V3.5.1 Update 24-1-2024:
 %% Minor improvements to the xcp stack, replaced some odd buffer copy code with memcpy
 %%
 %% V3.5.0 Update 17-1-2024:
