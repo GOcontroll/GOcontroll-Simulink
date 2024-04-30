@@ -109,6 +109,7 @@ MODELREFS               = |>MODELREFS<|
 GEN_SAMPLE_MAIN         = |>GEN_SAMPLE_MAIN<|
 TARGET_LANG_EXT         = |>TARGET_LANG_EXT<|
 OTHER                   = |>DEFINES_OTHER<|
+ADD_FLAGS				= |>ADDITIONAL_LDFLAGS<|
 
 
 #|---------------------------------------------------------------------------------------
@@ -241,7 +242,7 @@ AS_FLAGS        +=
 existing or insert new file(s) into the archive
 AR_FLAGS        += -cr
 # additional linker flags
-LINKER_FLAGS     += -lpthread -Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map -lm -lrt
+LINKER_FLAGS     += -lpthread -Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map -lm -lrt $(ADD_FLAGS)
 # additional object copy flags
 OC_FLAGS         = -O srec
 OC_FLAGS_BIN     = -O binary
