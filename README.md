@@ -33,7 +33,7 @@ or on windows open a cmd (not powershell) window as administrator, navigate to y
 
 If you would not like to link the blockset to your project because you would like more control over the version that is present in your project, repeat step 3 but also copy the blockset folder and don't do step 4.
 
-Just to mention, be sure to open the .slx (template project) from within your Matlab environment. You need to see the .slx file in the ‘current folder’ tree otherwise the path references are incorrect. Once the Simulink template project is opened, you see the led wave program. When the compiler is available, you should be able to build this project.
+Just to mention, be sure to open the .slx/.mdl (template project) from within your Matlab environment. You need to see the .slx file in the ‘current folder’ tree otherwise the path references are incorrect. Once the Simulink template project is opened, you see the led wave program. When the compiler is available, you should be able to build this project.
 
 ## Adding your own blockset
 
@@ -81,7 +81,7 @@ addpath([pwd filesep 'code']);
 This script is meant to setup your blocksets in the Simulink library  
 example:
 ```matlab
-Browser(BrowserIndex).Library = 'NameOfTheLibraryFile';  	% you could have blockset_test.slx it would be blockset_test
+Browser(BrowserIndex).Library = 'NameOfTheLibraryFile';  	% if you made blockset_test.slx/.mdl it would be blockset_test
 Browser(BrowserIndex).Name    = 'DisplayNameOfTheLibrary';	% any name you wish
 Browser(BrowserIndex).IsFlat  = 0;
 BrowserIndex = BrowserIndex + 1; 				% increment the BrowserIndex with the amount of libraries that you have added so any other blocksets can be properly initialized aswell

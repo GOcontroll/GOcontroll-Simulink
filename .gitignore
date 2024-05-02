@@ -1,4 +1,4 @@
-/GOcontroll_Linux_generated_code/*
+/*generated_code/*
 /blockset_*
 /slprj/*
 /builds/*
@@ -9,4 +9,6 @@
 *.slx.autosave
 *.zip
 .vscode/settings.json
+.vscode*
 crank_files/
+*.slxc
