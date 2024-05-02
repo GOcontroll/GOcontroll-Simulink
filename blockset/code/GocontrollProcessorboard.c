@@ -775,7 +775,15 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 
 	/*	Compare strings to see which hardware it is
 		Check production hardware first since those are the most likely */
-	if(strcmp (tempValue, "Moduline IV V3.06")==0)
+	if(strcmp (tempValue, "Moduline IV V3.06-D")==0)
+	{
+		printf(tempValue);
+		hardwareConfig.moduleNumber = 8;
+		hardwareConfig.ledControl = LED_RUKR;
+		hardwareConfig.adcControl = ADC_MCP3004;
+	}
+
+	else if(strcmp (tempValue, "Moduline IV V3.06")==0)
 	{
 	printf(tempValue);
 	hardwareConfig.moduleNumber = 8;
@@ -883,31 +891,7 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	}
 
 	/* Displays */
-	else if(strcmp (tempValue, "Moduline Display V1.01")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 2;
-	hardwareConfig.ledControl = NOT_INSTALLED;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
-
-	else if(strcmp (tempValue, "Moduline Display V1.02")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 2;
-	hardwareConfig.ledControl = NOT_INSTALLED;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
-
-	else if(strcmp (tempValue, "Moduline Display V1.03")==0)
-	{
-	printf(tempValue);
-	hardwareConfig.moduleNumber = 2;
-	hardwareConfig.ledControl = NOT_INSTALLED;
-	hardwareConfig.adcControl = ADC_MCP3004;
-	}
-
-	else if(strcmp (tempValue, "Moduline Display V1.04")==0)
+	else if(strcmp (tempValue, "Moduline Display V1.06")==0)
 	{
 	printf(tempValue);
 	hardwareConfig.moduleNumber = 2;
@@ -923,7 +907,33 @@ static void GocontrollProcessorboard_GetHardwareVersion(void)
 	hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-printf("\n");
+	else if(strcmp (tempValue, "Moduline Display V1.04")==0)
+	{
+	printf(tempValue);
+	hardwareConfig.moduleNumber = 2;
+	hardwareConfig.ledControl = NOT_INSTALLED;
+	hardwareConfig.adcControl = ADC_MCP3004;
+	}
+
+	/* V1.03 does not exist in the field */
+	
+	else if(strcmp (tempValue, "Moduline Display V1.02")==0)
+	{
+	printf(tempValue);
+	hardwareConfig.moduleNumber = 2;
+	hardwareConfig.ledControl = NOT_INSTALLED;
+	hardwareConfig.adcControl = ADC_MCP3004;
+	}
+
+	else if(strcmp (tempValue, "Moduline Display V1.01")==0)
+	{
+	printf(tempValue);
+	hardwareConfig.moduleNumber = 2;
+	hardwareConfig.ledControl = NOT_INSTALLED;
+	hardwareConfig.adcControl = ADC_MCP3004;
+	}
+
+	printf("\n");
 }
 
 /****************************************************************************************/
