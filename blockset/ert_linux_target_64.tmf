@@ -193,8 +193,7 @@ HANcoder_INCLUDES = \
 	-I"$(SRC_PATH)" \
 	-I"$(IIO_PATH)" \
 	-I"$(JSON_C_PATH)" \
-	-I"$(MQTT_PATH)" \
-	-I"$(UDP_PATH)"
+	-I"$(MQTT_PATH)" 
 
 MATLAB_INCLUDES = \
 	-I"$(MATLAB_ROOT)/simulink/include" \
@@ -285,7 +284,7 @@ HANcoder_LIB_SRCS =
 ADD_SRCS = \
 	GocontrollLin.c XcpStack.c XcpTargetSpecific.c CANdriver.c ert_main.c GocontrollProcessorboard.c \
 	GocontrollInputModule.c GocontrollOutputModule.c GocontrollBridgeModule.c MemoryEmulation.c \
-	MemoryDiagnostic.c GocontrollProcessorboardSupply.c Gocontroll420maInputModule.c UDP.c \
+	MemoryDiagnostic.c GocontrollProcessorboardSupply.c Gocontroll420maInputModule.c \
 
 	# GocontrollMqtt.c mqtt_pal.c mqtt.c
 

@@ -81,6 +81,7 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 %
 % You are encouraged to add other configuration options, and extend the
 % various callbacks to fully integrate ERT into your environment.
+persistent stationID
 switch hookMethod
 	case 'error'
 		fprintf('########################### ERROR\n');
@@ -103,15 +104,6 @@ switch hookMethod
 		% licensed use.
 		%uiwait(warndlg(sprintf('You are using an educational version of HANcoder\n\nCommercial usage is not allowed in any way\n\nContact hancoder@han.nl for more information'),'HANcoder','modal'));
 
-		% Clear the UDP variables
-		if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
-			assignin('base','UDPBUFFNUM',0);
-		end
-
-		if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
-			assignin('base','UDPBUFFSIZE',0);
-		end
-
 		% Check if the code generation is started from the correct path
 
 		model_path = get_param(bdroot, 'FileName');
@@ -126,7 +118,7 @@ switch hookMethod
 		% Call function to add all variables which are not declared by the
 		% user to the workspace as Simulink.Signals/Parameters. This way the
 		% missing signals and parameters will become visible in HANtune
-			fprintf('########################### ASAP\n');
+		fprintf('########################### ASAP\n');
 		AddASAP2Elements(modelName);
 
 		fprintf(['\n### Starting Real-Time Workshop build procedure for ', ...
@@ -148,25 +140,12 @@ switch hookMethod
 		% [nrOfUDPReceiveBuffers,UDPBuffSize] = searchUDPreceive(modelName);
 		% UDPBuffSize = getUDPBuffSize(modelName);
 
-		if evalin('base','exist(''UDPBUFFNUM'',''var'')==1')
-			nrOfUDPReceiveBuffers = evalin('base','UDPBUFFNUM') + 1;
-		else
-			nrOfUDPReceiveBuffers = 0;
-		end
-
-		if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
-			UDPBuffSize = evalin('base','UDPBUFFSIZE') + 1;
-		else
-			UDPBuffSize = 0;
-		end
-
 		nrOfCANreceiveBlocks = searchCANreceive(modelName);
-			% Add software version to the SYS_config.h file.
+		% Add software version to the SYS_config.h file.
 		fprintf('\n### Adding data to SYS_config.h...\n');
 		formatOut = 'ddmmyy_HHMMSS';
 		daten = datestr(now, formatOut);
 		stationID = strcat(modelName,daten);
-		assignin('base','kXcpStationId',stationID);
 		% Get XCP port
 		XCPport = get_param(modelName,'tlcXcpTcpPort');
 
@@ -187,8 +166,6 @@ switch hookMethod
 		fprintf(file, '#define kXcpStationIdLength            %d\n', numel(stationID));
 		fprintf(file, '#define XCP_PORT_NUM                   %d\n', XCPport);
 		fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
-		fprintf(file, '#define UDPBUFFNUM                     %d\n', nrOfUDPReceiveBuffers);
-		fprintf(file, '#define UDPBUFFSIZE                    %d\n', UDPBuffSize);
 		fprintf(file, '#endif');
 		fclose(file);
 
@@ -224,8 +201,6 @@ switch hookMethod
 		XCPport = get_param(modelName,'tlcXcpTcpPort');
 		% Get XCP address
 		XCPaddress = get_param(modelName,'tlcXcpTcpAddress');
-		% Read the kXcpStationId from the workspace
-		stationID = evalin('base', 'kXcpStationId');
 		% Get the Linux target from the model parameters tab
 		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
 

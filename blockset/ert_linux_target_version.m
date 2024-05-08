@@ -30,8 +30,11 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V3.6.1';
+version = 'GOcontroll V3.7.0';
 
+%% V3.7.0 Update 8-5-2024:
+%% Backported the new UDP blocks to 2018b
+%%
 %% V3.6.1 Update 2-5-2024:
 %% Added new mainboards
 %% Fixed an issue with growing size in the diagnostic blocks

@@ -28,9 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_UDPConfig(block)
-  setup(block);
-%endfunction
-
+	setup(block);
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -43,89 +42,39 @@ function sfcn_UDPConfig(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 0;
-  block.NumOutputPorts = 0;
+	%% Register number of input and output ports
+	block.NumInputPorts = 0;
+	block.NumOutputPorts = 0;
 
-  % Number of S-Function parameters expected
+	%% Number of S-Function parameters expected
+	block.NumDialogPrms     = 0;
+	block.SampleTimes = [1 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  % (tsamp, buffer_length, port, ip, broadcast)
-  block.NumDialogPrms     = 4;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	block.RegBlockMethod('Update', @Update);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
+	block.RegBlockMethod('Terminate', @Terminate);
+end
 
-  %%
-  %% Terminate:
-  %%   Functionality    : Called to terminate discrete states
-  %%                      during simulation termination
-  %%   C-Mex counterpart: mdlTerminate
-  %%
-  block.RegBlockMethod('Terminate', @Terminate);
-%endfunction
-
-function Start(block)
-
-  %% No start
-
-%endfunction
+function Start(~)
+end
 
 
-function Outputs(block)
-
-  %% No output
-
-%endfunction
+function Outputs(~)
+end
 
 
-function Update(block)
+function Update(~)
+end
 
-  %% No update
-
-%endfunction
-
-function Terminate(block)
-
-  %% No Terminate
-
-%endfunction
-
+function Terminate(~)
+end
 
 %%******************************* end of sfcn_UDPConfig.m **********************

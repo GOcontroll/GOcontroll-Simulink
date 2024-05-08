@@ -8,3 +8,5 @@
 *.slx.autosave
 *.zip
 .vscode/settings.json
+*.mex*
+%.slxc

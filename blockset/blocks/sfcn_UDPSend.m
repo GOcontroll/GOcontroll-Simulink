@@ -28,9 +28,8 @@
 %%
 %%***************************************************************************************
 function sfcn_UDPSend(block)
-  setup(block);
-%endfunction
-
+	setup(block);
+end
 
 %% Function: setup ===================================================
 %% Abstract:
@@ -55,72 +54,45 @@ function sfcn_UDPSend(block)
 %% BOOLEAN =  8
 
 function setup(block)
-  %% Register number of input and output ports
-  block.NumInputPorts = 2;
-  block.NumOutputPorts = 0;
+	tsamp = 1;
+	ip = 2;
+	port = 3;
+	%% Register number of input and output ports
+	% manually configure input without defined dimensions.
+	block.NumInputPorts = 1;
+	block.InputPort(1).Complexity = 'Real';
+	block.InputPort(1).DirectFeedthrough = false;
+	block.InputPort(1).SamplingMode = 'sample';
+	block.InputPort(1).DatatypeID = double(DatatypeID.Uint8);
 
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;
-  block.InputPort(1).SamplingMode = 'sample';
-  %% message out, dont set dimensions as they are not known yet, model will make this work.
-  block.InputPort(2).Complexity = 'Real';
-  block.InputPort(2).DirectFeedthrough = false;
-  block.InputPort(2).SamplingMode = 'sample';
+	block.NumOutputPorts = 0;
 
-  % Number of S-Function parameters expected
+	block.NumDialogPrms     = 3;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  % (tsamp, port, ip)
-  block.NumDialogPrms     = 5;
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	block.RegBlockMethod('Update', @Update);
+end
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
-
-function Start(block)
-
-  %% No start
-
-%endfunction
+function Start(~)
+	% global socket;
+	% socket = udpport("datagram");
+end
 
 
 function Outputs(block)
+	% write(socket,block.InputPort(1).Data, "uint8", block.DialogPrm(2).Data, block.DialogPrm(3).Data);
+	% flush(socket, "output");
+end
 
-  %% No output
 
-%endfunction
-
-
-function Update(block)
-
-  %% No update
-
-%endfunction
-
+function Update(~)
+end
 
 %%******************************* end of sfcn_UDPSend.m **********************

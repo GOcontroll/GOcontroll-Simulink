@@ -31,45 +31,74 @@
 %%***************************************************************************************
 
 %implements sfcn_UDPConfig "C"
-
-%<LibAddToCommonIncludes("UDP.h")>
+%include "udp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
-%% Purpose:
-%%      Code generation for configuration
-%%
-%function BlockTypeSetup(block, system) void
+%% Runs once for the block type, no matter how many blocks are present in the model
 
+%function BlockTypeSetup(block, system) void
+	%<UdpCommonBlockTypeSetup()>
+%endfunction
+
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Runs once for every instance of the block in the model
+
+%function BlockInstanceSetup(block, system) void
+	%openfile tmpBufDecls
+		int udp_socket_%<block.RTWdata.socket_id>;
+	%closefile tmpBufDecls
+	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+	%assign ::%<block.RTWdata.socket_id> = 1
 %endfunction
 
 %% Function: Start ==========================================================
 %%
 %% Purpose:
 %%      initialize the reconnect_state struct
-%%
+
 %function Start(block, system) Output
-	initUdpBuffers();
-  UdpInitialize(%<block.RTWdata.port>, "%<block.RTWdata.ip>", %<block.RTWdata.broadcast>);
+	%assign socket = "udp_socket_%<block.RTWdata.socket_id>"
+	{
+		%<socket> = socket(AF_INET, SOCK_DGRAM, 0);
+
+		if(%<socket> < 0){
+			fprintf(stderr, "Error while creating UDP socket\n");
+			return;
+		}
+		// Set broadcast mode
+		int broadcast = %<block.RTWdata.broadcast>;
+		if (broadcast) {
+			if (setsockopt(%<socket>, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
+				fprintf(stderr, "Could set socket to broadcast\n");
+		}
+		struct sockaddr_in server_addr;
+		// Set port and IP:
+		server_addr.sin_family = AF_INET;
+		server_addr.sin_port = htons(%<block.RTWdata.port>);
+		server_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
+
+		// Bind to the set port and IP:
+		if(bind(%<socket>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
+			fprintf(stderr,"Couldn't bind to the port\n");
+		}
+	}
 %endfunction
 
 %% Function: Output ==========================================================
 %%
 %% Purpose:
 %%      Code generation for signal output
-%%
+
 %function Outputs(block, system) Output
-  UdpReceive();
 %endfunction
 
 %% Function: Terminate ==========================================================
 %%
 %% Purpose:
 %%      Code generation for signal output
-%%
+
 %function Terminate (block, system) Output
-  %%
-  /* Close UDP socket and free buffers */
-  UdpTerminate();
-  %%
+	close(udp_socket_%<block.RTWdata.socket_id>);
 %endfunction
