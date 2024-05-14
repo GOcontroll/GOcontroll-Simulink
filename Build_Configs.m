@@ -13,7 +13,7 @@ num_cores = core_info_split{12};
 
 fprintf("\nDetected %s logical cores\n",num_cores);
 
-set_param(model, "MakeCommand", ['make_rtw -j' num_cores]);
+set_param(model, "MakeCommand", ['make_rtw -j' num_cores]); % set the core count in the make command for faster compilation
 
 clear num_cores core_info core_info_split
 

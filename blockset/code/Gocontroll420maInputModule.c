@@ -5,7 +5,7 @@
 *----------------------------------------------------------------------------------------
 *                          C O P Y R I G H T
 *----------------------------------------------------------------------------------------
-*  Copyright 2023 (c)  by GOcontroll   http://www.gocontroll.com      All rights reserved
+*  Copyright 2024 (c)  by GOcontroll   http://www.gocontroll.com      All rights reserved
 *
 *----------------------------------------------------------------------------------------
 *                            L I C E N S E
@@ -58,21 +58,21 @@ uint8_t dataPointer = 6;
 	}
 
 inputModule420maDataTx[16] = inputModule420ma->supply16va;
-inputModule420maDataTx[17] = inputModule420ma->supply16vb;
 
-GocontrollProcessorboard_SendSpi(1, INPUTMODULE420MAMESSAGELENGTH, 1,13,2,1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0],0);
+GocontrollProcessorboard_SendSpi(inputModule420ma->moduleSlot, INPUTMODULE420MAMESSAGELENGTH, 1,13,2,1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0],0);
 }
 
 /****************************************************************************************/
 
 void InputModule420ma_ReceiveValues(_inputModule420ma *inputModule420ma)
 {
-	if(GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE420MAMESSAGELENGTH, 2,13,3,1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0], &inputModule420maDataRx[0])==0)
+	if(GocontrollProcessorboard_SendReceiveSpi(inputModule420ma->moduleSlot, INPUTMODULE420MAMESSAGELENGTH, 2,13,3,1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0], &inputModule420maDataRx[0])==0)
 	{
 		for (uint8_t pointer = 0; pointer <10; pointer++)
 		{
 			inputModule420ma->value[pointer] 		= *(uint16_t*)&inputModule420maDataRx[(pointer*2)+6];
 		}
+		inputModule420ma->status 		= inputModule420maDataRx[26];
 	}
 }
 

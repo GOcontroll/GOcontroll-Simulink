@@ -5,7 +5,7 @@
 *----------------------------------------------------------------------------------------
 *                          C O P Y R I G H T
 *----------------------------------------------------------------------------------------
-*  Copyright 2023 (c) by GOcontroll      http://www.gocontroll.com   All rights reserved
+*  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com   All rights reserved
 *
 *----------------------------------------------------------------------------------------
 *                            L I C E N S E
@@ -113,7 +113,7 @@ void MemoryDiagnostic_WriteToMemory(uint8_t diagType,uint32_t diagCode, char* fr
 	strcat(path, "/");
 	strcat(path, diagCodeStr);
 	/* Create diagnostic error code file */
-	fileId = open(path, O_WRONLY | O_CREAT | O_NONBLOCK  | O_APPEND, 0555);
+	fileId = open(path, O_WRONLY | O_CREAT | O_NONBLOCK  | O_TRUNC, 0555);
 	}
 
 	/* Write the data to the file*/

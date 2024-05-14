@@ -5,7 +5,7 @@
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
-%%  Copyright 2023 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
 %%
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
@@ -27,19 +27,19 @@
 %% DEALINGS IN THE SOFTWARE.
 %%
 %%***************************************************************************************
-function [moduleSlotInfoStr, inputChannelInfoStr] = go_6channel_input_module_reset_mcb(moduleSlot,contrType,inputChannel)
+function [moduleSlotInfoStr, inputChannelInfoStr] = sfcn_gocontroll_input_module_reset_mcb(moduleSlot,contrType,inputChannel)
 
 
 
   % array with module slot infos
-moduleSlotInfoStrings = {  'Module Slot 1',  ...\
-						'Module Slot 2',  ...\
-						'Module Slot 3',  ...\
-						'Module Slot 4',  ...\
-						'Module Slot 5',  ...\
-						'Module Slot 6',  ...\
-						'Module Slot 7',  ...\
-						'Module Slot 8'};
+moduleSlotInfoStrings = {'Module Slot 1',  ...\
+						 'Module Slot 2',  ...\
+						 'Module Slot 3',  ...\
+						 'Module Slot 4',  ...\
+						 'Module Slot 5',  ...\
+						 'Module Slot 6',  ...\
+						 'Module Slot 7',  ...\
+						 'Module Slot 8'};
 
 channelIDInfoStrings = {	'Input Channel 1',  ...\
 							'Input Channel 2',  ...\

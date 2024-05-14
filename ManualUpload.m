@@ -6,7 +6,7 @@
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
 %%  Copyright 2019 (c) by HAN Automotive     http://www.han.nl          All rights reserved
-%%  Copyrigth 2023 (c) by GOcontroll B.V.    http://www.gocontroll.com  All rights reserved
+%%  Copyrigth 2024 (c) by GOcontroll B.V.    http://www.gocontroll.com  All rights reserved
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
 %%---------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@
 %% ManualUpload [address] <optional port>
 %%
 %%***************************************************************************************
-%% Automatic flash script
 
 function ManualUpload(ip,varargin)
 
@@ -45,11 +44,11 @@ else
 	port = '8001';
 end
 
-ModelPath = [pwd filesep 'GOcontroll_Linux.elf'];
+elfPath = [pwd filesep 'GOcontroll_Linux.elf'];
 a2lPath = [pwd filesep 'GOcontroll_Linux.a2l'];
 
 % Upload the file to the controller
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',ModelPath,'" ',' http://',ip,':',port,'/upload');
+cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',elfPath,'" ',' http://',ip,':',port,'/upload');
 disp(cmdCommand)
 system(cmdCommand);
 cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',ip,':',port,'/upload');

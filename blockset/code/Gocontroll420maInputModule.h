@@ -5,7 +5,7 @@
 *----------------------------------------------------------------------------------------
 *                          C O P Y R I G H T
 *----------------------------------------------------------------------------------------
-*  Copyright 2023 (c)  by GOcontroll   http://www.gocontroll.com      All rights reserved
+*  Copyright 2024 (c)  by GOcontroll   http://www.gocontroll.com      All rights reserved
 *
 *----------------------------------------------------------------------------------------
 *                            L I C E N S E
@@ -51,9 +51,9 @@ typedef struct
 uint8_t configuration[10];
 uint16_t value[10];
 uint32_t syncCounter[10];
+uint8_t status;
 uint32_t moduleIdentifier;
 uint8_t supply16va;
-uint8_t supply16vb;
 uint8_t moduleSlot;
 } _inputModule420ma;
 

@@ -6,7 +6,7 @@
 *                          C O P Y R I G H T
 *----------------------------------------------------------------------------------------
 *  Copyright (c) 2019  by HAN Automotive  http://www.han.nl           All rights reserved
-*  Copyright (c) 2023  by GOcontroll	  http://www.gocontroll.com   All rights reserved
+*  Copyright (c) 2024  by GOcontroll	  http://www.gocontroll.com   All rights reserved
 *----------------------------------------------------------------------------------------
 *                            L I C E N S E
 *----------------------------------------------------------------------------------------
@@ -269,13 +269,7 @@ int ServeXcpConnection(void)
 		/* Copy the first 4 bytes into the CTO packet buffer, which is the XCP header with
          * the length of the counter.
 		 */
-        ctoPacket.raw[0] = *bufPtr;
-        bufPtr++;
-        ctoPacket.raw[1] = *bufPtr;
-        bufPtr++;
-        ctoPacket.raw[2] = *bufPtr;
-        bufPtr++;
-        ctoPacket.raw[3] = *bufPtr;
+		memcpy(ctoPacket.raw, bufPtr, 4);
 		bufPtr = buf;/* reset buffer pointer to beginning of buffer */
 
 		/* Now we have the length we can read the rest of the message */
@@ -314,36 +308,32 @@ uint8_t XcpSendData(uint8_t *data)
 {
 	static uint16_t CTR = 0; /* Counter according to XCP over TCP specification */
 	tMacNetXcpDtoPacket dtoPacket;
-	uint16_t cnt;
+	// uint16_t cnt;
 	ssize_t res;
 
 	/* Set counter and length in DTO packet */
 	dtoPacket.s.len = (uint16_t) *data; //First byte holds the data length
-	//fprintf(stderr,"Message from RPi:");
+	// fprintf(stderr,"Message from RPi:");
 	dtoPacket.s.counter = CTR;
 	/* Update the counter value for each new packet */
 	CTR++;
 	/* Copy data to packet */
-	for (cnt=0; cnt<dtoPacket.s.len; cnt++)
-	{
-		data++; //Increase first because the first byte is the length
-		dtoPacket.s.data[cnt] = *data;
-	//	fprintf(stderr,"%x ",*data);
-	}
+	memcpy(dtoPacket.s.data, data +1, dtoPacket.s.len);
 	// fprintf(stderr,"\n");
 	/* Write data to XCP connection */
-	res = send(XcpConnection_fd, (void *)&dtoPacket.raw[0], (size_t) dtoPacket.s.len + 4, MSG_DONTWAIT)!=(dtoPacket.s.len+4);
-	if (res < 0)
+	res = send(XcpConnection_fd, (void *)&dtoPacket.raw[0], (size_t) dtoPacket.s.len + 4, MSG_DONTWAIT);
+	if (res != (dtoPacket.s.len + 4))
 	{
+		fprintf(stderr, "sent %ld bytes, which should have been %d\n", res, dtoPacket.s.len + 4);
 		fprintf(stderr,"XcpSendData: Error in sending: %s\n",strerror(errno));
 		/* Disconnect to make sure sending stops */
 		if(close(XcpConnection_fd)==-1) /* Close connection when ServeXcpConnection() returns an error */
 			fprintf(stderr,"XcpSendData: error while trying to close the connection: %s\nLikely already closed in XcpInitialize.",strerror(errno));
 		return -1; //Message not send: error
-	}else{
-		// fprintf(stderr, "%d\n", CTR);
-		return 0;
 	}
+	// fprintf(stderr, "%d\n", CTR);
+	return 0;
+	
 } /*** end of XcpSendData ***/
 
 /***************************************************************************************

@@ -5,7 +5,7 @@
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
-%%  Copyright 2023 (c) by GOcontroll     http://www.gocontroll.com    All rights reserved
+%%  Copyright 2024 (c) by GOcontroll     http://www.gocontroll.com    All rights reserved
 %%
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
@@ -48,86 +48,62 @@ C6peakDuty,C6peakTime,C7peakDuty,C7peakTime,C8peakDuty,C8peakTime,C9peakDuty,C9p
   moduleSlotInfoStr = moduleSlotInfoStrings{moduleSlot};
 
 if(moduleSlot == 1 || moduleSlot == 2)
-connectorId = 'A';
+	connectorId = 'A';
 elseif(moduleSlot == 3 || moduleSlot == 4)
-connectorId = 'B';
+	connectorId = 'B';
 elseif(moduleSlot == 5 || moduleSlot == 6)
-connectorId = 'D';
+	connectorId = 'D';
 else
-connectorId = 'E';
+	connectorId = 'E';
 end
 
 if(ContrType == 1) % Moduline IV
 	if(moduleSlot == 1 || moduleSlot == 3 || moduleSlot == 5 || moduleSlot == 7)
-	pin1Id = 'Pin 13';
-	pin2Id = 'Pin 19';
-	pin3Id = 'Pin 12';
-	pin4Id = 'Pin 18';
-	pin5Id = 'Pin 11';
-	pin6Id = 'Pin 17';
-	pin7Id = 'Pin 24';
-	pin8Id = 'Pin 6';
-	pin9Id = 'Pin 5';
-	pin10Id = 'Pin 4';
+		pin1Id = 'Pin 13';
+		pin2Id = 'Pin 19';
+		pin3Id = 'Pin 12';
+		pin4Id = 'Pin 18';
+		pin5Id = 'Pin 11';
+		pin6Id = 'Pin 17';
+		pin7Id = 'Pin 25';
+		pin8Id = 'Pin 24';
+		pin9Id = 'Pin 5';
+		pin10Id = 'Pin 4';
 	else
-	pin1Id = 'Pin 8';
-	pin2Id = 'Pin 14';
-	pin3Id = 'Pin 9';
-	pin4Id = 'Pin 15';
-	pin5Id = 'Pin 10';
-	pin6Id = 'Pin 16';
-	pin7Id = 'Pin 22';
-	pin8Id = 'Pin 2';
-	pin9Id = 'Pin 3';
-	pin10Id = 'Pin 23';
+		pin1Id = 'Pin 8';
+		pin2Id = 'Pin 14';
+		pin3Id = 'Pin 9';
+		pin4Id = 'Pin 15';
+		pin5Id = 'Pin 10';
+		pin6Id = 'Pin 16';
+		pin7Id = 'Pin 21';
+		pin8Id = 'Pin 22';
+		pin9Id = 'Pin 3';
+		pin10Id = 'Pin 23';
 	end
-elseif(ContrType == 2) % Moduline mini
+elseif(ContrType == 2 || ContrType == 3) % Moduline mini / Moduline display
 	if(moduleSlot == 1 || moduleSlot == 3)
-	pin1Id = 'Pin 15';
-	pin2Id = 'Pin 23';
-	pin3Id = 'Pin 14';
-	pin4Id = 'Pin 22';
-	pin5Id = 'Pin 13';
-	pin6Id = 'Pin 17';
-	pin7Id = 'Pin 21';
-	pin8Id = 'Pin 30';
-	pin9Id = 'Pin 5';
-	pin10Id = 'Pin 4';
+		pin1Id = 'Pin 15';
+		pin2Id = 'Pin 23';
+		pin3Id = 'Pin 14';
+		pin4Id = 'Pin 22';
+		pin5Id = 'Pin 13';
+		pin6Id = 'Pin 21';
+		pin7Id = 'Pin 31';
+		pin8Id = 'Pin 30';
+		pin9Id = 'Pin 5';
+		pin10Id = 'Pin 4';
 	else
-	pin1Id = 'Pin 10';
-	pin2Id = 'Pin 18';
-	pin3Id = 'Pin 11';
-	pin4Id = 'Pin 19';
-	pin5Id = 'Pin 12';
-	pin6Id = 'Pin 20';
-	pin7Id = 'Pin 28';
-	pin8Id = 'Pin 2';
-	pin9Id = 'Pin 3';
-	pin10Id = 'Pin 29';
-	end
-elseif(ContrType == 3) % Moduline screen
-	if(moduleSlot == 1)
-	pin1Id = 'Pin 15';
-	pin2Id = 'Pin 23';
-	pin3Id = 'Pin 14';
-	pin4Id = 'Pin 22';
-	pin5Id = 'Pin 13';
-	pin6Id = 'Pin 17';
-	pin7Id = 'Pin 21';
-	pin8Id = 'Pin 30';
-	pin9Id = 'Pin 5';
-	pin10Id = 'Pin 4';
-	else
-	pin1Id = 'Pin 10';
-	pin2Id = 'Pin 18';
-	pin3Id = 'Pin 11';
-	pin4Id = 'Pin 19';
-	pin5Id = 'Pin 12';
-	pin6Id = 'Pin 20';
-	pin7Id = 'Pin 28';
-	pin8Id = 'Pin 2';
-	pin9Id = 'Pin 3';
-	pin10Id = 'Pin 29';
+		pin1Id = 'Pin 10';
+		pin2Id = 'Pin 18';
+		pin3Id = 'Pin 11';
+		pin4Id = 'Pin 19';
+		pin5Id = 'Pin 12';
+		pin6Id = 'Pin 20';
+		pin7Id = 'Pin 27';
+		pin8Id = 'Pin 28';
+		pin9Id = 'Pin 3';
+		pin10Id = 'Pin 29';
 	end
 end
 

@@ -1,13 +1,12 @@
 %%***************************************************************************************
-%% file         sfcn_UDPReceive_mcb.m
-%% brief        Target Language Compiler file that contains the code generation specifics
-%%              for an S-function with the same name.
+%% file         ert_linux_target_upload.m
+%% brief        Allows calling the flashtool automatically.
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
-%%  Copyright 2023 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
-%%
+%%  Copyright 2019 (c) by HAN Automotive    http://www.han.nl           All rights reserved
+%%  Copyright 2024 (c) by GOcontroll        http://www.gocontroll.com   All rights reserved
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
 %%---------------------------------------------------------------------------------------
@@ -26,34 +25,39 @@
 %% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 %% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
-%% endinternal
 %%
 %%***************************************************************************************
-function [idStr] = sfcn_UDPReceive_mcb(id, buff_len);
+%%
+%% This file has been modified by GOcontroll to support Linux host machines and timeout
+%% When there is no target to upload to.
+%%
+%%***************************************************************************************
+%% Automatic flash script
+function ert_linux_target_upload(modelName)
+% find settings block
+AutoUpload = get_param(modelName,'tlcAutoUpload');
 
-idStr = num2str(id);
+	%Only upload file when Auto upload setting is switched on
+    if (strcmp(AutoUpload,'Auto upload'))
+	 disp('### Starting automatic flash procedure');
+     UploadModelToTarget(modelName);
+    else
 
-% Store the largest id and buff len in a global parameter which will be used to make SYS_config.h in ert_linux_make_rtw_hook.m
-if evalin('base', 'exist(''UDPBUFFNUM'',''var'')==1')
-	if id > evalin('base','UDPBUFFNUM')
-		assignin('base','UDPBUFFNUM',id);
-	end
-else
-	assignin('base','UDPBUFFNUM',id);
-end
+    end
+end % end of function ert_linux_target_upload()
 
-if evalin('base','exist(''UDPBUFFSIZE'',''var'')==1')
-	if buff_len > evalin('base','UDPBUFFSIZE')
-		assignin('base','UDPBUFFSIZE',buff_len);
-	end
-else
-	assignin('base','UDPBUFFSIZE',buff_len);
-end
 
-modelRTWFields = struct('id', num2str(id), 'buff_len', num2str(buff_len));
+function UploadModelToTarget(modelName)
+elfPath = [pwd filesep '..' filesep bdroot(modelName) '.elf'];
+a2lPath = [pwd filesep '..' filesep bdroot(modelName) '.a2l'];
+UploadAddress = get_param(modelName,'tlcXcpTcpAddress');
+UploadPort = num2str(get_param(modelName,'tlcUploadPort'));
+% Upload the file to the controller
+cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',elfPath,'" ',' http://',UploadAddress,':',UploadPort,'/upload');
+disp(cmdCommand)
+system(cmdCommand);
+cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',UploadAddress,':',UploadPort,'/upload');
+disp(cmdCommand)
+system(cmdCommand);
 
-% Insert modelRTWFields in the I/O block S-Function containing the Tag starting with 'HANcoder_TARGET_'
-HANcoder_TARGET_DataBlock = find_system(gcb, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'BlockType', 'M-S-Function');
-set_param(HANcoder_TARGET_DataBlock{1}, 'RTWdata', modelRTWFields);
-
-%%******************************* end of sfcn_UDPReceive_mcb.m *************************
+end % end of function ert_linux_target_upload()

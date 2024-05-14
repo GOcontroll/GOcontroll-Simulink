@@ -6,7 +6,7 @@
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
-%%  Copyright 2023 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
 %%
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
@@ -31,8 +31,7 @@
 %%***************************************************************************************
 
 %implements sfcn_UDPSend "C"
-
-%<LibAddToCommonIncludes("UDP.h")>
+%include "udp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -40,8 +39,16 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-
+	%<UdpCommonBlockTypeSetup()>
 %endfunction
+
+%function Start(block, system) Output
+	%if EXISTS(::%<block.RTWdata.socket_id>) == 0
+		%assign error = "No UDP Configuration block present with the socket ID %<block.RTWdata.socket_id>"
+		%<LibBlockReportError(block, error)>
+	%endif
+%endfunction
+
 
 %% Function: Output ==========================================================
 %%
@@ -49,5 +56,17 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-    UdpSend(%<block.RTWdata.port>, "%<block.RTWdata.ip>",(uint8_t*) %<LibBlockInputSignalAddr(0, "", "", 0)>, %<LibBlockInputSignalWidth(0)>);
+	%assign send_buffer = LibBlockInputSignalAddr(0, "", "", 0)
+	%assign send_buffer_size = LibBlockInputSignalWidth(0)
+	%assign socket = "udp_socket_%<block.RTWdata.socket_id>"
+	{
+		struct sockaddr_in client_addr;
+		client_addr.sin_family = AF_INET;
+		client_addr.sin_port = htons(%<block.RTWdata.port>);
+		client_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
+		if (sendto(%<socket>, %<send_buffer>, %<send_buffer_size>, 0,
+				(struct sockaddr*)&client_addr, sizeof(client_addr)) < 0){
+			fprintf(stderr, "Can't send UDP packet\n");
+		}
+	}
 %endfunction

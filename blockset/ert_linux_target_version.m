@@ -5,7 +5,7 @@
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
-%%  Copyright 2023 (c) by GOcontroll     http://www.gocontroll.com    All rights reserved
+%%  Copyright 2024 (c) by GOcontroll     http://www.gocontroll.com    All rights reserved
 %%
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
@@ -28,10 +28,52 @@
 %%
 %%***************************************************************************************
 
-function [version] = ert_linux_target_version();
+function [version] = ert_linux_target_version()
 
-version = 'GOcontroll v3.2.7';
+version = 'GOcontroll V3.7.0';
 
+%% V3.7.0 Update 8-5-2024:
+%% Backported the new UDP blocks to 2018b
+%%
+%% V3.6.1 Update 2-5-2024:
+%% Added new mainboards
+%% Fixed an issue with growing size in the diagnostic blocks
+%%
+%% V3.6.0 Update 6-2-2024:
+%% Added status output to 4-20 mA input module
+%% Added module slot to SPI communication
+%% Tested block with 4-20 mA serie production module HW 3 and firmware V0.0.3
+%%
+%% V3.5.1 Update 24-1-2024:
+%% Minor improvements to the xcp stack, replaced some odd buffer copy code with memcpy
+%%
+%% V3.5.0 Update 17-1-2024:
+%% Fixed the mask for the 10 channel in and output modules to reflect hardware version 4 and 3 respectively
+%%
+%% V3.4.0 Update 9-1-2024:
+%% Fixed 4-20mA module pinout in the blocks
+%% Fixed CAN block breaking their library links
+%% Note for user updating to this blockset that have CAN blocks in their models:
+%% Navigate to one of your CAN blocks and right click the chain symbol at the bottom left of the block.
+%% Select the Restore Link option, this will open up a menu. Somewhere above select a checkbox that says something like show all broken links, check this.
+%% There should now be a list with all your CAN blocks, for everyone select the resolve option !!!not the push option!!!.
+%% Then apply, all links should now be restored to the library
+%%
+%% V3.3.2 Update 3-1-2024:
+%% Fixed potential segfault in the UDP code
+%%
+%% V3.3.1 Update 2-1-2024:
+%% Improved model startup time
+%% Removed unnecessary code from ert_linux_main.tlc
+%% Renamed the BusObject used for testing
+%%
+%% V3.3.0 Update 19-12-2023:
+%% Now enforcing the Moduline Display name in software. This will break this blockset for the small number of boards currently in circulation.
+%% These boards can be brought up to date so they will work again with newer blocksets by contacting support@gocontroll.com
+%%
+%% V3.2.8 Update 14-12-2023:
+%% UDP receive ID can now be switched between parameter or input port
+%%
 %% V3.2.7 Update 4-12-2023:
 %% Having multiple modules configured for 1 module slot now causes a compilation error instead of giving you a headache trying to debug a problem that is difficult to trace
 %%
