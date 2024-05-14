@@ -21,8 +21,8 @@
 %%
 %%***************************************************************************************
 function sfcn_can_send(block)
-  setup(block);
-%endfunction
+  	setup(block);
+end
 
 
 %% Function: setup ===================================================
@@ -36,81 +36,73 @@ function sfcn_can_send(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
-	number_bytes = block.DialogPrm(4).Data;
-  %% Register number of input and output ports
-  block.NumInputPorts = 1+number_bytes;
-  block.NumOutputPorts = 0;
+	number_bytes = block.DialogPrm(4).Data; %inputNumber
+	%% Register number of input and output ports
+	block.NumInputPorts = 1+number_bytes;
+	block.NumOutputPorts = 0;
 
-  %% 'ID' port
-  block.InputPort(1).Dimensions = 1;
-  block.InputPort(1).DatatypeID = 7; %% uint32_T is type 7, see rtwtypes.h
-  block.InputPort(1).Complexity = 'Real';
-  block.InputPort(1).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-  block.InputPort(1).SamplingMode = 'sample';
+	%% 'ID' port
+	addSimpleInput(block, 1, DatatypeID.Uint32);
 
-  %% [sw] rest poorten van 2 t/m 9 ipv 1 t/m 8
-  %% Override ports
-  for inputCounter = 2:number_bytes+1
-      block.InputPort(inputCounter).Dimensions = 1;
-      block.InputPort(inputCounter).DatatypeID = block.DialogPrm(5).Data+1; %% user specified data type
-      block.InputPort(inputCounter).Complexity = 'Real';
-      block.InputPort(inputCounter).DirectFeedthrough = false;  %% We will not use the direct (.Data) value of the input to calculate the direct (.Data) value of the output
-      block.InputPort(inputCounter).SamplingMode = 'sample';
-  end
+	%% [sw] rest poorten van 2 t/m 9 ipv 1 t/m 8
+	%% Override ports
+	for inputCounter = 2:number_bytes+1
+		addSimpleInput(block, inputCounter, DatatypeID.Uint8) %dataType
+	end
 
-  % Number of S-Function parameters expected
-  % (tsamp, canBus, frameType, inputNumber, dataType, byteOrder, RTR)
-  block.NumDialogPrms     = 7;
+	% Number of S-Function parameters expected
+	% (tsamp, canBus, frameType, inputNumber, RTR)
+	block.NumDialogPrms     = 5;
 
-  block.SampleTimes = [block.DialogPrm(1).Data 0];
-  %% -----------------------------------------------------------------
-  %% Register methods called at run-time
-  %% -----------------------------------------------------------------
+	block.SampleTimes = [block.DialogPrm(1).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
 
-  %%
-  %% Start:
-  %%   Functionality    : Called in order to initialize state and work
-  %%                      area values
-  %%   C-Mex counterpart: mdlStart
-  %%
-  block.RegBlockMethod('Start', @Start);
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
 
-  %%
-  %% Outputs:
-  %%   Functionality    : Called to generate block outputs in
-  %%                      simulation step
-  %%   C-Mex counterpart: mdlOutputs
-  %%
-  block.RegBlockMethod('Outputs', @Outputs);
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
 
-  %%
-  %% Update:
-  %%   Functionality    : Called to update discrete states
-  %%                      during simulation step
-  %%   C-Mex counterpart: mdlUpdate
-  %%
-  block.RegBlockMethod('Update', @Update);
-%endfunction
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+end
 
-function Start(block)
+function Start(~)
 
   %% No start
 
-%endfunction
+end
 
 
-function Outputs(block)
+function Outputs(~)
 
   %% No output
 
-%endfunction
+end
 
 
-function Update(block)
+function Update(~)
 
   %% No update
 
-%endfunction
+end
 
 
 %%******************************* end of sfcn_can_send.m ********************************
