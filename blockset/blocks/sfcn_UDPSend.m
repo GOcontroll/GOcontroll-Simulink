@@ -55,6 +55,8 @@ end
 
 function setup(block)
 	tsamp = 1;
+	ip = 2;
+	port = 3;
 	%% Register number of input and output ports
 	% manually configure input without defined dimensions.
 	block.NumInputPorts = 1;
@@ -65,7 +67,7 @@ function setup(block)
 
 	block.NumOutputPorts = 0;
 
-	block.NumDialogPrms     = 1;
+	block.NumDialogPrms     = 3;
 	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
@@ -79,10 +81,14 @@ function setup(block)
 end
 
 function Start(~)
+	global socket;
+	socket = udpport("datagram");
 end
 
 
-function Outputs(~)
+function Outputs(block)
+	write(socket,block.InputPort(1).Data, "uint8", block.DialogPrm(2).Data, block.DialogPrm(3).Data);
+	flush(socket, "output");
 end
 
 

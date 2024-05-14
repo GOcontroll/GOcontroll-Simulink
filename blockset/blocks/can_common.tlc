@@ -1,0 +1,84 @@
+%% Copyright (C) 2014 Czech Technical University in Prague
+%%
+%% Authors:
+%%     Michal Horn  <hornmich@fel.cvut.cz>
+%%     Michal Sojka <sojkam1@fel.cvut.cz>
+%%     Pavel Pisa <pisa@cmp.felk.cvut.cz> - author of SocketCAN port
+%%
+%% Redistribution and use in source and binary forms, with or without
+%% modification, are permitted provided that the following conditions are
+%% met:
+%%
+%% 1. Redistributions of source code must retain the above copyright
+%%    notice, this list of conditions and the following disclaimer.
+%%
+%% 2. Redistributions in binary form must reproduce the above copyright
+%%    notice, this list of conditions and the following disclaimer in the
+%%    documentation and/or other materials provided with the
+%%    distribution.
+%%
+%% 3. Neither the name of the copyright holder nor the names of its
+%%    contributors may be used to endorse or promote products derived
+%%    from this software without specific prior written permission.
+%%
+%% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+%% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+%% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+%% A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+%% HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+%% SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+%% LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+%% DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+%% THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+%% (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+%% OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+%%
+%% File : rpp_can_common.tlc
+%% Abstract:
+%%     TLC file with common functions and variables for sfunction_canreceive, sfunction_cansetup and sfunction_cantransmit
+%%
+%% References:
+%%     Coding Convention: refs/rtw_tlc.pdf p. 58 (TODO)
+%%
+
+
+%% Adopted for use by GOcontroll 2024		http://www.gocontroll.com		All right reserved
+%% File : can_common.tlc
+%% Brief : help functions for the can tlcs
+
+%% Function: CANCommonBlockTypeSetup ========================================
+%% 	Declares and initializes all common variables and constants.
+
+%function CANCommonBlockTypeSetup() void
+	%<LibAddToCommonIncludes("<stdio.h>")>
+	%<LibAddToCommonIncludes("<sys/socket.h>")>
+	%<LibAddToCommonIncludes("<net/if.h>")>
+	%<LibAddToCommonIncludes("<sys/ioctl.h>")>
+	%<LibAddToCommonIncludes("<linux/can.h>")>
+	%<LibAddToCommonIncludes("<linux/can/raw.h>")>
+	%<LibAddToCommonIncludes("<stdlib.h>")>
+	%<LibAddToCommonIncludes("<fcntl.h>")>
+	%<LibAddToCommonIncludes("<errno.h>")>
+	%<LibAddToCommonIncludes("unistd.h")>
+%endfunction
+
+%function SLibCodeGenForSim() void
+    %if (CompiledModel.TargetStyle=="SimulationTarget")
+        %return 1
+    %else
+        %return 0
+    %endif
+%endfunction
+
+%function CommonBlockTypeSetup(block, system) void
+    %if EXISTS("_DONE_COMMON_BLOCK_TYPE_SETUP_") == 0
+        %assign _DONE_COMMON_BLOCK_TYPE_SETUP_ = 1
+         %if !SLibCodeGenForSim()
+
+            %<LibAddToCommonIncludes("can_message.h")>
+
+        %endif
+   %endif
+%endfunction
+
+%% [EOF]

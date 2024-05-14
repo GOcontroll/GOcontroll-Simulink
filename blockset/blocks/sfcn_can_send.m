@@ -36,8 +36,9 @@ function sfcn_can_send(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
+	number_bytes = block.DialogPrm(4).Data;
   %% Register number of input and output ports
-  block.NumInputPorts = 9;
+  block.NumInputPorts = 1+number_bytes;
   block.NumOutputPorts = 0;
 
   %% 'ID' port
@@ -49,7 +50,7 @@ function setup(block)
 
   %% [sw] rest poorten van 2 t/m 9 ipv 1 t/m 8
   %% Override ports
-  for inputCounter = 2:9
+  for inputCounter = 2:number_bytes+1
       block.InputPort(inputCounter).Dimensions = 1;
       block.InputPort(inputCounter).DatatypeID = block.DialogPrm(5).Data+1; %% user specified data type
       block.InputPort(inputCounter).Complexity = 'Real';
@@ -58,7 +59,7 @@ function setup(block)
   end
 
   % Number of S-Function parameters expected
-  % (tsamp, canBus, frameType, inputNumber, dataType, byteOrder)
+  % (tsamp, canBus, frameType, inputNumber, dataType, byteOrder, RTR)
   block.NumDialogPrms     = 7;
 
   block.SampleTimes = [block.DialogPrm(1).Data 0];

@@ -36,9 +36,10 @@ function sfcn_can_receive(block)
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
+	number_bytes = block.DialogPrm(3).Data;
   %% Register number of input and output ports
   block.NumInputPorts = 1;
-  block.NumOutputPorts = 9;
+  block.NumOutputPorts = 1 + number_bytes;
   %% 'ID' port
   block.InputPort(1).Dimensions = 1;
   block.InputPort(1).DatatypeID = 7; %% uint32_T is type 7, see rtwtypes.h
@@ -52,7 +53,7 @@ function setup(block)
   block.OutputPort(1).SamplingMode = 'sample';
   %% rest poorten van 2 t/m 9 ipv 1 t/m 8
   %% Override ports
-  for outputCounter = 2:9
+  for outputCounter = 2:number_bytes+1
       block.OutputPort(outputCounter).Dimensions = 1;
       block.OutputPort(outputCounter).DatatypeID = block.DialogPrm(4).Data+1; %% user specified data type
       block.OutputPort(outputCounter).Complexity = 'Real';

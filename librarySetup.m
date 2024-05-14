@@ -35,8 +35,8 @@
 %%***************************************************************************************
 
 % First restore the path to factory default
-restoredefaultpath;
-clear RESTOREDEFAULTPATH_EXECUTED
+% restoredefaultpath;
+% clear RESTOREDEFAULTPATH_EXECUTED
 
 % add Linux Target blockset related directories to the MATLAB path
 OS = computer();
@@ -50,17 +50,26 @@ addpath([pwd filesep 'blockset' filesep 'blocks']);
 addpath([pwd filesep 'blockset' filesep 'code']);
 addpath([pwd filesep 'blockset' filesep 'utility_functions']);
 
-% compile mex files
-d = dir(['blockset' filesep 'blocks']);
-files = {d.name};
-for idx = 1:length(files)
-	name = char(files(1,idx));
-	if contains(name, ".c") && contains(name, "sfcn")
-		[~, fname, ~] = fileparts(name);
-		if exist(fname) ~= 3
-			mex(['blockset' filesep 'blocks' filesep fname '.c'], '-outdir', ['blockset' filesep 'blocks']);
+%if gocontroll_mex_version doesn't exist or the result of it is false, recompile the mex files
+if ~(exist('gocontroll_mex_version', "file") == 3) || ~gocontroll_mex_version()
+	version = ['-DVERSION=''"' ert_linux_target_version() '"'''];
+	include_scanutil = ['-I' fullfile(matlabroot,'toolbox','shared','can','src','scanutil')];
+	include_can_data = ['-I' fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes')];
+	can_msg = fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes', 'can_msg.c');
+	can_util = fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes', 'sfun_can_util.c');
+	% compile mex files
+	d = dir(['blockset' filesep 'blocks']);
+	files = {d.name};
+	for idx = 1:length(files)
+		name = char(files(1,idx));
+		if contains(name, ".c") && contains(name, "sfcn")
+			[~, fname, ~] = fileparts(name);
+			%compile the level 2 S functions
+			mex(include_scanutil, include_can_data, fullfile(pwd, 'blockset', 'blocks', [fname '.c']), can_msg, can_util, '-outdir', fullfile(pwd, 'blockset', 'blocks'));
 		end
 	end
+	% compile version mex last so on failure it doesnt exist and prevent recompilation
+	mex(fullfile(pwd, 'blockset', 'blocks', 'gocontroll_mex_version.c'), '-outdir', fullfile(pwd, 'blockset', 'blocks'), version);
 end
 
 % find every folder that matches the blockset_* format and execute the
@@ -79,7 +88,7 @@ for idx = 1:length(folders)
     end
 end
 
-clear setupScript idx d folders name path path1 OS files fname
+clear setupScript idx d folders name path path1 OS files fname version include_can_data include_scanutil can_msg can_util
 
 warning off Simulink:SL_LoadMdlParameterizedLink;
 warning off Simulink:Commands:LoadMdlParameterizedLink;

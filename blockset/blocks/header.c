@@ -95,6 +95,10 @@
  * Include C numerics library in order to use trunc() and other nice goodies.
  */
 #include <math.h>
+#include <string.h>
+#include <stdio.h>
+#include "mex.h"
+#include "matrix.h"
 
 /*
  * Need to include simstruc.h for the definition of the SimStruct and

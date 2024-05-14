@@ -38,6 +38,7 @@
 #define PARAM_NAME_SOCKET_ID "socket_id"
 
 enum params {
+	PARAM_TSAMP,
 	PARAM_BUFF_LEN,
 	PARAM_SOCKET_ID,
 	PARAM_COUNT,
@@ -52,6 +53,7 @@ enum outputs {
 
 static void mdlInitializeSizes(SimStruct *S) {
 	ssSetNumSFcnParams(S, PARAM_COUNT);
+	ssSetSFcnParamTunable(S,PARAM_TSAMP,false);
 	ssSetSFcnParamTunable(S,PARAM_BUFF_LEN,false);
 	ssSetSFcnParamTunable(S,PARAM_SOCKET_ID,false);
 	if (!ssSetNumInputPorts(S,0))
@@ -59,36 +61,25 @@ static void mdlInitializeSizes(SimStruct *S) {
 	if (!ssSetNumOutputPorts(S, OUT_COUNT))
 		return;
 
-	ssSetOutputPortWidth(S, OUT_FCN_CALL, 1);
-	ssSetOutputPortDataType(S, OUT_FCN_CALL, SS_FCN_CALL);
-	ssSetOutputPortComplexSignal(S, OUT_FCN_CALL, COMPLEX_NO);
-
-	ssSetOutputPortWidth(S, OUT_MSG, (int_T)mxGetPr(ssGetSFcnParam(S, PARAM_BUFF_LEN))[0]);
-	ssSetOutputPortDataType(S, OUT_MSG, SS_UINT8);
-	ssSetOutputPortComplexSignal(S, OUT_MSG, COMPLEX_NO);
-
-	ssSetOutputPortWidth(S, OUT_LEN, 1);
-	ssSetOutputPortDataType(S, OUT_LEN, SS_UINT32);
-	ssSetOutputPortComplexSignal(S, OUT_LEN, COMPLEX_NO);
+	AddOutputPort(S, OUT_FCN_CALL, SS_FCN_CALL);
+	AddOutputVectorPort(S, OUT_MSG, SS_UINT8, (int_T)mxGetPr(ssGetSFcnParam(S,PARAM_BUFF_LEN))[0]);
+	AddOutputPort(S, OUT_LEN, SS_UINT32);
 
 	ssSetSimStateCompliance(S, USE_DEFAULT_SIM_STATE);
-	ssSetNumSampleTimes(S, 1);
-	ssSetOptions(S,
-	SS_OPTION_WORKS_WITH_CODE_REUSE |
-	SS_OPTION_CAN_BE_CALLED_CONDITIONALLY |
-	SS_OPTION_USE_TLC_WITH_ACCELERATOR);
+	SetStandardOptions(S);
 }
 
 static void mdlInitializeSampleTimes(SimStruct *S) {
-	ssSetSampleTime(S, 0, INHERITED_SAMPLE_TIME);
+	ssSetNumSampleTimes(S,1);
+	ssSetSampleTime(S, 0, mxGetPr(ssGetSFcnParam(S, PARAM_TSAMP))[0]);
 	ssSetOffsetTime(S, 0, 0);
-	ssSetCallSystemOutput(S,0);
+	ssSetCallSystemOutput(S,OUT_FCN_CALL);
 }
 
 #ifdef MATLAB_MEX_FILE
 #define MDL_SET_WORK_WIDTHS
 static void mdlSetWorkWidths(SimStruct *S) {
-	if (!ssSetNumRunTimeParams(S, PARAM_COUNT-1))
+	if (!ssSetNumRunTimeParams(S, PARAM_COUNT-2))
 		return;
 	
 	ssRegDlgParamAsRunTimeParam(S, PARAM_BUFF_LEN, PARAM_BUFF_LEN, PARAM_NAME_BUFF_LEN, SS_UINT32);
@@ -99,20 +90,8 @@ static void mdlSetWorkWidths(SimStruct *S) {
 #ifdef MATLAB_MEX_FILE
 #define MDL_RTW
 static void mdlRTW(SimStruct *S){
-	int_T len = (int_T)mxGetNumberOfElements(ssGetSFcnParam(S,PARAM_SOCKET_ID)); //get the length of the string
-	char_T *id;
-	if ((id=(char_T*)malloc(len+1)) == NULL) //alocate memory for the string
-		return;
-	if (mxGetString(ssGetSFcnParam(S,PARAM_SOCKET_ID),id,len+1) != 0){ //put the string into the buffer
-		free(id);
-		return;
-	} else {
-		if (!ssWriteRTWParamSettings(S, 1, SSWRITE_VALUE_VECT_STR,"socket_id", id, len)) { //write the string to the rtw file
-			free(id);
-			return;
-		}
-		free(id);
-	}
+	char_T *id = mxArrayToString(ssGetSFcnParam(S,PARAM_SOCKET_ID));
+	ssWriteRTWParamSettings(S, 1, SSWRITE_VALUE_STR, PARAM_NAME_SOCKET_ID, id);
 }
 #endif
 
