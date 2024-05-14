@@ -81,14 +81,14 @@ function setup(block)
 end
 
 function Start(~)
-	global socket;
-	socket = udpport("datagram");
+	% global socket;
+	% socket = udpport("datagram");
 end
 
 
 function Outputs(block)
-	write(socket,block.InputPort(1).Data, "uint8", block.DialogPrm(2).Data, block.DialogPrm(3).Data);
-	flush(socket, "output");
+	% write(socket,block.InputPort(1).Data, "uint8", block.DialogPrm(2).Data, block.DialogPrm(3).Data);
+	% flush(socket, "output");
 end
 
 

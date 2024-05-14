@@ -38,9 +38,9 @@
 #define PARAM_NAME_SOCKET_ID "socket_id"
 
 enum params {
-	PARAM_TSAMP,
 	PARAM_BUFF_LEN,
 	PARAM_SOCKET_ID,
+	PARAM_TSAMP,
 	PARAM_COUNT,
 };
 
@@ -79,7 +79,7 @@ static void mdlInitializeSampleTimes(SimStruct *S) {
 #ifdef MATLAB_MEX_FILE
 #define MDL_SET_WORK_WIDTHS
 static void mdlSetWorkWidths(SimStruct *S) {
-	if (!ssSetNumRunTimeParams(S, PARAM_COUNT-2))
+	if (!ssSetNumRunTimeParams(S, 1))
 		return;
 	
 	ssRegDlgParamAsRunTimeParam(S, PARAM_BUFF_LEN, PARAM_BUFF_LEN, PARAM_NAME_BUFF_LEN, SS_UINT32);
