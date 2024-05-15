@@ -29,13 +29,3 @@
 LEDRed = Simulink.Parameter; % Define as parameter
 LEDRed.StorageClass = 'ExportedGlobal'; % Only Exported Global will be visible in HANtune
 LEDRed.Value = uint8(50); % Initial value is set to zero with the data type uint8
-
-%% Constant Parameters
-UDPBuffSize = 5;
-
-%% UDP data packets
-SineWaveTypes = {'uint8','uint8','uint8','uint8'};
-SineWaveSizes = {1,1,1,1};
-
-set_param('GOcontroll_Linux/GOcontroll Moduline algorithm/UDP_Host', 'Commented', 'on');
-set_param('GOcontroll_Linux/GOcontroll Moduline algorithm/UDP_Client', 'Commented', 'on');

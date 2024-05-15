@@ -30,8 +30,15 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V3.7.0';
+version = 'GOcontroll V4.0.0';
 
+%% V4.0.0 Update date tbd:
+%% New CAN blocks added, these can use dbc files.
+%% Improved tmf for toolboxes
+%% New UDP blocks, now allow you the have full control
+%% Bunch of improved masks
+%% Memory diagnostic growing file fix
+%%
 %% V3.7.0 Update 10-3-2024:
 %% Improved 4-20mA module mask and functionality. This update requires 4-20 mA module HW 3 and firmware V1.0.0
 %%

@@ -106,10 +106,7 @@
 				printf("CAN socket ioctl SIOCGIFINDEX error.\n");
 			}
 			addr.can_ifindex = ifr.ifr_ifindex;
-
-			/* disable default receive filter on this RAW socket */
-			setsockopt(can_%<module_id_par>, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
-
+			
 			if (bind(can_%<module_id_par>, (struct sockaddr *)(void*)&addr, sizeof(addr)) < 0) {
 				printf("CAN socket bind error.\n");
 			}
@@ -130,7 +127,6 @@
 		int ret;
 		int dlc;
 
-		/* TODO decide what is desired behavior if there are more pendind messages */
 		while ((ret = recv(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0)) > 0) {
 			if (ret < sizeof(sc_frame)) {
 				continue;
@@ -139,7 +135,7 @@
 				if (dlc > 8)
 					dlc = 8;
 
-				// CAN_MESSAGE
+				%% CAN_MESSAGE
 				memset(&%<message>, 0, sizeof(%<message>));
 				%<message>.Length = dlc;
 				%<message>.ID = sc_frame.can_id & CAN_EFF_MASK;
@@ -152,11 +148,11 @@
 
 				%% Call a function to process the received message via function-call subsystem
 				%foreach callIdx = NumSFcnSysOutputCalls
-				%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
-					%continue
-				%endif
-				%% call the downstream system
-				%<LibBlockExecuteFcnCall(block, callIdx)>\
+					%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+						%continue
+					%endif
+					%% call the downstream system
+					%<LibBlockExecuteFcnCall(block, callIdx)>\
 				%endforeach
 			}
 		}

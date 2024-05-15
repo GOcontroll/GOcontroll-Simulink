@@ -98,9 +98,6 @@
 			}
 			addr.can_ifindex = ifr.ifr_ifindex;
 
-			/* disable default receive filter on this RAW socket */
-			setsockopt(can_%<module_id_par>, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
-
 			if (bind(can_%<module_id_par>, (struct sockaddr *)(void*)&addr, sizeof(addr)) < 0) {
 				printf("CAN socket bind error.\n");
 			}

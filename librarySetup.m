@@ -52,6 +52,7 @@ addpath([pwd filesep 'blockset' filesep 'utility_functions']);
 
 %if gocontroll_mex_version doesn't exist or the result of it is false, recompile the mex files
 if ~(exist('gocontroll_mex_version', "file") == 3) || ~gocontroll_mex_version()
+	disp("Compiling c mex functions...");
 	version = ['-DVERSION=''"' ert_linux_target_version() '"'''];
 	include_scanutil = ['-I' fullfile(matlabroot,'toolbox','shared','can','src','scanutil')];
 	include_can_data = ['-I' fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes')];
@@ -65,11 +66,15 @@ if ~(exist('gocontroll_mex_version', "file") == 3) || ~gocontroll_mex_version()
 		if contains(name, ".c") && contains(name, "sfcn")
 			[~, fname, ~] = fileparts(name);
 			%compile the level 2 S functions
+			fprintf("\nCompiling %s\n", fname);
 			mex(include_scanutil, include_can_data, fullfile(pwd, 'blockset', 'blocks', [fname '.c']), can_msg, can_util, '-outdir', fullfile(pwd, 'blockset', 'blocks'));
+			fprintf("Compiled %s\n", fname);
 		end
 	end
 	% compile version mex last so on failure it doesnt exist and prevent recompilation
+	fprintf("\nCompiling version c mex\n");
 	mex(fullfile(pwd, 'blockset', 'blocks', 'gocontroll_mex_version.c'), '-outdir', fullfile(pwd, 'blockset', 'blocks'), version);
+	disp("Finished compiling c mex functions!");
 end
 
 % find every folder that matches the blockset_* format and execute the
