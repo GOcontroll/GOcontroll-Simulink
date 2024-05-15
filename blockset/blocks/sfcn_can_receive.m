@@ -36,7 +36,12 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
-	number_bytes = block.DialogPrm(3).Data; %outputNumber
+	tsamp = 1;
+	canBus = 2;
+	outputNumber = 3;
+	dataType = 4;
+	byteOrder = 5;
+	number_bytes = block.DialogPrm(outputNumber).Data; %outputNumber
 	%% Register number of input and output ports
 	block.NumInputPorts = 1;
 	block.NumOutputPorts = 1 + number_bytes;
@@ -47,13 +52,13 @@ function setup(block)
 	%% rest poorten van 2 t/m 9 ipv 1 t/m 8
 	%% Override ports
 	for outputCounter = 2:number_bytes+1
-		addSimpleOutput(block, outputCounter, block.DialogPrm(4).Data+1) % dataType
+		addSimpleOutput(block, outputCounter, block.DialogPrm(dataType).Data+1) % dataType
 	end
 
 	% Number of S-Function parameters expected
 	% (tsamp, canBus, outputNumber, dataType, byteOrder)
 	block.NumDialogPrms     = 5;
-	block.SampleTimes = [block.DialogPrm(1).Data 0];
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------

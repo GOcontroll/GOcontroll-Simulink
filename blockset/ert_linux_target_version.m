@@ -38,6 +38,8 @@ version = 'GOcontroll V4.0.0';
 %% New UDP blocks, now allow you the have full control
 %% Bunch of improved masks
 %% Memory diagnostic growing file fix
+%% Added supply voltage output on the output module monitor, this output only works with hardware version 7+,
+%% This causes an extra output to appear on these block which probably has to be fixed when updating to this blockset.
 %%
 %% V3.7.0 Update 10-3-2024:
 %% Improved 4-20mA module mask and functionality. This update requires 4-20 mA module HW 3 and firmware V1.0.0

@@ -36,7 +36,13 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 function setup(block)
-	number_bytes = block.DialogPrm(4).Data; %inputNumber
+	tsamp = 1;
+	canBus = 2;
+	frameType = 3;
+	inputNumber = 4;
+	RTR = 5;
+
+	number_bytes = block.DialogPrm(inputNumber).Data; %inputNumber
 	%% Register number of input and output ports
 	block.NumInputPorts = 1+number_bytes;
 	block.NumOutputPorts = 0;
@@ -54,7 +60,7 @@ function setup(block)
 	% (tsamp, canBus, frameType, inputNumber, RTR)
 	block.NumDialogPrms     = 5;
 
-	block.SampleTimes = [block.DialogPrm(1).Data 0];
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------

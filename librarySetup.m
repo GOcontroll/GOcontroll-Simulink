@@ -72,7 +72,7 @@ if ~(exist('gocontroll_mex_version', "file") == 3) || ~gocontroll_mex_version()
 		end
 	end
 	% compile version mex last so on failure it doesnt exist and prevent recompilation
-	fprintf("\nCompiling version c mex\n");
+	fprintf("\nCompiling gocontroll_mex_version\n");
 	mex(fullfile(pwd, 'blockset', 'blocks', 'gocontroll_mex_version.c'), '-outdir', fullfile(pwd, 'blockset', 'blocks'), version);
 	disp("Finished compiling c mex functions!");
 end
