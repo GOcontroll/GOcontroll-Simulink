@@ -232,7 +232,7 @@ AC_INCLUDES =
 		  -DONESTEPFCN=$(ONESTEPFCN) -DTERMFCN=$(TERMFCN) \
 		  -DHAVESTDIO -DMULTI_INSTANCE_CODE=$(MULTI_INSTANCE_CODE)
 # additional compiler flags
-CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES)
+CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES) $(OTHER)
 CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
 CC_FLAGS        += -mcpu=cortex-a53 -Wno-unused-but-set-variable -Wno-maybe-uninitialized -D_GNU_SOURCE -gdwarf
 
@@ -361,7 +361,7 @@ ifeq ($(GEN_SAMPLE_MAIN),0)
 endif
 
 
-|>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|\%.c
+|>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.c
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 |>END_EXPAND_RULES<|
