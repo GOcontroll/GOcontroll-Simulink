@@ -12,3 +12,4 @@
 .vscode*
 crank_files/
 *.slxc
+*.autosave

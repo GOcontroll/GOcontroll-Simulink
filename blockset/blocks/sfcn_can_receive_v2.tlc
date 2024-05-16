@@ -43,8 +43,8 @@
 
 
 %% Adopted for use by GOcontroll 2024		http://www.gocontroll.com		All right reserved
-%% File : sfcn_can_receive.tlc
-%% Brief : help functions for the can tlcs
+%% File : sfcn_can_receive_v2.tlc
+%% Brief : tlc file for generating code to receive CAN messages on the Moduline Controllers
 
 %implements sfcn_can_receive_v2 "C"
 
@@ -52,7 +52,6 @@
 
 %% Function: BlockTypeSetup ====================================================
 %function BlockTypeSetup(block, system) void
-    %<CommonBlockTypeSetup(block, system)>
 	%<CANCommonBlockTypeSetup()>
 %endfunction
 
@@ -60,91 +59,63 @@
 %function BlockInstanceSetup(block, system) void
 
 	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-
+	%% There can only be one receive block per socket, check, error if one already exists
 	%assign can_recv_socket = "::can_%<module_id_par>_recv"
 	%if EXISTS(%<can_recv_socket>) == 1
 		%assign error = "2 or more CAN receive blocks are listening on CAN%<module_id_par>, this is not allowed"
 		%<LibBlockReportError(block, error)>
 	%else
+		%% No existing receive block found for this socket, so register it as occupied so the next one can fail
 		%assign %<can_recv_socket> = 1
 	%endif
 
-	%assign can_socket = "::can_%<module_id_par>"
-	%if EXISTS(%<can_socket>) == 0
-		%assign %<can_socket> = 1
-		%openfile tmpBuf
-			int can_%<module_id_par>;
-		%closefile tmpBuf
-
-		%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", tmpBuf)>
-	%endif
+	%% Check if the socket for this bus is already there, if not create it
+	%<CreateCanSocket(module_id_par)>
 %endfunction
 
 %% Function: Start =============================================================
 %function Start(block, system) Output
 	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-
-	%assign can_socket = "::can_%<module_id_par>_init"
-	%if EXISTS(%<can_socket>) == 0
-		%assign %<can_socket> = 1
-		{
-			struct sockaddr_can addr;
-			struct ifreq ifr;
-			char* ifname = "can%<module_id_par - 1>";
-
-			can_%<module_id_par> = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-			if (can_%<module_id_par> == -1) {
-				printf("CAN socket create error.\n");
-			}
-			if(fcntl(can_%<module_id_par>, F_SETFL, O_NONBLOCK) < 0) {
-				printf("CAN socket set O_NONBLOCK error.\n");
-			}
-			memset(&addr, 0, sizeof(addr));
-			addr.can_family = AF_CAN;
-			strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) -1);
-			if (ioctl(can_%<module_id_par>, SIOCGIFINDEX, &ifr) < 0) {
-				printf("CAN socket ioctl SIOCGIFINDEX error.\n");
-			}
-			addr.can_ifindex = ifr.ifr_ifindex;
-			
-			if (bind(can_%<module_id_par>, (struct sockaddr *)(void*)&addr, sizeof(addr)) < 0) {
-				printf("CAN socket bind error.\n");
-			}
-			printf("opening %s\n", ifname);
-		}
-	%endif
+	%% Initialize the socket if it hasn't already been done
+	%<InitCanSocket(module_id_par)>
 %endfunction
 
 %% Function: Outputs ===========================================================
 %function Outputs(block, system) Output
 
 	%if !SLibCodeGenForSim()
-	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-	%assign message = LibBlockOutputSignal(1, "", "", 1)
+		%assign module_id_par = LibBlockParameterValue(module_id, 0)
+		%% message will be of the type CAN_MESSAGE, run this command in the matlab console to find the definition: 
+		%% edit(fullfile(matlabroot, 'toolbox','shared','can','src','scanutil','can_message.h'));
+		%assign message = LibBlockOutputSignal(1, "", "", 1)
 
-	{
-		struct can_frame sc_frame;
-		int ret;
-		int dlc;
+		{
+			struct can_frame sc_frame;
+			int ret;
+			int dlc;
+			%% Drain the sockets buffer and decode these messages
+			while ((ret = recv(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0)) > 0) {
+				%% Invalid message received
+				if (ret < sizeof(sc_frame)) {
+					continue;
+				}
 
-		while ((ret = recv(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0)) > 0) {
-			if (ret < sizeof(sc_frame)) {
-				continue;
-			} else {
 				dlc = sc_frame.can_dlc;
+				%% dlc cant be larger than 8
 				if (dlc > 8)
 					dlc = 8;
 
-				%%Receive CAN_MESSAGE
+				%% Receive CAN_MESSAGE
 				%<message>.Length = dlc;
 				%<message>.ID = sc_frame.can_id & CAN_EFF_MASK;
+				%% Check message flags
 				%<message>.Extended = sc_frame.can_id & CAN_EFF_FLAG ? 1 : 0;
 				%<message>.Remote = sc_frame.can_id & CAN_RTR_FLAG ? 1 : 0;
 
 				%%Write all bytes in one go
 				*(uint64_t *)&%<message>.Data[0]= *(uint64_t *)&sc_frame.data[0];
 
-				%% Call a function to process the received message via function-call subsystem
+				%% Do a function call for every received message
 				%foreach callIdx = NumSFcnSysOutputCalls
 					%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
 						%continue
@@ -152,10 +123,15 @@
 					%% call the downstream system
 					%<LibBlockExecuteFcnCall(block, callIdx)>\
 				%endforeach
+				
 			}
 		}
-	}
 	%endif
+%endfunction
+
+%function Terminate(block, system) Output
+	%assign module_id_par = LibBlockParameterValue(module_id, 0)
+	%<CloseCanSocket(module_id_par)>
 %endfunction
 
 %% [EOF]

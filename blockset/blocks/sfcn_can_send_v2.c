@@ -114,6 +114,11 @@ Relevant demos:
 ...
 */
 
+/* Adopted for use by GOcontroll 2024		http://www.gocontroll.com		All rights reserved
+* \file			sfcn_can_send_v2.c
+* \brief		matlab sfunction for sending CAN messages on the Moduline Controllers
+*/
+
 
 #define S_FUNCTION_NAME sfcn_can_send_v2
 #include "header.c"
@@ -121,7 +126,7 @@ Relevant demos:
 #include "sfun_can_util.h"
 #include "simstruc.h"
 
-#define PARAM_NAME_MODULE_ID	"module_id"
+#define PARAM_NAME_MODULE_ID	"module_id" //CAN bus number starting at 1
 
 /** Identifier of the input */
 enum input {
