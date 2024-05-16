@@ -1,5 +1,6 @@
 # GOcontroll-Simulink
 A base project containing the GOcontroll blockset to start developing a Simulink model
+This is the branch made with Matlab 2023b, it will not work for 2018b, see the 2018b branch for that version.
 
 ## Upgrading from the 2018b blockset
 
@@ -11,7 +12,7 @@ To update your project to the 2023b blockset you can do these steps:
 5. If you are using any output module monitor blocks, check these as they've had a change in this version, this causes the signals to no longer be attached to the correct outputs of the block.
 6. Check if the CAN blocks are linked correctly to the library, if there is some issue here check [the changelog](blockset/ert_linux_target_version.m) of V3.4.0.
 
-This blockset contains some new blocks, biggest of which are the UDP blocks and the new CAN blocks. These new blocks have examples included in the library that you can refer to. One important not is that these new CAN blocks can not be used together with the old blocks on the same CAN bus, so you can't have an old and a new block on CAN1 for example, but you can have old blocks on CAN1 and new blocks on CAN2. Especially the receive blocks are susceptible to this, the send blocks should be fine.
+This blockset contains some new blocks, biggest of which are the UDP blocks and the new CAN blocks. These new blocks have examples included in the library that you can refer to. It is possible to use the new and old CAN blocks together, if one bus only has old or only has new blocks it will be good, mixing old and new blocks on one bus seems to work aswell but it is not recommended.
 
 ## Important notice for users upgrading to this blockset with an older controller
 
