@@ -34,11 +34,6 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-	%% get the name of the model's source file.
-    %assign srcFile = LibGetModelDotCFile()
-
-    %% create a frame that can be used for storing data for message transmissions.
-    %%<LibSetSourceFileSection(srcFile, "Declarations", "struct can_frame sendframe;\n")>
 %endfunction
 
 

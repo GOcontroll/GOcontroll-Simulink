@@ -1,6 +1,18 @@
 # GOcontroll-Simulink
 A base project containing the GOcontroll blockset to start developing a Simulink model
 
+## Upgrading from the 2018b blockset
+
+To update your project to the 2023b blockset you can do these steps:
+1. Copy your project so we have a test version for the new blockset without changing your current version.
+2. Remove the `librarySetup.m` script and `blockset` folder from this copy.
+3. Copy the `librarySetup.m` script and `blockset` folder from this repository to this place.
+4. Open the Simulink file in Matlab R2023b (if you do not have a callback set up for the librarySetup.m script run it manually)
+5. If you are using any output module monitor blocks, check these as they've had a change in this version, this causes the signals to no longer be attached to the correct outputs of the block.
+6. Check if the CAN blocks are linked correctly to the library, if there is some issue here check [the changelog](blockset/ert_linux_target_version.m) of V3.4.0.
+
+This blockset contains some new blocks, biggest of which are the UDP blocks and the new CAN blocks. These new blocks have examples included in the library that you can refer to. One important not is that these new CAN blocks can not be used together with the old blocks on the same CAN bus, so you can't have an old and a new block on CAN1 for example, but you can have old blocks on CAN1 and new blocks on CAN2. Especially the receive blocks are susceptible to this, the send blocks should be fine.
+
 ## Important notice for users upgrading to this blockset with an older controller
 
 For licensing reasons one library required for building the model must be dynamically linked in, this means that ./blockset/lib/IIO/libiio.so.0 must be uploaded to the target controller to /usr/lib/  
@@ -89,3 +101,5 @@ BrowserIndex = BrowserIndex + 1; 				% increment the BrowserIndex with the amoun
 
 Please let us know when interface blocks are not working properly. You can contact us at support@gocontroll.com  
 Or make a pull request with changes to fix issues that you are experiencing.
+
+The changelog can be found in blockset/ert_linux_target_version.m
