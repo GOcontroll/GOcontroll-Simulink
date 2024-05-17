@@ -21,7 +21,7 @@
 %% errors or omissions or the results obtained from use of the software.
 %%
 %%***************************************************************************************
-function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,buildOpts,buildArgs)
+function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,buildOpts,buildArgs,buildInfo)
 % ERT_MAKE_RTW_HOOK - This is the standard ERT hook file for the RTW build
 % process (make_rtw), and implements automatic configuration of the
 % models configuration parameters.  When the buildArgs option is specified
@@ -168,6 +168,21 @@ switch hookMethod
 		% off make process (assuming code generation only is not selected.)  All
 		% arguments are valid at this stage.
 		delete('*.obj')
+		%get the path of this script so we can add include paths and such
+		mfilePath = mfilename('fullpath');
+		if contains(mfilePath,'LiveEditorEvaluationHelper')
+			mfilePath = matlab.desktop.editor.getActiveFilename;
+		end
+		%remove the filename from the end
+		[path, ~, ~] = fileparts(mfilePath);
+		codepath = fullfile(path, '..', 'code');
+		xcppath = fullfile(codepath, 'XCP');
+		oaespath = fullfile(path, '..', 'lib', 'OAES');
+		iiopath = fullfile(path, '..', 'lib', 'IIO');
+		addIncludePaths(buildInfo, {codepath,xcppath, oaespath, iiopath});
+		addSourcePaths(buildInfo, {codepath,xcppath});
+		addLinkObjects(buildInfo, fullfile(oaespath, 'liboaes_lib.a'), '', 1000,true, true);
+		addLinkObjects(buildInfo, fullfile(iiopath, 'libiio.so.0'), '', 1000,true, true);
 
 	case 'after_make'
 		% end

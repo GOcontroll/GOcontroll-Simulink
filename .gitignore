@@ -13,3 +13,5 @@
 crank_files/
 *.slxc
 *.autosave
+resources/
+*.mltbx

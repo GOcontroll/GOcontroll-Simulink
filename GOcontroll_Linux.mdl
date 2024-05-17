@@ -48,8 +48,8 @@ __MWOPC_PART_BEGIN__ /metadata/coreProperties.xml
   <dc:creator>la_obwlf</dc:creator>
   <dc:description></dc:description>
   <cp:lastModifiedBy>maud</cp:lastModifiedBy>
-  <dcterms:modified xsi:type="dcterms:W3CDTF">2024-05-16T07:35:37Z</dcterms:modified>
-  <cp:revision>11.60</cp:revision>
+  <dcterms:modified xsi:type="dcterms:W3CDTF">2024-05-17T09:31:49Z</dcterms:modified>
+  <cp:revision>11.61</cp:revision>
   <cp:version>R2023b</cp:version>
 </cp:coreProperties>
 
@@ -202,8 +202,6 @@ __MWOPC_PART_BEGIN__ /simulink/blockdiagram.xml
 <ModelInformation Version="1.0">
   <Model>
     <P Name="ModelUUID">a22a6e35-f385-49b9-bd8d-bf531e9a2bad</P>
-    <P Name="PreLoadFcn">librarySetup
-</P>
     <P Name="PostLoadFcn">eval([bdroot,&apos;_startup&apos;]) %to run model_startup.m
 
 core_info = evalc(&apos;feature(&apos;&apos;numcores&apos;&apos;)&apos;);
@@ -221,7 +219,7 @@ clear num_cores core_info core_info_split
     <ConfigManagerSettings>
       <P Name="ModifiedByFormat">%&lt;Auto&gt;</P>
       <P Name="ModifiedDateFormat">%&lt;Auto&gt;</P>
-      <P Name="ModelVersionFormat">%&lt;AutoIncrement:11.60&gt;</P>
+      <P Name="ModelVersionFormat">%&lt;AutoIncrement:11.61&gt;</P>
     </ConfigManagerSettings>
     <EditorSettings>
       <P Name="ShowLineDimensions">on</P>
@@ -1534,8 +1532,8 @@ __MWOPC_PART_BEGIN__ /simulink/hdlParams.xml
 __MWOPC_PART_BEGIN__ /simulink/modelDictionary.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <MF0 version="1.1" defaultPackage="slid" packageUris="http://schema.mathworks.com/mf0/slid/R2023a_20220628">
-  <System type="System" uuid="46d64844-8775-45a1-bae2-7d94487fe3eb">
-    <Interface type="Interface" uuid="57192b84-ccb5-44c0-a3a6-c895873b16eb"/>
+  <System type="System" uuid="96f4349e-4eaf-43ea-9963-43f6c1df5e27">
+    <Interface type="Interface" uuid="fd1cbf8d-1dfe-49df-9782-7a639e243ef4"/>
   </System>
 </MF0>
 __MWOPC_PART_BEGIN__ /simulink/ScheduleCore.xml
@@ -1668,7 +1666,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
   <P Name="PaperType">usletter</P>
   <P Name="PaperUnits">inches</P>
   <P Name="TiledPaperMargins">[0.500000, 0.500000, 0.500000, 0.500000]</P>
-  <P Name="ZoomFactor">150</P>
+  <P Name="ZoomFactor">186</P>
   <Block BlockType="Constant" Name="Constant" SID="8736">
     <P Name="Position">[815, -263, 920, -237]</P>
     <P Name="ZOrder">387</P>
@@ -1686,7 +1684,6 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="UserData" Ref="bdmxdata:UserData_8737"/>
     <P Name="SourceBlock">GOcontroll_Moduline_Target/Enclosure LED&apos;s/Enclosure LED</P>
     <P Name="SourceType">Enclosure LED&apos;s</P>
-    <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
       <P Name="tsamp">-1</P>
       <P Name="led">1</P>
@@ -1704,7 +1701,6 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="UserData" Ref="bdmxdata:UserData_8738"/>
     <P Name="SourceBlock">GOcontroll_Moduline_Target/Enclosure LED&apos;s/Enclosure LED</P>
     <P Name="SourceType">Enclosure LED&apos;s</P>
-    <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
       <P Name="tsamp">-1</P>
       <P Name="led">2</P>
@@ -1722,7 +1718,6 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="UserData" Ref="bdmxdata:UserData_8739"/>
     <P Name="SourceBlock">GOcontroll_Moduline_Target/Enclosure LED&apos;s/Enclosure LED</P>
     <P Name="SourceType">Enclosure LED&apos;s</P>
-    <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
       <P Name="tsamp">-1</P>
       <P Name="led">3</P>
@@ -1740,7 +1735,6 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="UserData" Ref="bdmxdata:UserData_8740"/>
     <P Name="SourceBlock">GOcontroll_Moduline_Target/Enclosure LED&apos;s/Enclosure LED</P>
     <P Name="SourceType">Enclosure LED&apos;s</P>
-    <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
       <P Name="tsamp">-1</P>
       <P Name="led">4</P>
@@ -1758,7 +1752,6 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="UserData" Ref="bdmxdata:UserData_8544"/>
     <P Name="SourceBlock">GOcontroll_Moduline_Target/Supply control/K15 Voltage</P>
     <P Name="SourceType">Contact Voltage</P>
-    <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
       <P Name="ContrType">GOcontroll Moduline IV</P>
       <P Name="tsamp">0.1</P>
@@ -1781,7 +1774,6 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="UserData" Ref="bdmxdata:UserData_8545"/>
     <P Name="SourceBlock">GOcontroll_Moduline_Target/Supply control/K15 Voltage</P>
     <P Name="SourceType">Contact Voltage</P>
-    <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
       <P Name="ContrType">GOcontroll Moduline IV</P>
       <P Name="tsamp">0.1</P>
@@ -1804,7 +1796,6 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="UserData" Ref="bdmxdata:UserData_8546"/>
     <P Name="SourceBlock">GOcontroll_Moduline_Target/Supply control/K15 Voltage</P>
     <P Name="SourceType">Contact Voltage</P>
-    <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
       <P Name="ContrType">GOcontroll Moduline IV</P>
       <P Name="tsamp">0.1</P>
@@ -1827,7 +1818,6 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="UserData" Ref="bdmxdata:UserData_8542"/>
     <P Name="SourceBlock">GOcontroll_Moduline_Target/Supply control/K30 Voltage</P>
     <P Name="SourceType">Supply voltage</P>
-    <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
       <P Name="ContrType">GOcontroll Moduline IV</P>
       <P Name="tsamp">0.1</P>
@@ -1928,7 +1918,7 @@ Fill the parameter name into a constant and tune it in HANtune.</P>
     <P Name="BackgroundColor">[0.901961, 0.901961, 1.000000]</P>
     <P Name="DropShadow">on</P>
     <P Name="AnnotationType">area_annotation</P>
-    <P Name="ZOrder">772</P>
+    <P Name="ZOrder">774</P>
     <P Name="FontSize">12</P>
   </Annotation>
   <Annotation SID="8915">
@@ -1955,7 +1945,7 @@ selected signals.</P>
     <P Name="BackgroundColor">[0.901961, 0.901961, 1.000000]</P>
     <P Name="DropShadow">on</P>
     <P Name="AnnotationType">area_annotation</P>
-    <P Name="ZOrder">771</P>
+    <P Name="ZOrder">773</P>
     <P Name="FontSize">12</P>
   </Annotation>
 </System>
@@ -2042,10 +2032,10 @@ __MWOPC_PART_BEGIN__ /simulink/windowsInfo.xml
           <P Name="IsTabbed" Class="logical">1</P>
           <P Name="ViewObjType" Class="char">SimulinkSubsys</P>
           <P Name="LoadSaveID" Class="char">388</P>
-          <P Name="Extents" Class="double">[2748.0, 1494.0]</P>
-          <P Name="ZoomFactor" Class="double">1.5</P>
-          <P Name="Offset" Class="double">[-11.599533267529296, -1130.4895633634005]</P>
-          <P Name="SceneRectInView" Class="double">[-11.599533267529296, -1130.4895633634005, 1832.0, 996.0]</P>
+          <P Name="Extents" Class="double">[3416.0, 1919.0]</P>
+          <P Name="ZoomFactor" Class="double">1.8646288209606987</P>
+          <P Name="Offset" Class="double">[-11.599533267529296, -1147.0691886561406]</P>
+          <P Name="SceneRectInView" Class="double">[-11.599533267529296, -1147.0691886561406, 1832.0, 1029.15925058548]</P>
         </Object>
         <Object ObjectID="7">
           <P Name="IsActive" Class="logical">0</P>
@@ -2345,7 +2335,7 @@ __MWOPC_PART_BEGIN__ /simulink/windowsInfo.xml
           <P Name="Minimized" Class="char">Unset</P>
         </Object>
       </Array>
-      <P Name="WindowState" Class="char">AAAA/wAAAAD9AAAAAwAAAAAAAAE0AAAHn/wCAAAABPsAAAAWAEQAbwBjAGsAVwBpAGQAZwBlAHQAMwEAAAAxAAAB+AAAAAAAAAAA+wAAABYARABvAGMAawBXAGkAZABnAGUAdAA0AAAAAAD/////AAAAAAAAAAD7AAAAUgBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQALwBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQBAAAAeQAAB58AAABiAP////wAAAZNAAABywAAAAAA////+gAAAAECAAAAAvsAAABgAFMAaQBtAHUAbABpAG4AawA6AEUAZABpAHQAbwByADoAUgBlAGYAZQByAGUAbgBjAGUAZABGAGkAbABlAHMALwBSAGUAZgBlAHIAZQBuAGMAZQBkACAARgBpAGwAZQBzAAAAAAD/////AAAAiQD////7AAAAfABMAGkAYgByAGEAcgB5AEIAcgBvAHcAcwBlAHIAMgAgAEwAaQBiAHIAYQByAHkAQgByAG8AdwBzAGUAcgBTAHQAdQBkAGkAbwBDAG8AbQBwAG8AbgBlAG4AdAAvAEcATwBjAG8AbgB0AHIAbwBsAGwAXwBMAGkAbgB1AHgBAAAAAP////8AAAAAAAAAAAAAAAEAAAKWAAAHn/wCAAAAAfwAAAB5AAAHnwAAACAA////+gAAAAICAAAAA/sAAABUAEcATABVAEUAMgA6AFAAcgBvAHAAZQByAHQAeQBJAG4AcwBwAGUAYwB0AG8AcgAvAFAAcgBvAHAAZQByAHQAeQAgAEkAbgBzAHAAZQBjAHQAbwByAAAAAAD/////AAABrAD////7AAAAXgBHAEwAVQBFADIAOgBOAG8AdABlAHMAIABCAHIAbwB3AHMAZQByACAAQwBvAG0AcABvAG4AZQBuAHQALwBTAHkAcwBEAG8AYwBNAGkAeABlAGQARQBkAGkAdABvAHIAAAAAAP////8AAAAAAAAAAPv/////AQAAAAD/////AAAAIAD///8AAAADAAAK4gAAAYb8AQAAABb8AAABKwAACzYAAAAAAP////r/////AQAAAAD8AAABOgAACQYAAAAAAP////r/////AQAAAAD8AAABOgAACQYAAAAAAP////r/////AQAAAAD8AAABOgAACl0AAAAAAP////r/////AQAAAAD8AAABOgAACl0AAAAAAP////r/////AQAAAAD8AAAApgAADIUAAAAAAP////r/////AQAAAAD8AAAA8AAACdMAAAAAAP////r/////AQAAAAD8AAABOgAACdEAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAABOgAADaYAAAAAAP////r/////AQAAAAD8AAABOgAACykAAAAAAP////r/////AQAAAAD8AAAAAP////8AAAAAAP////r/////AQAAAAD8AAABOgAACuEAAAAAAP////r/////AQAAAAD8AAABOgAACuEAAAAAAP////r/////AQAAAAD8AAABOgAACuEAAAAAAP////r/////AQAAAAD8AAABOgAACuEAAAAAAP////r/////AQAAAAD8AAABOgAACuIAAAFZAP////oAAAAAAQAAAAL7/////wEAAAAA/////wAAAVkA////+/////8AAAAAAP////8AAAEEAP///wAACuIAAAYTAAAAAQAAAAIAAAABAAAAAvwAAAAEAAAAAAAAAAEAAAA2AGMAbwBsAGwAYQBwAHMAaQBiAGwAZQBQAGEAbgBlAGwAVABvAG8AbABCAGEAcgBMAGUAZgB0AgAAAAD/////AAAAAAAAAAAAAAABAAAAAQAAADgAYwBvAGwAbABhAHAAcwBpAGIAbABlAFAAYQBuAGUAbABUAG8AbwBsAEIAYQByAFIAaQBnAGgAdAIAAAAA/////wAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAQAAADoAYwBvAGwAbABhAHAAcwBpAGIAbABlAFAAYQBuAGUAbABUAG8AbwBsAEIAYQByAEIAbwB0AHQAbwBtAQAAAAD/////AAAAAAAAAAA=</P>
+      <P Name="WindowState" Class="char">AAAA/wAAAAD9AAAAAwAAAAAAAAE0AAAHvPwCAAAABPsAAAAWAEQAbwBjAGsAVwBpAGQAZwBlAHQAMwEAAAAxAAAB+AAAAAAAAAAA+wAAABYARABvAGMAawBXAGkAZABnAGUAdAA0AAAAAAD/////AAAAAAAAAAD7AAAAUgBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQALwBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQBAAAAeQAAB7wAAABiAP////wAAAZNAAABywAAAAAA////+gAAAAECAAAAAvsAAABgAFMAaQBtAHUAbABpAG4AawA6AEUAZABpAHQAbwByADoAUgBlAGYAZQByAGUAbgBjAGUAZABGAGkAbABlAHMALwBSAGUAZgBlAHIAZQBuAGMAZQBkACAARgBpAGwAZQBzAAAAAAD/////AAAAiQD////7AAAAfABMAGkAYgByAGEAcgB5AEIAcgBvAHcAcwBlAHIAMgAgAEwAaQBiAHIAYQByAHkAQgByAG8AdwBzAGUAcgBTAHQAdQBkAGkAbwBDAG8AbQBwAG8AbgBlAG4AdAAvAEcATwBjAG8AbgB0AHIAbwBsAGwAXwBMAGkAbgB1AHgBAAAAAP////8AAAAAAAAAAAAAAAEAAAKWAAAHn/wCAAAAAfwAAAB5AAAHnwAAAAAA////+gAAAAECAAAAAvsAAABUAEcATABVAEUAMgA6AFAAcgBvAHAAZQByAHQAeQBJAG4AcwBwAGUAYwB0AG8AcgAvAFAAcgBvAHAAZQByAHQAeQAgAEkAbgBzAHAAZQBjAHQAbwByAAAAAAD/////AAABrAD////7AAAAXgBHAEwAVQBFADIAOgBOAG8AdABlAHMAIABCAHIAbwB3AHMAZQByACAAQwBvAG0AcABvAG4AZQBuAHQALwBTAHkAcwBEAG8AYwBNAGkAeABlAGQARQBkAGkAdABvAHIAAAAAAP////8AAAAAAAAAAAAAAAMAAAriAAABhvwBAAAAF/wAAAErAAALNgAAAAAA////+v////8BAAAAAPwAAAE6AAAJBgAAAAAA////+v////8BAAAAAPwAAAE6AAAJBgAAAAAA////+v////8BAAAAAPwAAAE6AAAKXQAAAAAA////+v////8BAAAAAPwAAAE6AAAKXQAAAAAA////+v////8BAAAAAPwAAACmAAAMhQAAAAAA////+v////8BAAAAAPwAAADwAAAJ0wAAAAAA////+v////8BAAAAAPwAAAE6AAAJ0QAAAAAA////+v////8BAAAAAPwAAADPAAALTAAAAAAA////+v////8BAAAAAPwAAADPAAALTAAAAAAA////+v////8BAAAAAPwAAADPAAALTAAAAAAA////+v////8BAAAAAPwAAADPAAALTAAAAAAA////+v////8BAAAAAPwAAADPAAALTAAAAAAA////+v////8BAAAAAPwAAADPAAALTAAAAAAA////+v////8BAAAAAPwAAAE6AAANpgAAAAAA////+v////8BAAAAAPwAAAE6AAALKQAAAAAA////+v////8BAAAAAPwAAAAA/////wAAAAAA////+v////8BAAAAAPwAAAE6AAAK4QAAAAAA////+v////8BAAAAAPwAAAE6AAAK4QAAAAAA////+v////8BAAAAAPwAAAE6AAAK4QAAAAAA////+v////8BAAAAAPwAAAE6AAAK4QAAAAAA////+v////8BAAAAAPwAAAE6AAAK4gAAAAAA////+v////8BAAAAAPv/////AAAAAAD/////AAABWQD///8AAA1+AAAHvAAAAAEAAAACAAAAAQAAAAL8AAAABAAAAAAAAAAAAAAAAQAAAAAAAAACAAAAAAAAAAMAAAAA</P>
       <Array PropName="PersistedApps" Type="Cell" Dimension="0*1"/>
       <P Name="WindowUuid" Class="char">87dcd2af-33b5-44d1-8ff8-152a2f151597</P>
     </Object>

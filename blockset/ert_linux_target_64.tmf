@@ -105,11 +105,12 @@ EXTMODE_TRANSPORT    = |>EXTMODE_TRANSPORT<|
 EXTMODE_STATIC       = |>EXTMODE_STATIC_ALLOC<|
 EXTMODE_STATIC_SIZE  = |>EXTMODE_STATIC_ALLOC_SIZE<|
 MULTI_INSTANCE_CODE  = |>MULTI_INSTANCE_CODE<|
-MODELREFS               = |>MODELREFS<|
-GEN_SAMPLE_MAIN         = |>GEN_SAMPLE_MAIN<|
-TARGET_LANG_EXT         = |>TARGET_LANG_EXT<|
-OTHER                   = |>DEFINES_OTHER<|
-ADD_FLAGS				= |>ADDITIONAL_LDFLAGS<|
+MODELREFS            = |>MODELREFS<|
+GEN_SAMPLE_MAIN      = |>GEN_SAMPLE_MAIN<|
+TARGET_LANG_EXT      = |>TARGET_LANG_EXT<|
+OTHER                = |>DEFINES_OTHER<|
+ADD_FLAGS            = |>ADDITIONAL_LDFLAGS<|
+START_DIR            = |>START_DIR<|
 
 
 #|---------------------------------------------------------------------------------------
@@ -137,13 +138,6 @@ MODEL_NAME = $(MODEL)
 
 # Set some commonly used paths
 BIN_PATH     = $(RELATIVE_PATH_TO_ANCHOR)
-SRC_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code
-XCP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/XCP
-MQTT_PATH 	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/MQTT
-UDP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/code/UDP
-OAES_PATH    = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/OAES
-IIO_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/IIO
-JSON_C_PATH  = $(RELATIVE_PATH_TO_ANCHOR)/blockset/lib/JSON-C
 
 #|---------------------------------------------------------------------------------------|
 #| Compiler binaries                                                                     |
@@ -182,13 +176,6 @@ SZ = aarch64-none-linux-gnu-size
 #|---------------------------------------------------------------------------------------
 #| Include Path
 #|---------------------------------------------------------------------------------------
-HANcoder_INCLUDES = \
-    -I"$(OAES_PATH)" \
-	-I"$(XCP_PATH)" \
-	-I"$(SRC_PATH)" \
-	-I"$(IIO_PATH)" \
-	-I"$(JSON_C_PATH)" \
-	-I"$(MQTT_PATH)"
 
 MATLAB_INCLUDES = \
 	-I"$(MATLAB_ROOT)/simulink/include" \
@@ -253,13 +240,6 @@ OD_FLAGS         = -D -t -z
 #|---------------------------------------------------------------------------------------
 #| Additional libraries
 #|---------------------------------------------------------------------------------------
-# HANcoder target specific libraries
-# LIBS += $(LIB_PATH)/HANcoder_LINUX_RTL.a
-
-# GOcontroll added libraries
-LIBS += $(OAES_PATH)/liboaes_lib.a
-LIBS += $(IIO_PATH)/libiio.so.0
-LIBS += $(JSON_C_PATH)/libjson-c.a
 
 # Other libraries (specified from Simulink)
 |>START_PRECOMP_LIBRARIES<|
@@ -282,8 +262,6 @@ ADD_SRCS = \
 	MemoryDiagnostic.c GocontrollProcessorboardSupply.c Gocontroll420maInputModule.c \
 
 	# GocontrollMqtt.c mqtt_pal.c mqtt.c
-
--include $(BIN_PATH)/blockset_*/Makefile
 
 SRCS  = $(MODULES) $(ADD_SRCS) $(S_FUNCTIONS)
 

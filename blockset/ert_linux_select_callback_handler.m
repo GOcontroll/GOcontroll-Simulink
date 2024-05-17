@@ -46,11 +46,11 @@ function ert_linux_select_callback_handler(varargin)
     %
     % debug
 %     slConfigUISetVal(hDlg, hSrc, 'RTWVerbose', 'on');
-%     slConfigUISetVal(hDlg, hSrc, 'RetainRTWFile', 'on');
+     slConfigUISetVal(hDlg, hSrc, 'RetainRTWFile', 'on');
 
     % interface
      slConfigUISetVal(hDlg, hSrc, 'MatFileLogging', 'off');
-	 slConfigUISetVal(hDlg, hSrc, 'GenerateASAP2', 'on');
+	slConfigUISetVal(hDlg, hSrc, 'GenerateASAP2', 'off');
 
     % templates
      slConfigUISetVal(hDlg, hSrc, 'ERTCustomFileTemplate', 'ert_linux_file_process.tlc');
