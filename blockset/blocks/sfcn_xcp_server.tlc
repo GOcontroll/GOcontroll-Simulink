@@ -1,0 +1,88 @@
+%%***************************************************************************************
+%% file         sfcn_xcp_server.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%% endinternal
+%%
+%%***************************************************************************************
+
+%implements sfcn_xcp_server "C"
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Runs once for the block type, no matter how many blocks are present in the model
+
+%function BlockTypeSetup(block, system) void
+	%<LibAddToCommonIncludes("pthread.h")>
+	%<LibAddToCommonIncludes("XcpStack.h")>
+	%<LibAddToCommonIncludes("XcpTargetSpecific.h")>
+%endfunction
+
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Runs once for every instance of the block in the model
+
+%function BlockInstanceSetup(block, system) void
+	%if EXISTS(::xcp_socket) == 0
+		%openfile tmpBufDecls
+			pthread_t xcp_thread;
+		%closefile tmpBufDecls
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+		%assign ::xcp_socket = 1
+	%else
+		%<LibBlockReportError(block, "Multiple xcp server blocks exist in the model, this is not allowed")>
+	%endif
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      initialize the reconnect_state struct
+
+%function Start(block, system) Output
+	pthread_create(&xcp_thread, NULL, &XcpInitialize, NULL);
+%endfunction
+
+%% Function: Output ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+
+%function Outputs(block, system) Output
+	XcpDataTransmission();
+%endfunction
+
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+
+%function Terminate (block, system) Output
+	pthread_cancel(xcp_thread);
+	pthread_join(xcp_thread, NULL);
+	XcpStopConnection();
+%endfunction
