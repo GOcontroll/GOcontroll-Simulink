@@ -1,6 +1,6 @@
 %%***************************************************************************************
 %% file         sfcn_UDPConfig.m
-%% brief        Level-2 M file S-Function for writing a value to memory
+%% brief        Level-2 M file S-Function for configuring a UDP socket
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T

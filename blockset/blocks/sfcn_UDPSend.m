@@ -1,6 +1,6 @@
 %%***************************************************************************************
 %% file         sfcn_UDPSend.m
-%% brief        Level-2 M file S-Function for writing a value to memory
+%% brief        Level-2 M file S-Function for sending an array of bytes via UDP
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T

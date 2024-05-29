@@ -46,11 +46,15 @@
 %% Runs once for every instance of the block in the model
 
 %function BlockInstanceSetup(block, system) void
-	%openfile tmpBufDecls
-		int udp_socket_%<block.RTWdata.socket_id>;
-	%closefile tmpBufDecls
-	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
-	%assign ::%<block.RTWdata.socket_id> = 1
+	%if EXISTS(::%<block.RTWdata.socket_id>) == 0
+		%openfile tmpBufDecls
+			int udp_socket_%<block.RTWdata.socket_id>;
+		%closefile tmpBufDecls
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+		%assign ::%<block.RTWdata.socket_id> = 1
+	%else
+		%<LibBlockReportError(block, "A socket is already configured with that socket ID, can't configure the same socket twice")>
+	%endif
 %endfunction
 
 %% Function: Start ==========================================================
