@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration file="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev/ToolboxPackagingConfiguration.prj" location="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev" name="ToolboxPackagingConfiguration" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="43133959" file="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev/ToolboxPackagingConfiguration.prj" location="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev" name="ToolboxPackagingConfiguration" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>GOcontroll-Simulink</param.appname>
     <param.authnamewatermark>GOcontroll</param.authnamewatermark>
     <param.email>info@gocontroll.com</param.email>
@@ -63,6 +63,7 @@ resources/_Project/*
 **/.git
 GOcontroll-Simulink.mltbx
 GOcontroll_Linux.elf
+GOcontroll_Linux.a2l
 GOcontroll_Linux.slxc
 blockset/blocks/gocontroll_mex_version.mexa64
 blockset/blocks/sfcn_UDPReceive.mexa64
@@ -73,7 +74,8 @@ slprj
 .git*
 GOcontroll_Linux.mdl
 GOcontroll_Linux_startup.m
-SetupToolchain.docx</param.exclude.filters>
+SetupToolchain.docx
+*_generated_code/</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples />
     <param.demosxml />
@@ -91,15 +93,25 @@ SetupToolchain.docx</param.exclude.filters>
     <param.release.end>latest</param.release.end>
     <param.release.current.only>false</param.release.current.only>
     <param.compatiblity.windows>true</param.compatiblity.windows>
-    <param.compatiblity.macos>true</param.compatiblity.macos>
+    <param.compatiblity.macos>false</param.compatiblity.macos>
     <param.compatiblity.linux>true</param.compatiblity.linux>
     <param.compatiblity.matlabonline>false</param.compatiblity.matlabonline>
-    <param.installation.map />
-    <param.additional.sw.names />
-    <param.additional.sw.licenses />
-    <param.additional.sw.win.url />
-    <param.additional.sw.mac.url />
-    <param.additional.sw.linux.url />
+    <param.installation.map>+GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx</param.installation.map>
+    <param.additional.sw.names>
+      <item>aarch64-none-linux-gnu-gcc</item>
+    </param.additional.sw.names>
+    <param.additional.sw.licenses>
+      <item>https://developer.arm.com/GetEula?Id=46b4985b-3267-433c-be90-bbfe1921a602</item>
+    </param.additional.sw.licenses>
+    <param.additional.sw.win.url>
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/gcc-arm-9.2-2019.12-mingw-w64-i686-aarch64-none-linux-gnu.zip</item>
+    </param.additional.sw.win.url>
+    <param.additional.sw.mac.url>
+      <item />
+    </param.additional.sw.mac.url>
+    <param.additional.sw.linux.url>
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.zip</item>
+    </param.additional.sw.linux.url>
     <unset>
       <param.authnamewatermark />
       <param.email />
@@ -120,18 +132,13 @@ SetupToolchain.docx</param.exclude.filters>
       <param.required.addons />
       <param.release.current.only />
       <param.compatiblity.windows />
-      <param.compatiblity.macos />
       <param.compatiblity.linux />
-      <param.additional.sw.names />
-      <param.additional.sw.licenses />
-      <param.additional.sw.win.url />
-      <param.additional.sw.mac.url />
-      <param.additional.sw.linux.url />
     </unset>
     <fileset.rootdir>
       <file>${PROJECT_ROOT}</file>
     </fileset.rootdir>
     <fileset.rootfiles>
+      <file>${PROJECT_ROOT}/+GOcontroll_Simulink_2023b_dev</file>
       <file>${PROJECT_ROOT}/GOcontroll.png</file>
       <file>${PROJECT_ROOT}/LICENSE</file>
       <file>${PROJECT_ROOT}/README.md</file>
@@ -170,7 +177,7 @@ SetupToolchain.docx</param.exclude.filters>
       <vista>false</vista>
       <linux>true</linux>
       <solaris>false</solaris>
-      <osver>5.15.0-105-generic</osver>
+      <osver>5.15.0-107-generic</osver>
       <os32>false</os32>
       <os64>true</os64>
       <arch>glnxa64</arch>
