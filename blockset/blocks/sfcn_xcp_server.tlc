@@ -1,5 +1,5 @@
 %%***************************************************************************************
-%% file         sfcn_UDPConfig.tlc
+%% file         sfcn_xcp_server.tlc
 %% brief        Target Language Compiler file that contains the code generation specifics
 %%              for an S-function with the same name.
 %%
@@ -30,15 +30,16 @@
 %%
 %%***************************************************************************************
 
-%implements sfcn_UDPConfig "C"
-%include "udp_common.tlc"
+%implements sfcn_xcp_server "C"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
 %% Runs once for the block type, no matter how many blocks are present in the model
 
 %function BlockTypeSetup(block, system) void
-	%<UdpCommonBlockTypeSetup()>
+	%<LibAddToCommonIncludes("pthread.h")>
+	%<LibAddToCommonIncludes("XcpStack.h")>
+	%<LibAddToCommonIncludes("XcpTargetSpecific.h")>
 %endfunction
 
 %% Function: BlockInstanceSetup ==========================================================
@@ -46,14 +47,14 @@
 %% Runs once for every instance of the block in the model
 
 %function BlockInstanceSetup(block, system) void
-	%if EXISTS(::%<block.RTWdata.socket_id>) == 0
+	%if EXISTS(::xcp_socket) == 0
 		%openfile tmpBufDecls
-			int udp_socket_%<block.RTWdata.socket_id>;
+			pthread_t xcp_thread;
 		%closefile tmpBufDecls
 		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
-		%assign ::%<block.RTWdata.socket_id> = 1
+		%assign ::xcp_socket = 1
 	%else
-		%<LibBlockReportError(block, "A socket is already configured with that socket ID, can't configure the same socket twice")>
+		%<LibBlockReportError(block, "Multiple xcp server blocks exist in the model, this is not allowed")>
 	%endif
 %endfunction
 
@@ -63,31 +64,7 @@
 %%      initialize the reconnect_state struct
 
 %function Start(block, system) Output
-	%assign socket = "udp_socket_%<block.RTWdata.socket_id>"
-	{
-		%<socket> = socket(AF_INET, SOCK_DGRAM, 0);
-
-		if(%<socket> < 0){
-			fprintf(stderr, "Error while creating UDP socket\n");
-			return;
-		}
-		// Set broadcast mode
-		int broadcast = %<block.RTWdata.broadcast>;
-		if (broadcast) {
-			if (setsockopt(%<socket>, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)))
-				fprintf(stderr, "Could set socket to broadcast\n");
-		}
-		struct sockaddr_in server_addr;
-		// Set port and IP:
-		server_addr.sin_family = AF_INET;
-		server_addr.sin_port = htons(%<block.RTWdata.port>);
-		server_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
-
-		// Bind to the set port and IP:
-		if(bind(%<socket>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
-			fprintf(stderr,"Couldn't bind to the port\n");
-		}
-	}
+	pthread_create(&xcp_thread, NULL, &XcpInitialize, NULL);
 %endfunction
 
 %% Function: Output ==========================================================
@@ -96,6 +73,7 @@
 %%      Code generation for signal output
 
 %function Outputs(block, system) Output
+	XcpDataTransmission();
 %endfunction
 
 %% Function: Terminate ==========================================================
@@ -104,5 +82,7 @@
 %%      Code generation for signal output
 
 %function Terminate (block, system) Output
-	close(udp_socket_%<block.RTWdata.socket_id>);
+	pthread_cancel(xcp_thread);
+	pthread_join(xcp_thread, NULL);
+	XcpStopConnection();
 %endfunction

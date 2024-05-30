@@ -1,6 +1,6 @@
 %%***************************************************************************************
-%% file         sfcn_UDPSend.m
-%% brief        Level-2 M file S-Function for sending an array of bytes via UDP
+%% file         sfcn_xcp_server.m
+%% brief        Level-2 M file S-Function for setting up an xcp server
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
@@ -27,7 +27,7 @@
 %% DEALINGS IN THE SOFTWARE.
 %%
 %%***************************************************************************************
-function sfcn_UDPSend(block)
+function sfcn_xcp_server(block)
 	setup(block);
 end
 
@@ -42,33 +42,14 @@ end
 %%   Required         : Yes
 %%   C-Mex counterpart: mdlInitializeSizes
 
-%% DatatypeID's
-%% DOUBLE  =  0
-%% SINGLE  =  1
-%% INT8    =  2
-%% UINT8   =  3
-%% INT16   =  4
-%% UINT16  =  5
-%% INT32   =  6
-%% UINT32  =  7
-%% BOOLEAN =  8
-
 function setup(block)
-	tsamp = 1;
-	ip = 2;
-	port = 3;
 	%% Register number of input and output ports
-	% manually configure input without defined dimensions.
-	block.NumInputPorts = 1;
-	block.InputPort(1).Complexity = 'Real';
-	block.InputPort(1).DirectFeedthrough = false;
-	block.InputPort(1).SamplingMode = 'sample';
-	block.InputPort(1).DatatypeID = double(DatatypeID.Uint8);
-
+	block.NumInputPorts = 0;
 	block.NumOutputPorts = 0;
 
-	block.NumDialogPrms     = 3;
-	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% Number of S-Function parameters expected
+	block.NumDialogPrms     = 0;
+	block.SampleTimes = [-1 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------
@@ -78,21 +59,22 @@ function setup(block)
 	block.RegBlockMethod('Outputs', @Outputs);
 
 	block.RegBlockMethod('Update', @Update);
+
+	block.RegBlockMethod('Terminate', @Terminate);
 end
 
 function Start(~)
-	% global socket;
-	% socket = udpport("datagram");
 end
 
 
-function Outputs(block)
-	% write(socket,block.InputPort(1).Data, "uint8", block.DialogPrm(2).Data, block.DialogPrm(3).Data);
-	% flush(socket, "output");
+function Outputs(~)
 end
 
 
 function Update(~)
 end
 
-%%******************************* end of sfcn_UDPSend.m **********************
+function Terminate(~)
+end
+
+%%******************************* end of sfcn_xcp_server.m **********************

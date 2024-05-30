@@ -48,8 +48,8 @@ __MWOPC_PART_BEGIN__ /metadata/coreProperties.xml
   <dc:creator>la_obwlf</dc:creator>
   <dc:description></dc:description>
   <cp:lastModifiedBy>maud</cp:lastModifiedBy>
-  <dcterms:modified xsi:type="dcterms:W3CDTF">2024-05-16T07:35:37Z</dcterms:modified>
-  <cp:revision>11.60</cp:revision>
+  <dcterms:modified xsi:type="dcterms:W3CDTF">2024-05-28T13:53:01Z</dcterms:modified>
+  <cp:revision>11.64</cp:revision>
   <cp:version>R2023b</cp:version>
 </cp:coreProperties>
 
@@ -202,8 +202,6 @@ __MWOPC_PART_BEGIN__ /simulink/blockdiagram.xml
 <ModelInformation Version="1.0">
   <Model>
     <P Name="ModelUUID">a22a6e35-f385-49b9-bd8d-bf531e9a2bad</P>
-    <P Name="PreLoadFcn">librarySetup
-</P>
     <P Name="PostLoadFcn">eval([bdroot,&apos;_startup&apos;]) %to run model_startup.m
 
 core_info = evalc(&apos;feature(&apos;&apos;numcores&apos;&apos;)&apos;);
@@ -221,9 +219,11 @@ clear num_cores core_info core_info_split
     <ConfigManagerSettings>
       <P Name="ModifiedByFormat">%&lt;Auto&gt;</P>
       <P Name="ModifiedDateFormat">%&lt;Auto&gt;</P>
-      <P Name="ModelVersionFormat">%&lt;AutoIncrement:11.60&gt;</P>
+      <P Name="ModelVersionFormat">%&lt;AutoIncrement:11.64&gt;</P>
     </ConfigManagerSettings>
     <EditorSettings>
+      <P Name="SampleTimeColors">on</P>
+      <P Name="SampleTimeAnnotations">on</P>
       <P Name="ShowLineDimensions">on</P>
       <P Name="ShowPortDataTypes">on</P>
       <P Name="ShowStorageClass">on</P>
@@ -1436,8 +1436,8 @@ __MWOPC_PART_BEGIN__ /simulink/configSet0.xml
       </Object>
     </Array>
     <P Name="Name">Configuration</P>
-    <P Name="CurrentDlgPage">Code Generation/HANcoder options</P>
-    <P Name="ConfigPrmDlgPosition">[ 1009, 71, 1850, 786 ]</P>
+    <P Name="CurrentDlgPage">Solver</P>
+    <P Name="ConfigPrmDlgPosition">[ 1920, 27, 1920, 2133 ]</P>
     <P Name="ExtraOptions">-aBlockCommentType=&quot;BlockPathComment&quot; -aIgnoreTestpoints=0 </P>
   </Object>
 </ConfigSet>
@@ -1468,7 +1468,7 @@ __MWOPC_PART_BEGIN__ /simulink/graphicalInterface.xml
   <P Name="IsExportFunctionModel">0</P>
   <P Name="SimulinkSubDomainType">Simulink</P>
   <P Name="NumParameterArguments">0</P>
-  <P Name="NumExternalFileReferences">8</P>
+  <P Name="NumExternalFileReferences">9</P>
   <ExternalFileReference>
     <P Name="Reference">GOcontroll_Moduline_Target/Enclosure LED&apos;s/Enclosure LED</P>
     <P Name="Path">$bdroot/GOcontroll Moduline algorithm/Enclosure LED4</P>
@@ -1517,6 +1517,12 @@ __MWOPC_PART_BEGIN__ /simulink/graphicalInterface.xml
     <P Name="SID">8542</P>
     <P Name="Type">LIBRARY_BLOCK</P>
   </ExternalFileReference>
+  <ExternalFileReference>
+    <P Name="Reference">GOcontroll_Moduline_Target/System/XCP Server</P>
+    <P Name="Path">$bdroot/GOcontroll Moduline algorithm/XCP Server</P>
+    <P Name="SID">9256</P>
+    <P Name="Type">LIBRARY_BLOCK</P>
+  </ExternalFileReference>
   <P Name="OrderedModelArguments">1</P>
 </GraphicalInterface>
 
@@ -1534,8 +1540,8 @@ __MWOPC_PART_BEGIN__ /simulink/hdlParams.xml
 __MWOPC_PART_BEGIN__ /simulink/modelDictionary.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <MF0 version="1.1" defaultPackage="slid" packageUris="http://schema.mathworks.com/mf0/slid/R2023a_20220628">
-  <System type="System" uuid="46d64844-8775-45a1-bae2-7d94487fe3eb">
-    <Interface type="Interface" uuid="57192b84-ccb5-44c0-a3a6-c895873b16eb"/>
+  <System type="System" uuid="dc3558b2-fedd-481f-84b9-6b11523e25fe">
+    <Interface type="Interface" uuid="da1a8290-050a-41da-a3cd-a4963f74360d"/>
   </System>
 </MF0>
 __MWOPC_PART_BEGIN__ /simulink/ScheduleCore.xml
@@ -1565,7 +1571,6 @@ __MWOPC_PART_BEGIN__ /simulink/ScheduleCore.xml
           <rates type="sltp.mm.core.Rate" uuid="81681b14-541b-472d-85a5-e5414244b89f">
             <annotation>D1</annotation>
             <color>-12240129</color>
-            <hasBlocks>true</hasBlocks>
             <rateIndex>0</rateIndex>
             <rateSpec type="sltp.mm.core.RateSpec">
               <period>.01</period>
@@ -1593,10 +1598,11 @@ __MWOPC_PART_BEGIN__ /simulink/ScheduleEditor.xml
   <sltp.mm.syntax.Context type="sltp.mm.syntax.Context" uuid="2ca68821-0256-4724-b590-bd25255d2eb5">
     <rootGraph type="sltp.mm.syntax.Graph" uuid="b928017d-3a04-4034-8570-92652fb28069">
       <children type="sltp.mm.syntax.Node" uuid="de363e02-d60a-4832-a770-6240553fdb1a">
+        <hasBeenLaidout>true</hasBeenLaidout>
+        <hasBeenSized>true</hasBeenSized>
         <priority>40</priority>
         <rates type="sltp.mm.syntax.RateData">
           <color>#ff453a</color>
-          <hasBlocks>true</hasBlocks>
           <rate>0.01</rate>
           <title>D1</title>
         </rates>
@@ -1620,8 +1626,8 @@ __MWOPC_PART_BEGIN__ /simulink/ScheduleEditor.xml
   </sltp.mm.syntax.Context>
   <diagram.editor.model.Diagram type="diagram.editor.model.Diagram" uuid="cd02566d-4a2a-48d5-9dd9-7e2822c05826">
     <entities type="diagram.editor.model.Entity" uuid="229d15a4-c199-48b2-8611-858c736f7ad9">
-      <position>0,0</position>
-      <size>0,0,100,100</size>
+      <position>0,-126</position>
+      <size>0,0,59,43</size>
       <syntaxElement type="sltp.mm.syntax.Node" uuid="de363e02-d60a-4832-a770-6240553fdb1a"/>
       <title>D1</title>
       <type>implicit-periodic</type>
@@ -1668,12 +1674,13 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
   <P Name="PaperType">usletter</P>
   <P Name="PaperUnits">inches</P>
   <P Name="TiledPaperMargins">[0.500000, 0.500000, 0.500000, 0.500000]</P>
-  <P Name="ZoomFactor">150</P>
+  <P Name="ZoomFactor">175</P>
   <Block BlockType="Constant" Name="Constant" SID="8736">
     <P Name="Position">[815, -263, 920, -237]</P>
     <P Name="ZOrder">387</P>
     <P Name="Value">LEDRed</P>
     <P Name="OutDataTypeStr">uint8</P>
+    <P Name="SampleTime">-1</P>
   </Block>
   <Block BlockType="Reference" Name="Enclosure LED4" SID="8737">
     <P Name="Tag">HANcoder_GOcontroll_Moduline_IV</P>
@@ -1688,7 +1695,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="SourceType">Enclosure LED&apos;s</P>
     <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
-      <P Name="tsamp">-1</P>
+      <P Name="tsamp">0.01</P>
       <P Name="led">1</P>
       <P Name="color">Red</P>
     </InstanceData>
@@ -1706,7 +1713,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="SourceType">Enclosure LED&apos;s</P>
     <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
-      <P Name="tsamp">-1</P>
+      <P Name="tsamp">0.01</P>
       <P Name="led">2</P>
       <P Name="color">Red</P>
     </InstanceData>
@@ -1724,7 +1731,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="SourceType">Enclosure LED&apos;s</P>
     <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
-      <P Name="tsamp">-1</P>
+      <P Name="tsamp">0.01</P>
       <P Name="led">3</P>
       <P Name="color">Red</P>
     </InstanceData>
@@ -1742,7 +1749,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <P Name="SourceType">Enclosure LED&apos;s</P>
     <P Name="SourceProductName">GOcontroll Moduline</P>
     <InstanceData>
-      <P Name="tsamp">-1</P>
+      <P Name="tsamp">0.01</P>
       <P Name="led">4</P>
       <P Name="color">Red</P>
     </InstanceData>
@@ -1785,7 +1792,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
     <InstanceData>
       <P Name="ContrType">GOcontroll Moduline IV</P>
       <P Name="tsamp">0.1</P>
-      <P Name="k15pin">K15-1 (Connector C pin 2)</P>
+      <P Name="k15pin">K15-2 (Connector C pin 3)</P>
     </InstanceData>
     <PortProperties>
       <Port Type="out" Index="1">
@@ -1853,6 +1860,17 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_388.xml
   <Block BlockType="Terminator" Name="Terminator3" SID="8549">
     <P Name="Position">[720, -165, 740, -145]</P>
     <P Name="ZOrder">448</P>
+  </Block>
+  <Block BlockType="Reference" Name="XCP Server" SID="9256">
+    <PortCounts/>
+    <P Name="Position">[140, -306, 290, -264]</P>
+    <P Name="ZOrder">532</P>
+    <P Name="BackgroundColor">[1.000000, 0.666667, 0.000000]</P>
+    <P Name="Priority">99999</P>
+    <P Name="LibraryVersion">0.33</P>
+    <P Name="SourceBlock">GOcontroll_Moduline_Target/System/XCP Server</P>
+    <P Name="SourceType">XCP Server</P>
+    <P Name="SourceProductName">GOcontroll Moduline</P>
   </Block>
   <Line>
     <P Name="ZOrder">176</P>
@@ -1928,7 +1946,7 @@ Fill the parameter name into a constant and tune it in HANtune.</P>
     <P Name="BackgroundColor">[0.901961, 0.901961, 1.000000]</P>
     <P Name="DropShadow">on</P>
     <P Name="AnnotationType">area_annotation</P>
-    <P Name="ZOrder">772</P>
+    <P Name="ZOrder">780</P>
     <P Name="FontSize">12</P>
   </Annotation>
   <Annotation SID="8915">
@@ -1955,7 +1973,7 @@ selected signals.</P>
     <P Name="BackgroundColor">[0.901961, 0.901961, 1.000000]</P>
     <P Name="DropShadow">on</P>
     <P Name="AnnotationType">area_annotation</P>
-    <P Name="ZOrder">771</P>
+    <P Name="ZOrder">779</P>
     <P Name="FontSize">12</P>
   </Annotation>
 </System>
@@ -1967,7 +1985,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_root.xml
   <P Name="Open">on</P>
   <P Name="ZoomFactor">150</P>
   <P Name="ReportName">simulink-default.rpt</P>
-  <P Name="SIDHighWatermark">9255</P>
+  <P Name="SIDHighWatermark">9256</P>
   <Block BlockType="SubSystem" Name="GOcontroll Moduline algorithm" SID="388">
     <PortCounts/>
     <P Name="Position">[-60, 1059, 545, 1541]</P>
@@ -2032,10 +2050,10 @@ __MWOPC_PART_BEGIN__ /simulink/windowsInfo.xml
           <P Name="IsTabbed" Class="logical">1</P>
           <P Name="ViewObjType" Class="char">SimulinkTopLevel</P>
           <P Name="LoadSaveID" Class="char">0</P>
-          <P Name="Extents" Class="double">[2747.0, 1129.0]</P>
+          <P Name="Extents" Class="double">[3416.0, 1919.0]</P>
           <P Name="ZoomFactor" Class="double">1.5</P>
           <P Name="Offset" Class="double">[-902.27634066157555, 862.88125128811544]</P>
-          <P Name="SceneRectInView" Class="double">[-902.27634066157555, 862.88125128811544, 1831.3333333333333, 752.66666666666663]</P>
+          <P Name="SceneRectInView" Class="double">[-902.27634066157555, 862.88125128811544, 2277.3333333333335, 1279.3333333333333]</P>
         </Object>
         <Object ObjectID="6">
           <P Name="IsActive" Class="logical">1</P>
@@ -2043,9 +2061,9 @@ __MWOPC_PART_BEGIN__ /simulink/windowsInfo.xml
           <P Name="ViewObjType" Class="char">SimulinkSubsys</P>
           <P Name="LoadSaveID" Class="char">388</P>
           <P Name="Extents" Class="double">[2748.0, 1494.0]</P>
-          <P Name="ZoomFactor" Class="double">1.5</P>
-          <P Name="Offset" Class="double">[-11.599533267529296, -1130.4895633634005]</P>
-          <P Name="SceneRectInView" Class="double">[-11.599533267529296, -1130.4895633634005, 1832.0, 996.0]</P>
+          <P Name="ZoomFactor" Class="double">1.7499999999999998</P>
+          <P Name="Offset" Class="double">[-25.480056296412954, -880.31231902304125]</P>
+          <P Name="SceneRectInView" Class="double">[-25.480056296412954, -880.31231902304125, 1570.2857142857144, 853.71428571428578]</P>
         </Object>
         <Object ObjectID="7">
           <P Name="IsActive" Class="logical">0</P>
@@ -2318,7 +2336,7 @@ __MWOPC_PART_BEGIN__ /simulink/windowsInfo.xml
           <P Name="SceneRectInView" Class="double">[-361.67447916666669, -181.16666666666666, 893.33333333333337, 467.33333333333331]</P>
         </Object>
       </Array>
-      <Array PropName="DockComponentsInfo" Type="Simulink.DockComponentInfo" Dimension="1*2">
+      <Array PropName="DockComponentsInfo" Type="Simulink.DockComponentInfo" Dimension="1*3">
         <Object ObjectID="34">
           <P Name="Type" Class="char">GLUE2:PropertyInspector</P>
           <P Name="ID" Class="char">Property Inspector</P>
@@ -2344,8 +2362,20 @@ __MWOPC_PART_BEGIN__ /simulink/windowsInfo.xml
           <P Name="Height" Class="int32">480</P>
           <P Name="Minimized" Class="char">Unset</P>
         </Object>
+        <Object ObjectID="36">
+          <P Name="Type" Class="char">LibraryBrowser2 LibraryBrowserStudioComponent</P>
+          <P Name="ID" Class="char">GOcontroll_Linux</P>
+          <P Name="Visible" Class="logical">1</P>
+          <P Name="CreateCallback" Class="char"/>
+          <P Name="UserData" Class="char"/>
+          <P Name="Floating" Class="logical">0</P>
+          <P Name="DockPosition" Class="char">Left</P>
+          <P Name="Width" Class="int32">304</P>
+          <P Name="Height" Class="int32">342</P>
+          <P Name="Minimized" Class="char">Unset</P>
+        </Object>
       </Array>
-      <P Name="WindowState" Class="char">AAAA/wAAAAD9AAAAAwAAAAAAAAE0AAAHn/wCAAAABPsAAAAWAEQAbwBjAGsAVwBpAGQAZwBlAHQAMwEAAAAxAAAB+AAAAAAAAAAA+wAAABYARABvAGMAawBXAGkAZABnAGUAdAA0AAAAAAD/////AAAAAAAAAAD7AAAAUgBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQALwBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQBAAAAeQAAB58AAABiAP////wAAAZNAAABywAAAAAA////+gAAAAECAAAAAvsAAABgAFMAaQBtAHUAbABpAG4AawA6AEUAZABpAHQAbwByADoAUgBlAGYAZQByAGUAbgBjAGUAZABGAGkAbABlAHMALwBSAGUAZgBlAHIAZQBuAGMAZQBkACAARgBpAGwAZQBzAAAAAAD/////AAAAiQD////7AAAAfABMAGkAYgByAGEAcgB5AEIAcgBvAHcAcwBlAHIAMgAgAEwAaQBiAHIAYQByAHkAQgByAG8AdwBzAGUAcgBTAHQAdQBkAGkAbwBDAG8AbQBwAG8AbgBlAG4AdAAvAEcATwBjAG8AbgB0AHIAbwBsAGwAXwBMAGkAbgB1AHgBAAAAAP////8AAAAAAAAAAAAAAAEAAAKWAAAHn/wCAAAAAfwAAAB5AAAHnwAAACAA////+gAAAAICAAAAA/sAAABUAEcATABVAEUAMgA6AFAAcgBvAHAAZQByAHQAeQBJAG4AcwBwAGUAYwB0AG8AcgAvAFAAcgBvAHAAZQByAHQAeQAgAEkAbgBzAHAAZQBjAHQAbwByAAAAAAD/////AAABrAD////7AAAAXgBHAEwAVQBFADIAOgBOAG8AdABlAHMAIABCAHIAbwB3AHMAZQByACAAQwBvAG0AcABvAG4AZQBuAHQALwBTAHkAcwBEAG8AYwBNAGkAeABlAGQARQBkAGkAdABvAHIAAAAAAP////8AAAAAAAAAAPv/////AQAAAAD/////AAAAIAD///8AAAADAAAK4gAAAYb8AQAAABb8AAABKwAACzYAAAAAAP////r/////AQAAAAD8AAABOgAACQYAAAAAAP////r/////AQAAAAD8AAABOgAACQYAAAAAAP////r/////AQAAAAD8AAABOgAACl0AAAAAAP////r/////AQAAAAD8AAABOgAACl0AAAAAAP////r/////AQAAAAD8AAAApgAADIUAAAAAAP////r/////AQAAAAD8AAAA8AAACdMAAAAAAP////r/////AQAAAAD8AAABOgAACdEAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAAAzwAAC0wAAAAAAP////r/////AQAAAAD8AAABOgAADaYAAAAAAP////r/////AQAAAAD8AAABOgAACykAAAAAAP////r/////AQAAAAD8AAAAAP////8AAAAAAP////r/////AQAAAAD8AAABOgAACuEAAAAAAP////r/////AQAAAAD8AAABOgAACuEAAAAAAP////r/////AQAAAAD8AAABOgAACuEAAAAAAP////r/////AQAAAAD8AAABOgAACuEAAAAAAP////r/////AQAAAAD8AAABOgAACuIAAAFZAP////oAAAAAAQAAAAL7/////wEAAAAA/////wAAAVkA////+/////8AAAAAAP////8AAAEEAP///wAACuIAAAYTAAAAAQAAAAIAAAABAAAAAvwAAAAEAAAAAAAAAAEAAAA2AGMAbwBsAGwAYQBwAHMAaQBiAGwAZQBQAGEAbgBlAGwAVABvAG8AbABCAGEAcgBMAGUAZgB0AgAAAAD/////AAAAAAAAAAAAAAABAAAAAQAAADgAYwBvAGwAbABhAHAAcwBpAGIAbABlAFAAYQBuAGUAbABUAG8AbwBsAEIAYQByAFIAaQBnAGgAdAIAAAAA/////wAAAAAAAAAAAAAAAgAAAAAAAAADAAAAAQAAADoAYwBvAGwAbABhAHAAcwBpAGIAbABlAFAAYQBuAGUAbABUAG8AbwBsAEIAYQByAEIAbwB0AHQAbwBtAQAAAAD/////AAAAAAAAAAA=</P>
+      <P Name="WindowState" Class="char">AAAA/wAAAAD9AAAAAwAAAAAAAAE0AAAHn/wCAAAABPsAAAAWAEQAbwBjAGsAVwBpAGQAZwBlAHQAMwEAAAAxAAAB+AAAAAAAAAAA+wAAABYARABvAGMAawBXAGkAZABnAGUAdAA0AAAAAAD/////AAAAAAAAAAD7AAAAUgBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQALwBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQBAAAAeQAABicAAABiAP////wAAAamAAABcgAAALQA////+gAAAAECAAAAAvsAAABgAFMAaQBtAHUAbABpAG4AawA6AEUAZABpAHQAbwByADoAUgBlAGYAZQByAGUAbgBjAGUAZABGAGkAbABlAHMALwBSAGUAZgBlAHIAZQBuAGMAZQBkACAARgBpAGwAZQBzAAAAAAD/////AAAAiQD////7AAAAfABMAGkAYgByAGEAcgB5AEIAcgBvAHcAcwBlAHIAMgAgAEwAaQBiAHIAYQByAHkAQgByAG8AdwBzAGUAcgBTAHQAdQBkAGkAbwBDAG8AbQBwAG8AbgBlAG4AdAAvAEcATwBjAG8AbgB0AHIAbwBsAGwAXwBMAGkAbgB1AHgBAAAAAP////8AAAC0AP///wAAAAEAAAKWAAAHn/wCAAAAAfwAAAB5AAAHnwAAAWcBAAAa+gAAAAMCAAAABPsAAABUAEcATABVAEUAMgA6AFAAcgBvAHAAZQByAHQAeQBJAG4AcwBwAGUAYwB0AG8AcgAvAFAAcgBvAHAAZQByAHQAeQAgAEkAbgBzAHAAZQBjAHQAbwByAAAAAAD/////AAABrAD////7AAAAXgBHAEwAVQBFADIAOgBOAG8AdABlAHMAIABCAHIAbwB3AHMAZQByACAAQwBvAG0AcABvAG4AZQBuAHQALwBTAHkAcwBEAG8AYwBNAGkAeABlAGQARQBkAGkAdABvAHIAAAAAAP////8AAAAAAAAAAPv/////AQAAAAD/////AAAAIAD////7/////wEAAAAA/////wAAAUwA////AAAAAwAACuIAAAGG/AEAAAAX/AAAASsAAAs2AAAAAAD////6/////wEAAAAA/AAAAToAAAkGAAAAAAD////6/////wEAAAAA/AAAAToAAAkGAAAAAAD////6/////wEAAAAA/AAAAToAAApdAAAAAAD////6/////wEAAAAA/AAAAToAAApdAAAAAAD////6/////wEAAAAA/AAAAKYAAAyFAAAAAAD////6/////wEAAAAA/AAAAPAAAAnTAAAAAAD////6/////wEAAAAA/AAAAToAAAnRAAAAAAD////6/////wEAAAAA/AAAAM8AAAtMAAAAAAD////6/////wEAAAAA/AAAAM8AAAtMAAAAAAD////6/////wEAAAAA/AAAAM8AAAtMAAAAAAD////6/////wEAAAAA/AAAAM8AAAtMAAAAAAD////6/////wEAAAAA/AAAAM8AAAtMAAAAAAD////6/////wEAAAAA/AAAAM8AAAtMAAAAAAD////6/////wEAAAAA/AAAAToAAA2mAAAAAAD////6/////wEAAAAA/AAAAToAAAspAAAAAAD////6/////wEAAAAA/AAAAAD/////AAAAAAD////6/////wEAAAAA/AAAAToAAArhAAAAAAD////6/////wEAAAAA/AAAAToAAArhAAAAAAD////6/////wEAAAAA/AAAAToAAArhAAAAAAD////6/////wEAAAAA/AAAAToAAArhAAAAAAD////6/////wEAAAAA/AAAAToAAAriAAAAAAD////6/////wEAAAAA/AAAAToAAAriAAABWQD////6AAAAAAEAAAAC+/////8BAAAAAP////8AAAFZAP////v/////AAAAAAD/////AAABBAD///8AAAriAAAGEwAAAAEAAAACAAAAAQAAAAL8AAAABAAAAAAAAAABAAAANgBjAG8AbABsAGEAcABzAGkAYgBsAGUAUABhAG4AZQBsAFQAbwBvAGwAQgBhAHIATABlAGYAdAIAAAAA/////wAAAAAAAAAAAAAAAQAAAAEAAAA4AGMAbwBsAGwAYQBwAHMAaQBiAGwAZQBQAGEAbgBlAGwAVABvAG8AbABCAGEAcgBSAGkAZwBoAHQCAAAAAP////8AAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAEAAAA6AGMAbwBsAGwAYQBwAHMAaQBiAGwAZQBQAGEAbgBlAGwAVABvAG8AbABCAGEAcgBCAG8AdAB0AG8AbQEAAAAA/////wAAAAAAAAAA</P>
       <Array PropName="PersistedApps" Type="Cell" Dimension="0*1"/>
       <P Name="WindowUuid" Class="char">87dcd2af-33b5-44d1-8ff8-152a2f151597</P>
     </Object>
