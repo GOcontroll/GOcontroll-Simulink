@@ -5,7 +5,7 @@
     <param.email>info@gocontroll.com</param.email>
     <param.company>GOcontroll B.V.</param.company>
     <param.summary>A toolbox for working with the GOcontroll Moduline controllers</param.summary>
-    <param.description />
+    <param.description>This toolbox contains everything necessery to get started developping for the GOcontroll Moduline controllers, it will install the proper compiler and contains various blocks made to interact with the controllers hardware.</param.description>
     <param.screenshot>${PROJECT_ROOT}/GOcontroll.png</param.screenshot>
     <param.version>4.1.0</param.version>
     <param.output>${PROJECT_ROOT}/GOcontroll-Simulink.mltbx</param.output>
@@ -90,8 +90,8 @@ SetupToolchain.docx
     <param.matlab.project.id>ccbfd8b5-0fe3-4a78-975a-6fcfaaa709de</param.matlab.project.id>
     <param.matlab.project.name>GOcontroll-Simulink-2023b</param.matlab.project.name>
     <param.release.start>R2023b</param.release.start>
-    <param.release.end>latest</param.release.end>
-    <param.release.current.only>false</param.release.current.only>
+    <param.release.end>R2023b</param.release.end>
+    <param.release.current.only>true</param.release.current.only>
     <param.compatiblity.windows>true</param.compatiblity.windows>
     <param.compatiblity.macos>false</param.compatiblity.macos>
     <param.compatiblity.linux>true</param.compatiblity.linux>
@@ -116,7 +116,6 @@ SetupToolchain.docx
       <param.authnamewatermark />
       <param.email />
       <param.company />
-      <param.description />
       <param.output />
       <param.platforms />
       <param.exclude.pcodedmfiles />
@@ -130,7 +129,6 @@ SetupToolchain.docx
       <param.javaclasspath.excludes />
       <param.exported.on.package />
       <param.required.addons />
-      <param.release.current.only />
       <param.compatiblity.windows />
       <param.compatiblity.linux />
     </unset>
