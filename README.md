@@ -4,6 +4,12 @@ This is the branch made with Matlab 2023b, it will not work for 2018b, see the 2
 
 ## Upgrading from the 2018b blockset
 
+Notice: If you are working with multiple Matlab versions on your system, It is recommended to change the default addon location.  
+This can be done in the **HOME** tab of **Matlab** -> **preferences** (environment section) -> **MATLAB** -> **Add-Ons**.  
+Change the installation folder to something like "MATLAB*your matlab version*_addons", do this for all your Matlab installations.  
+This way it is easier to maintain version compatibility between toolboxes and Matlab. For more info see [the help page](https://nl.mathworks.com/help/matlab/matlab_env/get-add-ons.html).  
+For Windows users it is especially recommended to change this folder to a shorter path. Windows by default has a 256 character file path limit and there have been issues because of this, it should be fine as long as your username part of the path is shorter than 20 characters.  
+
 To update your project to the 2023b blockset you can do these steps:
 1. Copy your project so we have a test version for the new blockset without changing your current version.
 2. Install the GOcontroll-Simulink blockset through either the mltbx downloaded from the github releases page or through the Matlab add-on explorer.

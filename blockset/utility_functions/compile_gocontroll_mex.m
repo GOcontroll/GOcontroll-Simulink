@@ -9,7 +9,7 @@ end
 %if gocontroll_mex_version doesn't exist or the result of it is false, recompile the mex files
 if ~(exist('gocontroll_mex_version', "file") == 3) || ~gocontroll_mex_version()
 	disp("Compiling c mex functions...");
-	version = ['-DVERSION=''"' ert_linux_target_version() '"'''];
+	version = ['-DVERSION="' ert_linux_target_version() '"'];
 	include_scanutil = ['-I' fullfile(matlabroot,'toolbox','shared','can','src','scanutil')];
 	include_can_data = ['-I' fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes')];
 	can_msg = fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes', 'can_msg.c');

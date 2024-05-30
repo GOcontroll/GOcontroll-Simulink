@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="43133959" file="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev/ToolboxPackagingConfiguration.prj" location="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev" name="ToolboxPackagingConfiguration" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="4145645074" file="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev/ToolboxPackagingConfiguration.prj" location="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev" name="ToolboxPackagingConfiguration" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>GOcontroll-Simulink</param.appname>
     <param.authnamewatermark>GOcontroll</param.authnamewatermark>
     <param.email>info@gocontroll.com</param.email>
@@ -7,7 +7,7 @@
     <param.summary>A toolbox for working with the GOcontroll Moduline controllers</param.summary>
     <param.description />
     <param.screenshot>${PROJECT_ROOT}/GOcontroll.png</param.screenshot>
-    <param.version>4.0.0</param.version>
+    <param.version>4.1.0</param.version>
     <param.output>${PROJECT_ROOT}/GOcontroll-Simulink.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
