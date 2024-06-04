@@ -1,4 +1,4 @@
-function ert_linux_select_callback_handler(varargin)
+function ert_linux_postapply_callback_handler(varargin)
 
 % *************************************************************************
 % Authors:    Lukáš Hamáček, Michal Sojka

@@ -75,13 +75,6 @@ typedef struct{
 	int socket[4];
 }_canConnection;
 
-_canConnection canConnection;
-
-/** Global variables **/
-int can_socket; /* File descriptor for CAN socket */
-struct can_filter CANfilter[4][CANBUFSIZE]; /* CANfilter to filter receive ID's */
-struct CANbuffer_t CANbuffer[4][CANBUFSIZE]; /* CANbuffer to hold received messages */
-
 /** Function prototypes **/
 
 /***************************************************************************************

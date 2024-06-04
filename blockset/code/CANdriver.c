@@ -39,6 +39,13 @@
 #define INITIALIZED			2
 #define ERRORSTATE			3
 
+_canConnection canConnection;
+
+/** Global variables **/
+int can_socket; /* File descriptor for CAN socket */
+struct can_filter CANfilter[4][CANBUFSIZE]; /* CANfilter to filter receive ID's */
+struct CANbuffer_t CANbuffer[4][CANBUFSIZE]; /* CANbuffer to hold received messages */
+
 
 /****************************************************************************************/
 void CANsocket(uint8_t canInterface){
@@ -91,7 +98,7 @@ void CANsocket(uint8_t canInterface){
 /****************************************************************************************/
 int serveCANconnection(void){
 	struct can_frame frame;
-	uint16_t i,j;
+	uint16_t i;
 	for(uint8_t canInterface = 0; canInterface < 4; canInterface++)
 	{
 		/* Check if CANsocket exists */
@@ -105,14 +112,15 @@ int serveCANconnection(void){
 					/* Check CAN_id */
 					if(frame.can_id == CANbuffer[canInterface][i].can_id){
 						/* Copy all the frame fields */
-						CANbuffer[canInterface][i].frame.can_id = frame.can_id;
-						CANbuffer[canInterface][i].frame.can_dlc = frame.can_dlc;
-						CANbuffer[canInterface][i].frame.__pad = frame.__pad;
-						CANbuffer[canInterface][i].frame.__res0 = frame.__res0;
-						CANbuffer[canInterface][i].frame.__res1 = frame.__res1;
-						for(j=0;j<CAN_MAX_DLEN;j++){
-							CANbuffer[canInterface][i].frame.data[j] = frame.data[j]; /* Copy all data to the CANbuffer */
-						}
+						memcpy(&CANbuffer[canInterface][i].frame, &frame, sizeof(struct can_frame));
+						// CANbuffer[canInterface][i].frame.can_id = frame.can_id;
+						// CANbuffer[canInterface][i].frame.can_dlc = frame.can_dlc;
+						// CANbuffer[canInterface][i].frame.__pad = frame.__pad;
+						// CANbuffer[canInterface][i].frame.__res0 = frame.__res0;
+						// CANbuffer[canInterface][i].frame.__res1 = frame.__res1;
+						// for(j=0;j<CAN_MAX_DLEN;j++){
+						// 	CANbuffer[canInterface][i].frame.data[j] = frame.data[j]; /* Copy all data to the CANbuffer */
+						// }
 						/* Set the newFlag to true */
 						CANbuffer[canInterface][i].newFlag = true;
 						break; /* Buffer location found move to next message */

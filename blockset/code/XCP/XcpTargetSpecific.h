@@ -106,22 +106,12 @@
 	#error Both DYNAMICMEMORYALLOCATION and DYNAMICMEMORYALLOCATIONFREERTOS are defined. Please define only one option
 #endif
 
-
-
-
-
 /****************************************************************************************
 * Type definitions
 ****************************************************************************************/
 typedef struct{
 char channel [7];
 }_eventChannel;
-
-/****************************************************************************************
-* Data declarations
-****************************************************************************************/
-uint32_t uniqueIdLengthAdress;
-uint32_t uniqueIdStringAdress;
 
 /****************************************************************************************
 * Function prototypes

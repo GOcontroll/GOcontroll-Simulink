@@ -48,16 +48,16 @@ end % end of function ert_linux_target_upload()
 
 
 function UploadModelToTarget(modelName)
-elfPath = [pwd filesep '..' filesep bdroot(modelName) '.elf'];
-a2lPath = [pwd filesep '..' filesep bdroot(modelName) '.a2l'];
-UploadAddress = get_param(modelName,'tlcXcpTcpAddress');
-UploadPort = num2str(get_param(modelName,'tlcUploadPort'));
-% Upload the file to the controller
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',elfPath,'" ',' http://',UploadAddress,':',UploadPort,'/upload');
-disp(cmdCommand)
-system(cmdCommand);
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',UploadAddress,':',UploadPort,'/upload');
-disp(cmdCommand)
-system(cmdCommand);
+	elfPath = [pwd filesep '..' filesep bdroot(modelName) '.elf'];
+	a2lPath = [pwd filesep '..' filesep bdroot(modelName) '.a2l'];
+	UploadAddress = get_param(modelName,'tlcXcpTcpAddress');
+	UploadPort = num2str(get_param(modelName,'tlcUploadPort'));
+	% Upload the file to the controller
+	cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',elfPath,'" ',' http://',UploadAddress,':',UploadPort,'/upload');
+	disp(cmdCommand)
+	system(cmdCommand);
+	cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',UploadAddress,':',UploadPort,'/upload');
+	disp(cmdCommand)
+	system(cmdCommand);
 
-end % end of function ert_linux_target_upload()
+end % end of function UploadModelToTarget()

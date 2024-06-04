@@ -57,22 +57,4 @@ Browser(2).Library = 'GOcontroll_Generic';
 Browser(2).Name    = 'GOcontroll Generic';
 Browser(2).IsFlat  = 0;
 
-% find every folder that matches the blockset_* format and execute the
-% slblocks.m script located in this folder
-% If a user wishes to add their own blockset elements see the GOcontroll
-% Wiki on how to get started (link to be added).
-d = dir("blockset_*");
-folders = {d.name};
-BrowserIndex = 3;
-for i = 1:length(folders)
-    name=char(folders(1,i));
-	blocksetScript = [pwd filesep name filesep 'setupBlocks.m'];
-    if isfile(blocksetScript)
-        run(blocksetScript);
-    else
-    	warndlg(sprintf('No setupBlocks script found for %s', name),'Warning');
-    end
-
-end
-
 blkStruct.Browser = Browser;
