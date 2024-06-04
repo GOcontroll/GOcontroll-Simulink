@@ -30,8 +30,11 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V3.7.0';
+version = 'GOcontroll V3.7.1';
 
+%% V3.7.1 Update 4-6-2024:
+%% Fixed the definiti0n of VERSION for gocontroll_mex_version()
+%%
 %% V3.7.0 Update 8-5-2024:
 %% Backported the new UDP blocks to 2018b
 %%
