@@ -52,10 +52,8 @@ addpath([pwd filesep 'blockset' filesep 'utility_functions']);
 
 %if gocontroll_mex_version doesn't exist or the result of it is false, recompile the mex files
 if ~(exist('gocontroll_mex_version', "file") == 3) || ~gocontroll_mex_version()
-	version = ['-DVERSION=''"' ert_linux_target_version() '"'''];
+	version = ['-DVERSION="' ert_linux_target_version() '"'];
 	% compile mex files
-	% first compile version mex as it is not a level 2 S function which causes issues with the later command
-	mex(fullfile(pwd, 'blockset', 'blocks', 'gocontroll_mex_version.c'), '-outdir', fullfile(pwd, 'blockset', 'blocks'), version);
 	d = dir(['blockset' filesep 'blocks']);
 	files = {d.name};
 	for idx = 1:length(files)
@@ -66,6 +64,8 @@ if ~(exist('gocontroll_mex_version', "file") == 3) || ~gocontroll_mex_version()
 			mex(fullfile(pwd, 'blockset', 'blocks', [fname '.c']), '-outdir', fullfile(pwd, 'blockset', 'blocks'));
 		end
 	end
+	% compile version mex last so on failure it doesnt exist and prevent recompilation
+	mex(fullfile(pwd, 'blockset', 'blocks', 'gocontroll_mex_version.c'), '-outdir', fullfile(pwd, 'blockset', 'blocks'), version);
 end
 
 % find every folder that matches the blockset_* format and execute the
