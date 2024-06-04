@@ -9,6 +9,8 @@ To check what release your controller is running see /etc/controller_update/curr
 
 ## GOcontroll Moduline IV toolchain setup
 
+To compile some necessary mex files on Windows you may need to install the "MATLAB Support for MinGW-w64 C/C++/Fortran Compiler" add-on from the Matlab add-on explorer.
+
 To compile the Linux bases blockset for GOcontroll Moduline IV/Mini/Display, some initial steps needs to be made:
 - The template project is created in Matlab Simulink R2018b. This is the tested version so it is strongly recommended to use this version of Matlab.
 - To generate code, you have to install some additional toolboxes to Matlab. This could require some extra licensing. Check https://openmbd.com/getting-started/installation/ for the toolboxes that need to be installed. Ignore the version information on this website.
