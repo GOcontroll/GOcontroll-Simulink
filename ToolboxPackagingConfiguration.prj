@@ -7,7 +7,7 @@
     <param.summary>A toolbox for working with the GOcontroll Moduline controllers</param.summary>
     <param.description>This toolbox contains everything necessery to get started developping for the GOcontroll Moduline controllers, it will install the proper compiler and contains various blocks made to interact with the controllers hardware.</param.description>
     <param.screenshot>${PROJECT_ROOT}/GOcontroll.png</param.screenshot>
-    <param.version>4.1.0</param.version>
+    <param.version>4.2.0</param.version>
     <param.output>${PROJECT_ROOT}/GOcontroll-Simulink.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -90,27 +90,37 @@ SetupToolchain.docx
     <param.matlab.project.id>ccbfd8b5-0fe3-4a78-975a-6fcfaaa709de</param.matlab.project.id>
     <param.matlab.project.name>GOcontroll-Simulink-2023b</param.matlab.project.name>
     <param.release.start>R2023b</param.release.start>
-    <param.release.end>R2023b</param.release.end>
-    <param.release.current.only>true</param.release.current.only>
+    <param.release.end>latest</param.release.end>
+    <param.release.current.only>false</param.release.current.only>
     <param.compatiblity.windows>true</param.compatiblity.windows>
-    <param.compatiblity.macos>false</param.compatiblity.macos>
+    <param.compatiblity.macos>true</param.compatiblity.macos>
     <param.compatiblity.linux>true</param.compatiblity.linux>
     <param.compatiblity.matlabonline>false</param.compatiblity.matlabonline>
     <param.installation.map>+GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx</param.installation.map>
     <param.additional.sw.names>
       <item>aarch64-none-linux-gnu-gcc</item>
+      <item>Zig-x86</item>
+      <item>Zig-aarch64</item>
     </param.additional.sw.names>
     <param.additional.sw.licenses>
       <item>https://developer.arm.com/GetEula?Id=46b4985b-3267-433c-be90-bbfe1921a602</item>
+      <item>https://github.com/ziglang/zig/blob/master/LICENSE</item>
+      <item>https://github.com/ziglang/zig/blob/master/LICENSE</item>
     </param.additional.sw.licenses>
     <param.additional.sw.win.url>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/gcc-arm-9.2-2019.12-mingw-w64-i686-aarch64-none-linux-gnu.zip</item>
+      <item>https://ziglang.org/download/0.12.0/zig-windows-x86_64-0.12.0.zip</item>
+      <item />
     </param.additional.sw.win.url>
     <param.additional.sw.mac.url>
       <item />
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/zig-macos-x86_64-0.12.0.zip</item>
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/zig-macos-aarch64-0.12.0.zip</item>
     </param.additional.sw.mac.url>
     <param.additional.sw.linux.url>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.zip</item>
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/zig-linux-x86_64-0.12.0.zip</item>
+      <item />
     </param.additional.sw.linux.url>
     <unset>
       <param.authnamewatermark />
@@ -129,7 +139,9 @@ SetupToolchain.docx
       <param.javaclasspath.excludes />
       <param.exported.on.package />
       <param.required.addons />
+      <param.release.current.only />
       <param.compatiblity.windows />
+      <param.compatiblity.macos />
       <param.compatiblity.linux />
     </unset>
     <fileset.rootdir>
