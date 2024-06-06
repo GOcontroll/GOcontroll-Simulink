@@ -52,7 +52,7 @@
 
   os = computer();
 
-  rtwoptions(1).prompt        = 'HANcoder options';
+  rtwoptions(1).prompt        = 'GOcontroll options';
   rtwoptions(1).type          = 'Category';
   rtwoptions(1).enable        = 'on';
   rtwoptions(1).default       = 8;   % number of items under this category
