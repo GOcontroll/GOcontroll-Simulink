@@ -45,6 +45,7 @@ _canConnection canConnection;
 int can_socket; /* File descriptor for CAN socket */
 struct can_filter CANfilter[4][CANBUFSIZE]; /* CANfilter to filter receive ID's */
 struct CANbuffer_t CANbuffer[4][CANBUFSIZE]; /* CANbuffer to hold received messages */
+const int test = sizeof(struct CANbuffer_t);
 
 
 /****************************************************************************************/

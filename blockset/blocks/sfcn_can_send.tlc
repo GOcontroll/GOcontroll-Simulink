@@ -44,6 +44,15 @@
 %%
 %function Start(block, system) Output
 	CANsocket(%<block.RTWdata.canBus>); /* Initialize CAN socket */
+	%% get the can connection from CANdriver.c
+	%if EXISTS("::canConnection") == 0
+		%openfile tmpBuf
+		extern _canConnection canConnection;
+		%closefile tmpBuf
+		
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", tmpBuf)>
+		%assign ::canConnection = 1
+	%endif
 %endfunction
 
 %% Function: Update ==========================================================

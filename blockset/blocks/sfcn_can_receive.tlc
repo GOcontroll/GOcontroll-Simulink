@@ -44,6 +44,19 @@
 %%
 %function Start(block, system) Output
 	CANsocket(%<block.RTWdata.canBus>); /* Initialize CAN socket */
+	%if EXISTS("::canZero") == 0
+		%openfile tmpBuf
+		extern struct CANbuffer_t CANbuffer[4][CANBUFSIZE];
+		extern struct can_filter CANfilter[4][CANBUFSIZE];
+		%closefile tmpBuf
+		
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", tmpBuf)>
+		/* set everything to zero */
+		memset(&CANbuffer, 0, sizeof(struct CANbuffer_t)*4*CANBUFSIZE);
+		memset(&CANfilter, 0, sizeof(struct can_filter)*4*CANBUFSIZE);
+		
+		%assign ::canZero = 1
+	%endif
 %endfunction
 
 
@@ -66,17 +79,13 @@
 	}
 	/* Get can_frame from buffer */
 	getCANbuffer((canid_t)%<LibBlockInputSignal(0, "", "", 0)>,%<block.RTWdata.canBus>, &msg, &newFlag);
-	/* Write data to outputs only if there is new data */
-	if(newFlag){
+	/* Write data to outputs */
 	%foreach counter = block.RTWdata.outputNumber
       %if ISEQUAL(CAST("Number",block.RTWdata.byteOrder), 1) && CAST("Number",block.RTWdata.dataType) > 2
         /* swap the data on request */
       %endif
       %<LibBlockOutputSignal(counter + 1, "", "", 0)> = msg->data[%<counter>];
     %endforeach
-	}else{
-	%<LibBlockOutputSignal(1, "", "", 0)> = 0;
-	}
 	/* Update the new flag output */
 	%<LibBlockOutputSignal(0, "", "", 0)> = newFlag;
 	}
