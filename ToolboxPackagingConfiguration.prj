@@ -71,11 +71,7 @@ blockset/blocks/sfcn_can_receive_v2.mexa64
 blockset/blocks/sfcn_can_send_v2.mexa64
 doc
 slprj
-.git*
-GOcontroll_Linux.mdl
-GOcontroll_Linux_startup.m
-SetupToolchain.docx
-*_generated_code/</param.exclude.filters>
+.git*</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples />
     <param.demosxml />

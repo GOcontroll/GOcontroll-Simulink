@@ -36,6 +36,9 @@ version = 'GOcontroll V4.2.0';
 % Documentation fix on the license block
 % Zig compiler is now an option, because of this it should now also be compatible with macos hosts
 % Removed a bit of deprecated code from slblocks.m
+% Fixed some issues from reworking the old CAN blocks
+% Fixed some compiler warnings
+% Some documentation improvements
 
 %% V4.1.0 Update 29-5-2024:
 % The GOcontroll blockset is now installable as a matlab toolbox which also installs the required compiler.
