@@ -215,7 +215,7 @@ void *GocontrollProcessorboardSupply_ReadAdcThread(void *arg)
 	/* set up the mcp3004 iio channels*/
 	if(hardwareConfig.adcControl==ADC_MCP3004) {
 		iioContext = iio_create_local_context();
-		uint8_t channel_count;
+		uint8_t channel_count = 0;
 		iioMCP = iio_context_find_device(iioContext, "mcp3004");
 		//loop through the channels available to this device
 		for (uint8_t i = 0; i < iio_device_get_channels_count(iioMCP); ++i) {
