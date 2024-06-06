@@ -42,13 +42,17 @@ COMPUTER =|>COMPUTER<|
 
 ifeq ($(COMPUTER), GLNXA64)
 MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
-SHELL                           := /bin/bash
+SHELL                           = /bin/bash
 ECHO =
-else
+else ifeq ($(COMPUTER), PCWIN64)
 MAKECMD                         = "%MATLAB%\bin\|>ARCH<|\gmake"
 COMPILER_TOOL_CHAIN             = default
 SHELL =
 ECHO 							= @echo
+else
+MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
+SHELL                           = /bin/zsh
+ECHO =
 endif
 
 SYS_TARGET_FILE                 = ert_linux.tlc
@@ -304,17 +308,17 @@ $(SHARED_LIB) : $(SHARED_OBJS)
 #|---------------------------------------------------------------------------------------
 #| Project cleanup
 #|---------------------------------------------------------------------------------------
-ifeq ($(COMPUTER), GLNXA64)
-.PHONY: clean
-clean :
-	$(ECHO) ### Cleaning the object and lst files
-	rm -f *.obj
-	rm -f *.lst
-else
+ifeq ($(COMPUTER), PCWIN64)
 .PHONY: clean
 clean :
 	$(ECHO) ### Cleaning the object and lst files
 	del *.obj
 	del *.lst
+else
+.PHONY: clean
+clean :
+	$(ECHO) ### Cleaning the object and lst files
+	rm -f *.obj
+	rm -f *.lst
 endif
 #|----------------------------- end of ert_linux_target.tmf --------------------------
