@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="4145645074" file="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev/ToolboxPackagingConfiguration.prj" location="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev" name="ToolboxPackagingConfiguration" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="4145645074" file="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b/ToolboxPackagingConfiguration.prj" location="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b" name="ToolboxPackagingConfiguration" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>GOcontroll-Simulink</param.appname>
     <param.authnamewatermark>GOcontroll</param.authnamewatermark>
     <param.email>info@gocontroll.com</param.email>
@@ -65,13 +65,14 @@ GOcontroll-Simulink.mltbx
 GOcontroll_Linux.elf
 GOcontroll_Linux.a2l
 GOcontroll_Linux.slxc
-blockset/blocks/gocontroll_mex_version.mexa64
-blockset/blocks/sfcn_UDPReceive.mexa64
-blockset/blocks/sfcn_can_receive_v2.mexa64
-blockset/blocks/sfcn_can_send_v2.mexa64
+GOcontroll_Linux.mdl
+GOcontroll_Linux.mdl.autosave
+**/*.mex*
 doc
 slprj
-.git*</param.exclude.filters>
+.git*
+.vscode/
+*_generated_code/</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples />
     <param.demosxml />
@@ -154,7 +155,7 @@ slprj
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="GOcontroll-Simulink.mltbx" optional="false">/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b-dev/GOcontroll-Simulink.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="GOcontroll-Simulink.mltbx" optional="false">/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b/GOcontroll-Simulink.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
