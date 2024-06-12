@@ -42,13 +42,17 @@ COMPUTER =|>COMPUTER<|
 
 ifeq ($(COMPUTER), GLNXA64)
 MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
-SHELL                           := /bin/bash
+SHELL                           = /bin/bash
 ECHO =
-else
+else ifeq ($(COMPUTER), PCWIN64)
 MAKECMD                         = "%MATLAB%\bin\|>ARCH<|\gmake"
 COMPILER_TOOL_CHAIN             = default
 SHELL =
 ECHO 							= @echo
+else
+MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
+SHELL                           = /bin/zsh
+ECHO =
 endif
 
 SYS_TARGET_FILE                 = ert_linux.tlc
@@ -109,6 +113,7 @@ MODELREFS            = |>MODELREFS<|
 GEN_SAMPLE_MAIN      = |>GEN_SAMPLE_MAIN<|
 TARGET_LANG_EXT      = |>TARGET_LANG_EXT<|
 OTHER                = |>DEFINES_OTHER<|
+OTHER_FLAGS          = |>COMPILE_FLAGS_OTHER<|
 ADD_FLAGS            = |>ADDITIONAL_LDFLAGS<|
 START_DIR            = |>START_DIR<|
 
@@ -143,13 +148,13 @@ BIN_PATH     = $(RELATIVE_PATH_TO_ANCHOR)
 #| Compiler binaries                                                                     |
 #|---------------------------------------------------------------------------------------|
 # ARMv8_64
-CC = "|>CC<|"
-AS = "|>AS<|"
-AR = "|>AR<|"
-LD = "|>LD<|"
-OC = "|>OC<|"
-OD = "|>OD<|"
-SZ = "|>SZ<|"
+CC = |>CC<|
+AS = |>AS<|
+AR = |>AR<|
+LD = |>LD<|
+OC = |>OC<|
+OD = |>OD<|
+SZ = |>SZ<|
 
 #|---------------------------------------------------------------------------------------
 #| Tool Specifications
@@ -158,16 +163,6 @@ SZ = "|>SZ<|"
 #|---------------------------------------------------------------------------------------
 #| Include Path
 #|---------------------------------------------------------------------------------------
-
-MATLAB_INCLUDES = \
-	-I"$(MATLAB_ROOT)/simulink/include" \
-	-I"$(MATLAB_ROOT)/extern/include" \
-	-I"$(MATLAB_ROOT)/rtw/c/src"
-
-COMPILER_INCLUDES =
-# HANcoder Target includes
-
-CC_INCLUDES += -I"$(MATLAB_ROOT)/rtw/c/ert"
 
 # Additional includes
 ADD_INCLUDES = \
@@ -180,15 +175,8 @@ ifneq ($(SHARED_SRC_DIR),)
 SHARED_INCLUDES = -I$(SHARED_SRC_DIR)
 endif
 
-CC_INCLUDES += -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(MATLAB_INCLUDES) $(ADD_INCLUDES) \
-	$(COMPILER_INCLUDES) $(USER_INCLUDES) \
-	$(SHARED_INCLUDES) $(HANcoder_INCLUDES)
-
-
-
-AC_INCLUDES =
-
-
+CC_INCLUDES = -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(ADD_INCLUDES) \
+	$(USER_INCLUDES) $(SHARED_INCLUDES)
 
 #|---------------------------------------------------------------------------------------
 #| Tool flags
@@ -201,9 +189,9 @@ AC_INCLUDES =
 		  -DONESTEPFCN=$(ONESTEPFCN) -DTERMFCN=$(TERMFCN) \
 		  -DHAVESTDIO -DMULTI_INSTANCE_CODE=$(MULTI_INSTANCE_CODE)
 # additional compiler flags
-CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES) $(OTHER)
-CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
-CC_FLAGS        += -mcpu=cortex-a53 -Wno-unused-but-set-variable -Wno-maybe-uninitialized -D_GNU_SOURCE -gdwarf
+CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES) $(OTHER) $(OTHER_FLAGS)
+CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
+CC_FLAGS        += -Wno-unused-but-set-variable -D_GNU_SOURCE -gdwarf
 
 # additional assembler flags
 AS_FLAGS        +=
@@ -211,7 +199,7 @@ AS_FLAGS        +=
 existing or insert new file(s) into the archive
 AR_FLAGS        += -cr
 # additional linker flags
-LINKER_FLAGS     += -lpthread -Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map -lm -lrt $(ADD_FLAGS)
+LINKER_FLAGS     += -lpthread -lm -lrt $(ADD_FLAGS)
 # additional object copy flags
 OC_FLAGS         = -O srec
 OC_FLAGS_BIN     = -O binary
@@ -236,14 +224,8 @@ LIBS += $(EXT_LIB) $(S_FUNCTIONS_LIB)
 #|---------------------------------------------------------------------------------------
 #| Source files
 #|---------------------------------------------------------------------------------------
-HANcoder_LIB_SRCS =
 
-ADD_SRCS = \
-	GocontrollLin.c XcpStack.c XcpTargetSpecific.c CANdriver.c ert_main.c GocontrollProcessorboard.c \
-	GocontrollInputModule.c GocontrollOutputModule.c GocontrollBridgeModule.c MemoryEmulation.c \
-	MemoryDiagnostic.c GocontrollProcessorboardSupply.c Gocontroll420maInputModule.c \
-
-	# GocontrollMqtt.c mqtt_pal.c mqtt.c
+ADD_SRCS = ert_main.c 
 
 SRCS  = $(MODULES) $(ADD_SRCS) $(S_FUNCTIONS)
 
@@ -283,27 +265,11 @@ $(PRODUCT): $(BIN_PATH)/$(MODEL_NAME).elf
 $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
 	$(ECHO) ### Linking $(notdir $@)
 	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group\
-        -o $@ $(LINKER_FLAGS)
+		-o $@ $(LINKER_FLAGS)
 	$(ECHO) ### Created $(MODEL_NAME).elf
 
 %.obj : %.c
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
-
-%.obj : $(XCP_PATH)/%.c
-	$(ECHO) ### Compiling xcp path $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
-
-%.obj : $(MQTT_PATH)/%.c
-	$(ECHO) ### Compiling mqtt path $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
-
-%.obj : $(LIB_PATH)/%.c
-	$(ECHO) ### Compiling lib path $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
-
-%.obj : $(SRC_PATH)/%.c
-	$(ECHO) ### Compiling source path $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 %.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.c
@@ -342,17 +308,17 @@ $(SHARED_LIB) : $(SHARED_OBJS)
 #|---------------------------------------------------------------------------------------
 #| Project cleanup
 #|---------------------------------------------------------------------------------------
-ifeq ($(COMPUTER), GLNXA64)
-.PHONY: clean
-clean :
-	$(ECHO) ### Cleaning the object and lst files
-	rm -f *.obj
-	rm -f *.lst
-else
+ifeq ($(COMPUTER), PCWIN64)
 .PHONY: clean
 clean :
 	$(ECHO) ### Cleaning the object and lst files
 	del *.obj
 	del *.lst
+else
+.PHONY: clean
+clean :
+	$(ECHO) ### Cleaning the object and lst files
+	rm -f *.obj
+	rm -f *.lst
 endif
 #|----------------------------- end of ert_linux_target.tmf --------------------------

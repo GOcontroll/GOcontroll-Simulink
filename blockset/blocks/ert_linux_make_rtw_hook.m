@@ -177,15 +177,36 @@ switch hookMethod
 		[path, ~, ~] = fileparts(mfilePath);
 
 		%set the compiler path in the tmf
-		gccpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('aarch64-none-linux-gnu-gcc');
-		gccpath = fullfile(gccpath, 'bin');
-		addTMFTokens(buildInfo, '|>CC<|', fullfile(gccpath,'aarch64-none-linux-gnu-gcc'),'LINK_INFO');
-		addTMFTokens(buildInfo, '|>AS<|', fullfile(gccpath,'aarch64-none-linux-gnu-as'),'LINK_INFO');
-		addTMFTokens(buildInfo, '|>AR<|', fullfile(gccpath,'aarch64-none-linux-gnu-ar'),'LINK_INFO');
-		addTMFTokens(buildInfo, '|>LD<|', fullfile(gccpath,'aarch64-none-linux-gnu-gcc'),'LINK_INFO');
-		addTMFTokens(buildInfo, '|>OC<|', fullfile(gccpath,'aarch64-none-linux-gnu-objcopy'),'LINK_INFO');
-		addTMFTokens(buildInfo, '|>OD<|', fullfile(gccpath,'aarch64-none-linux-gnu-objdump'),'LINK_INFO');
-		addTMFTokens(buildInfo, '|>SZ<|', fullfile(gccpath,'aarch64-none-linux-gnu-size'),'LINK_INFO');
+		if (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'GCC'))
+			gccpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('aarch64-none-linux-gnu-gcc');
+			gccpath = fullfile(gccpath, 'bin');
+			addTMFTokens(buildInfo, '|>CC<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-gcc') '"'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>AS<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-as') '"'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>AR<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-ar') '"'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>LD<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-gcc') '"'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>OC<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-objcopy') '"'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>OD<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-objdump') '"'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>SZ<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-size') '"'],'LINK_INFO');
+			addCompileFlags(buildInfo, '-mcpu=cortex-a53 -Wa,-adhlns="$@.lst" -Wno-maybe-uninitialized');
+			addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map')
+		elseif (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'Zig'))
+			if (~strcmp(computer(), "MACA64")) %if not apple silicon it is x86
+				zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-x86');
+			else %is apple silicon, use aarch64 possibly in the future also windows and linux
+				zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-aarch64'); 
+			end
+			zigpath = ['"' fullfile(zigpath, 'zig') '"'];
+			addTMFTokens(buildInfo, '|>CC<|', [zigpath ' cc -target aarch64-linux-gnu.2.31'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>AS<|', '','LINK_INFO');
+			addTMFTokens(buildInfo, '|>AR<|', [zigpath ' ar'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>LD<|', [zigpath ' cc -target aarch64-linux-gnu.2.31'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>OC<|', [zigpath ' oc'],'LINK_INFO');
+			addTMFTokens(buildInfo, '|>OD<|', '','LINK_INFO');
+			addTMFTokens(buildInfo, '|>SZ<|', '','LINK_INFO');
+			addCompileFlags(buildInfo, '-mcpu=cortex_a53');
+		else
+			error("No valid compiler selected");
+		end
 
 		%add the source code/libraries to the tmf
 		codepath = fullfile(path, '..', 'code');
@@ -193,7 +214,8 @@ switch hookMethod
 		oaespath = fullfile(path, '..', 'lib', 'OAES');
 		iiopath = fullfile(path, '..', 'lib', 'IIO');
 		addIncludePaths(buildInfo, {codepath,xcppath, oaespath, iiopath});
-		addSourcePaths(buildInfo, {codepath,xcppath});
+		addSourceFiles(buildInfo, '*.c', codepath);
+		addSourceFiles(buildInfo, '*.c', xcppath);
 		addLinkObjects(buildInfo, fullfile(oaespath, 'liboaes_lib.a'), '', 1000,true, true);
 		addLinkObjects(buildInfo, fullfile(iiopath, 'libiio.so.0'), '', 1000,true, true);
 
@@ -209,13 +231,16 @@ switch hookMethod
 		% Get the Linux target from the model parameters tab
 		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
 
-		MAPfile = ['..' filesep modelName '.map'];
+		if isfile(fullfile(pwd, '..', [modelName '.map']))
+			MAPfile = fullfile(pwd, '..', [modelName '.map']);
+			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile);
 
-		create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile); 
-
-		% Moving the A2L file to the user directory and the map file away
+			% Moving the A2L file to the user directory and the map file away
+			movefile(['..' filesep modelName '.map'],[modelName '.map']);
+		else
+			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '');
+		end
 		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
-		movefile(['..' filesep modelName '.map'],[modelName '.map']);
 
 	case 'exit'
 		% Called at the end of the RTW build process.  All arguments are valid

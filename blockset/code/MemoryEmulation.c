@@ -71,7 +71,7 @@ void MemoryEmulation_WriteToMemory(char* key, float value, float* oldValue)
 	else
 	{
 		/* Check if a value is already stored. If yes, quit function */
-		float dummy = 0xffffffff;
+		float dummy = (float) 0xffffffff;
 		MemoryEmulation_ReadFromMemory(key,&dummy);
 		/* If dummy is changed, the value is already there so ignore init value */
 		if(dummy != 0xffffffff)

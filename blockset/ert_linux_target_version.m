@@ -30,12 +30,20 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.1.0';
+version = 'GOcontroll V4.2.0';
+
+%% V4.2.0 Update 5-6-2024:
+% Documentation fix on the license block
+% Zig compiler is now an option, because of this it should now also be compatible with macos hosts
+% Removed a bit of deprecated code from slblocks.m
+% Fixed some issues from reworking the old CAN blocks
+% Fixed some compiler warnings
+% Some documentation improvements
 
 %% V4.1.0 Update 29-5-2024:
 % The GOcontroll blockset is now installable as a matlab toolbox which also installs the required compiler.
 % XCP server is now a block so it can be deactivated.
-% improvements to UDP blocks and the template.
+% Improvements to UDP blocks and the template.
 
 %% V4.0.0 Update 16-5-2024:
 % New CAN blocks added, these can use dbc files.

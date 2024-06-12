@@ -20,7 +20,8 @@ function create_asap2(modelName, XCPport, XCPaddress, XCPstationID, Target, MAPf
 	if exist(MAPfile, 'file')
 		MAPfileString = fileread(MAPfile);
 	else
-		DAStudio.error('Could not find .map file');
+		MAPfileString = '';
+		warning('Could not find .map file, you can safely ignore this warning when using the Zig compiler');
 	end
 	if strcmp(Target, 'i.MX8')
 		XCPstationIDAddress = regexp(MAPfileString, '\n\s+0x([0-9a-fA-F]){16}\s+uniqueIdString+','tokens');

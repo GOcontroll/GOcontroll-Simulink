@@ -136,6 +136,8 @@ _eventChannel eventChannel[3] ={
 
 
 int xcpSocketResult, XcpSocket;
+uint32_t uniqueIdLengthAdress;
+uint32_t uniqueIdStringAdress;
 
 /****************************************************************************************
 * Function prototypes

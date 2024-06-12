@@ -50,10 +50,12 @@
 /%
   BEGIN_RTW_OPTIONS
 
-  rtwoptions(1).prompt        = 'HANcoder options';
+  os = computer();
+
+  rtwoptions(1).prompt        = 'GOcontroll options';
   rtwoptions(1).type          = 'Category';
   rtwoptions(1).enable        = 'on';
-  rtwoptions(1).default       = 7;   % number of items under this category
+  rtwoptions(1).default       = 8;   % number of items under this category
                                      % excluding this one.
   rtwoptions(1).popupstrings  = '';  % At the first item, user has to
   rtwoptions(1).tlcvariable   = '';  % initialize all supported fields
@@ -98,6 +100,19 @@
   rtwoptions(7).popupstrings  = 'i.MX6|i.MX8|Raspberry Pi';
   rtwoptions(7).tlcvariable   = 'tlcLinuxTarget';
   rtwoptions(7).tooltip       = ['Select the Target you want to build the project for'];
+
+  rtwoptions(8).prompt        = 'Compiler';
+  rtwoptions(8).type          = 'Popup';
+  rtwoptions(8).tlcvariable   = 'tlcLinuxCompiler';
+  rtwoptions(8).tooltip       = ['Select the Compiler to use to build the model'];
+  if (strcmp(os, 'GLNXA64') | strcmp(os, 'PCWIN64'))
+	  rtwoptions(8).default   = 'GCC';
+	  rtwoptions(8).popupstrings = 'GCC|Zig';
+  else
+	  rtwoptions(8).default   = 'Zig';
+	  rtwoptions(8).popupstrings = 'Zig';
+  end
+
 
 
   %----------------------------------------%
