@@ -106,17 +106,17 @@ slprj
     </param.additional.sw.licenses>
     <param.additional.sw.win.url>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/gcc-arm-9.2-2019.12-mingw-w64-i686-aarch64-none-linux-gnu.zip</item>
-      <item>https://ziglang.org/download/0.12.0/zig-windows-x86_64-0.12.0.zip</item>
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.1.0/zig-windows-x86_64-0.13.0.zip</item>
       <item />
     </param.additional.sw.win.url>
     <param.additional.sw.mac.url>
       <item />
-      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/zig-macos-x86_64-0.12.0.zip</item>
-      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/zig-macos-aarch64-0.12.0.zip</item>
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.1.0/zig-macos-x86_64-0.13.0.zip</item>
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.1.0/zig-macos-aarch64-0.13.0.zip</item>
     </param.additional.sw.mac.url>
     <param.additional.sw.linux.url>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.zip</item>
-      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/zig-linux-x86_64-0.12.0.zip</item>
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.1.0/zig-linux-x86_64-0.13.0.zip</item>
       <item />
     </param.additional.sw.linux.url>
     <unset>
