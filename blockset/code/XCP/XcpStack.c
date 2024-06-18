@@ -98,6 +98,7 @@
 #define XCPMTA							0xf6
 #define XCPUPLOAD						0xf5
 #define XCPSHORTUPLOAD					0xf4
+#define XCPUSERCMD						0xf1
 #define XCPDOWNLOAD						0xf0
 
 /* XCP DAQ list commands */
@@ -119,6 +120,7 @@
 
 /* XCP Error codes */
 #define XCPERRORCMDCYNC					0x00
+#define XCPERRCMDUNKNOWN				0x20
 #define XCPERRORMEMORYOVERFLOW			0x30
 
 /****************************************************************************************
@@ -206,6 +208,7 @@ static void XcpGetIdReply(uint8_t *dataToSend);
 static void XcpSetMta(uint8_t *dataReceived, uint8_t *dataToSend);
 static void XcpUploadReply(uint8_t *dataReceived, uint8_t *dataToSend);
 static void XcpShortUploadReply(uint8_t *dataReceived, uint8_t *dataToSend);
+static void XcpUserCommand(uint8_t *dataReceived, uint8_t *dataToSend);
 static void XcpDownload(uint8_t *dataReceived, uint8_t *dataToSend);
 static void XcpSetDaqPointer(uint8_t *dataReceived, uint8_t *dataToSend);
 static void XcpWriteDaq(uint8_t *dataReceived, uint8_t *dataToSend);
@@ -277,6 +280,8 @@ void XcpCommunicationHandling(uint8_t *dataReceived, uint32_t receivedLength, ui
 		case XCPUPLOAD:					XcpUploadReply(dataReceived,dataToSend);				break;
 
 		case XCPSHORTUPLOAD:			XcpShortUploadReply(dataReceived,dataToSend);			break;
+
+		case XCPUSERCMD:				XcpUserCommand(dataReceived, dataToSend);				break;
 
 		case XCPDOWNLOAD:				XcpDownload(dataReceived,dataToSend);					break;
 
@@ -596,6 +601,27 @@ static void XcpShortUploadReply(uint8_t *dataReceived, uint8_t *dataToSend)
 
 	XcpCalculateChecksum(dataToSend);
 	XcpSendData(dataToSend);
+}
+
+/************************************************************************************//**
+** \brief     This command is user defined. It mustn't be used to implement 
+**			  functionalities done by other services.
+** \param	  Pointer to de data array with received data from XCP master
+** \param	  Pointer to the data array that is send back to the master with a reply or data
+** \return    none.
+**
+****************************************************************************************/
+static void XcpUserCommand(uint8_t *dataReceived, uint8_t *dataToSend)
+{
+	#if DEBUGINFORMATION == 1
+	printf("XCP user command\n");
+	#endif
+	// CALL USERCOMMAND, DEFINED IN XcpTargetSpecific.c
+	if(XcpUserCmd(dataReceived)==0){
+		XcpPositiveResponse(dataToSend); //only positive response is required
+	} else {
+		XcpNegativeResponse(dataToSend,XCPERRCMDUNKNOWN);
+	}
 }
 
 /***************************************************************************************

@@ -64,7 +64,16 @@
 %%      initialize the reconnect_state struct
 
 %function Start(block, system) Output
-	pthread_create(&xcp_thread, NULL, &XcpInitialize, NULL);
+	%switch (%<block.RTWdata.server_type>)
+		%case 1
+			pthread_create(&xcp_thread, NULL, &XcpInitialize_tcp, NULL);
+			%break
+		%case 2
+			pthread_create(&xcp_thread, NULL, &XcpInitialize_udp, NULL);
+			%break
+		%default
+			%<LibBlockReportError(block, "Invalid XCP server type selected")>
+	%endswitch
 %endfunction
 
 %% Function: Output ==========================================================

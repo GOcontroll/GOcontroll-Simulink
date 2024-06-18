@@ -231,14 +231,22 @@ switch hookMethod
 		% Get the Linux target from the model parameters tab
 		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
 
+		xcp_server = find_system(modelName, 'RegExp', 'on', 'LookUnderMasks', 'all', 'MaskType', 'XCP Server');
+
+		if (length(xcp_server) == 1)
+			medium = get_param(xcp_server{1}, 'server_type');
+		else % length > 1 generates a tlc error, so it must be 0 here
+			medium = 'TCP'; % no XCP server present, just generate an a2l for TCP
+		end
+
 		if isfile(fullfile(pwd, '..', [modelName '.map']))
 			MAPfile = fullfile(pwd, '..', [modelName '.map']);
-			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile);
+			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile, medium);
 
 			% Moving the A2L file to the user directory and the map file away
 			movefile(['..' filesep modelName '.map'],[modelName '.map']);
 		else
-			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '');
+			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '', medium);
 		end
 		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
 

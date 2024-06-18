@@ -1,4 +1,4 @@
-function create_asap2(modelName, XCPport, XCPaddress, XCPstationID, Target, MAPfile)
+function create_asap2(modelName, XCPport, XCPaddress, XCPstationID, Target, MAPfile, medium)
 	% CREATE_ASAP2 Generate an a2l file from the given inputs
 	%
 	% CREATE_ASAP2(modelName, XCPport, XCPaddress, XCPstationID, Target, MAPfile)
@@ -33,7 +33,7 @@ function create_asap2(modelName, XCPport, XCPaddress, XCPstationID, Target, MAPf
 	else
 		XCPstationIDAddress = '0x0000';
 	end
-	base = GOcontrollASAP2(XCPport, XCPaddress, XCPstationID, XCPstationIDAddress, Target);
+	base = GOcontrollASAP2(XCPport, XCPaddress, XCPstationID, XCPstationIDAddress, Target, medium);
 	ecuDesc = coder.asap2.getEcuDescriptions(modelName, Version='1.71', IncludeDefaultEventList=false, MapFile=['..' filesep modelName '.elf'], CustomizationObject=base);
 	measurements = find(ecuDesc, 'Measurement');
 	for i = 1:length(measurements)

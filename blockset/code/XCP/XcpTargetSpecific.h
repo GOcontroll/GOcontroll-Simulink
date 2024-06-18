@@ -118,11 +118,18 @@ char channel [7];
 ****************************************************************************************/
 
 /****************************************************************************************
-** \brief     Initializes the XCP slave communication module
+** \brief     Initializes the XCP slave communication module with the TCP/IP protocol
 ** \param     aArgument pointer to the arguments
 ** \return    none
 ****************************************************************************************/
-void *XcpInitialize(void *aArgument);
+void *XcpInitialize_tcp(void *aArgument);
+
+/****************************************************************************************
+** \brief     Initializes the XCP slave communication module with the UDP/IP protocol
+** \param     aArgument pointer to the arguments
+** \return    none
+****************************************************************************************/
+void *XcpInitialize_udp(void *aArgument);
 
 /***************************************************************************************
 ** \brief     This function sends the data from the stack to the specified communication
@@ -158,6 +165,13 @@ void XcpWriteData(uint8_t *data,uint8_t elements, uint64_t location);
 ** \return    none.
 ****************************************************************************************/
 void XcpStopConnection(void);
+
+/***************************************************************************************
+** \brief     Function to handle user define commands.
+** \param	  dataReceived the data received in the incoming xcp command.
+** \return    none.
+****************************************************************************************/
+uint8_t XcpUserCmd(uint8_t *dataReceived);
 
 #endif
 
