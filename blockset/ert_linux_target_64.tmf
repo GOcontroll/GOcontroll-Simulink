@@ -314,7 +314,7 @@ clean :
 	$(ECHO) ### Cleaning the object and lst files
 	del *.obj
 	del *.lst
-else ifeq($(COMPUTER), GLNXA64)
+else ifeq ($(COMPUTER), GLNXA64)
 .PHONY: clean
 clean :
 	$(ECHO) ### Cleaning the object and lst files
