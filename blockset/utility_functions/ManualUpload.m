@@ -40,9 +40,9 @@
 
 function ManualUpload(modelname, ip, options)
 	arguments
-		modelname char
-		ip char
-		options.port char = '8001'
+		modelname {mustBeTextScalar}
+		ip {mustBeTextScalar}
+		options.port {mustBeTextScalar} = '8001'
 	end
 
 	elfPath = [pwd filesep modelname '.elf'];

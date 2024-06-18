@@ -187,7 +187,7 @@ switch hookMethod
 			addTMFTokens(buildInfo, '|>OC<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-objcopy') '"'],'LINK_INFO');
 			addTMFTokens(buildInfo, '|>OD<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-objdump') '"'],'LINK_INFO');
 			addTMFTokens(buildInfo, '|>SZ<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-size') '"'],'LINK_INFO');
-			addCompileFlags(buildInfo, '-mcpu=cortex-a53 -Wa,-adhlns="$@.lst" -Wno-maybe-uninitialized');
+			addCompileFlags(buildInfo, '-mcpu=cortex-a53 -Wa,-adhlns="$@.lst" -Wno-maybe-uninitialized -gdwarf');
 			addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map')
 		elseif (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'Zig'))
 			if (~strcmp(computer(), "MACA64")) %if not apple silicon it is x86
@@ -203,7 +203,7 @@ switch hookMethod
 			addTMFTokens(buildInfo, '|>OC<|', [zigpath ' oc'],'LINK_INFO');
 			addTMFTokens(buildInfo, '|>OD<|', '','LINK_INFO');
 			addTMFTokens(buildInfo, '|>SZ<|', '','LINK_INFO');
-			addCompileFlags(buildInfo, '-mcpu=cortex_a53');
+			addCompileFlags(buildInfo, '-mcpu=cortex_a53 -gdwarf64');
 		else
 			error("No valid compiler selected");
 		end
@@ -215,6 +215,7 @@ switch hookMethod
 		iiopath = fullfile(path, '..', 'lib', 'IIO');
 		addIncludePaths(buildInfo, {codepath,xcppath, oaespath, iiopath});
 		addSourceFiles(buildInfo, '*.c', codepath);
+		addSourceFiles(buildInfo, '*.zig', codepath);
 		addSourceFiles(buildInfo, '*.c', xcppath);
 		addLinkObjects(buildInfo, fullfile(oaespath, 'liboaes_lib.a'), '', 1000,true, true);
 		addLinkObjects(buildInfo, fullfile(iiopath, 'libiio.so.0'), '', 1000,true, true);

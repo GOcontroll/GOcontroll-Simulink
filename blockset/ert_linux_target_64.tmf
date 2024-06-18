@@ -191,7 +191,7 @@ CC_INCLUDES = -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(ADD_INCLUDES) \
 # additional compiler flags
 CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES) $(OTHER) $(OTHER_FLAGS)
 CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
-CC_FLAGS        += -Wno-unused-but-set-variable -D_GNU_SOURCE -gdwarf
+CC_FLAGS        += -Wno-unused-but-set-variable -D_GNU_SOURCE
 
 # additional assembler flags
 AS_FLAGS        +=
@@ -286,8 +286,12 @@ ifeq ($(GEN_SAMPLE_MAIN),0)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 endif
 
-
 |>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.c
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
+	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
+|>END_EXPAND_RULES<|
+
+|>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.zig
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 |>END_EXPAND_RULES<|
