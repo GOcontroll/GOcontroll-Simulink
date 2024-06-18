@@ -314,11 +314,14 @@ clean :
 	$(ECHO) ### Cleaning the object and lst files
 	del *.obj
 	del *.lst
-else
+else ifeq($(COMPUTER), GLNXA64)
 .PHONY: clean
 clean :
 	$(ECHO) ### Cleaning the object and lst files
 	rm -f *.obj
 	rm -f *.lst
+else # apple doesn't like cleanup
+.PHONY: clean
+clean :
 endif
 #|----------------------------- end of ert_linux_target.tmf --------------------------
