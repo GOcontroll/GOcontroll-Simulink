@@ -32,27 +32,35 @@
 %% blockset folder to make it manually callable. It was modified by GOcontroll.
 %%
 %% Usage:
-%% ManualUpload [address] <optional port>
+%% ManualUpload('modelname', 'address', port='port');
+%%
+%% port is an optional argument, it can be left out, by default port = 8001
 %%
 %%***************************************************************************************
 
-function ManualUpload(ip,varargin)
+function ManualUpload(modelname, ip, options)
+	arguments
+		modelname char
+		ip char
+		options.port char = '8001'
+	end
 
-if length(varargin) == 1
-	port = varargin{1};
-else
-	port = '8001';
-end
+	elfPath = [pwd filesep modelname '.elf'];
+	a2lPath = [pwd filesep modelname '.a2l'];
 
-elfPath = [pwd filesep 'GOcontroll_Linux.elf'];
-a2lPath = [pwd filesep 'GOcontroll_Linux.a2l'];
-
-% Upload the file to the controller
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',elfPath,'" ',' http://',ip,':',port,'/upload');
-disp(cmdCommand)
-system(cmdCommand);
-cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',ip,':',port,'/upload');
-disp(cmdCommand)
-system(cmdCommand);
-
+	% Upload the file to the controller
+	if (isfile(elfPath))
+	cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',elfPath,'" ',' http://',ip,':',options.port,'/upload');
+	disp(cmdCommand)
+	system(cmdCommand);
+	else
+		error(['Could not find the elf that belongs with ', modelname]);
+	end
+	if (isfile(a2lPath))
+		cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',ip,':',options.port,'/upload');
+		disp(cmdCommand)
+		system(cmdCommand);
+	elseif (~isfile(a2lPath))
+		error(['Could not find the a2l file that belongs with ', modelname]);
+	end
 end % end of function ManualUpload()
