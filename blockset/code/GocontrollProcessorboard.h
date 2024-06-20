@@ -118,7 +118,7 @@ typedef struct{
 ** \param     void
 ** \return    none
 ****************************************************************************************/
-void 		GocontrollProcessorboard_Initialize(void);
+void 		GocontrollProcessorboard_ModulesInitialize(void);
 
 /****************************************************************************************
 ** \brief     Control the GOcontroll enclosure LEDs
@@ -203,6 +203,27 @@ void 		GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], ch
 ** \return    0 on success, error code on failure
 ****************************************************************************************/
 int     GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t call_type);
+
+/**************************************************************************************
+** \brief     Function that gets the hardware details from memory
+** \param     none
+** \return    none
+****************************************************************************************/
+void 	GocontrollProcessorboard_GetHardwareVersion(void);
+
+/**************************************************************************************
+** \brief     Initialize the leds on the enclosure
+** \param     none.
+** \return    0 if ok -1 if  failed
+****************************************************************************************/
+int 		GocontrollProcessorboard_LedInitialize(void);
+
+/****************************************************************************************
+** \brief     Claim cpu number 3 for this process
+** \param     none.
+** \return    none
+****************************************************************************************/
+void 	GocontrollProcessorboard_SetCpuAffinity(void);
 
 #endif // _GOCONTROLL_PROCESSORBOARD_H
 

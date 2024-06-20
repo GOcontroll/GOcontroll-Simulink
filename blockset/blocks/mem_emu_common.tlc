@@ -1,0 +1,10 @@
+%function mem_emu_type_setup() void
+	%<LibAddToCommonIncludes("MemoryEmulation.h")>
+%endfunction
+
+%function mem_emu_start() Output
+	%if EXISTS(::memory_emu_init) == 0
+		%assign ::memory_emu_init = 1
+		MemoryEmulation_InitializeMemory();
+	%endif
+%endfunction

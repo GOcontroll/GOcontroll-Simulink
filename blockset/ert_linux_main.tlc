@@ -108,7 +108,6 @@ static void * model_step(void *arg)
 		serveCANconnection();
 		/* Run model code */
 		%<modelName>_step();
-		//XcpDataTransmission();
 		#if(DEBUG == 1)
 			fprintf(stderr,"Model step\n");
 		#endif
@@ -135,8 +134,8 @@ int_T main(int_T argc, const char_T *argv[]){
 	/* Register the terminate function so it can be called during a SIGTERM command */
 	GocontrollProcessorboard_ExitProgram(killModel);
 
-	/* Initialize the processorboard pheriphals */
-	GocontrollProcessorboard_Initialize();
+	/* use cpu 3 */
+	GocontrollProcessorboard_SetCpuAffinity();
 
 	/* Block signal SIGALRM used to time the modelStep() in all threads created by main thread */
 	sigemptyset(&set);
@@ -147,8 +146,6 @@ int_T main(int_T argc, const char_T *argv[]){
 
 	/* Initialize model */
 	%<modelName>_initialize();
-
-	/* Create xcp thread */
 
 	/* Make a struct for the timer setup */
 	struct itimerval timer_setup = { .it_interval = {0, %<CompiledModel.SampleTime[0].ClockTickStepSize * 1000000> },	/* Automatically updated from the base sample time of the model */

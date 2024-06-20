@@ -30,6 +30,8 @@
 %%***************************************************************************************
 %implements  sfcn_gocontroll_bridge_module "C"
 
+%include "module_common.tlc"
+
 %% add required include files
 %<LibAddToCommonIncludes("GocontrollBridgeModule.h")>
 
@@ -43,15 +45,7 @@
 %endfunction
 
 %function BlockInstanceSetup(block, system) void
-	%%check if slot is already occupied
-	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
-	%if EXISTS(%<slot>) == 0
-		%assign %<slot> = "bridge module"
-	%else
-		%assign module = %<slot>
-		%assign error = "Module slot %<block.RTWdata.moduleSlot> is already occupied by a %<module>"
-		%<LibBlockReportError(block, error)>
-	%endif
+	%<module_instance_setup(block, "bridge module", block.RTWdata.moduleSlot)>
 %endfunction
 
 %% Function: Start ==========================================================
@@ -60,6 +54,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
+	%<module_start()>
 	%openfile tmpBuf
 	_bridgeModule bridgeModule%<block.RTWdata.moduleSlot>;
 	%closefile tmpBuf

@@ -30,8 +30,12 @@
 %%***************************************************************************************
 %implements  sfcn_memory_diagnostic_write_freeze "C"
 
+%include "mem_diag_common.tlc"
+
 %% add required include files
-%<LibAddToCommonIncludes("MemoryDiagnostic.h")>
+%function BlockTypeSetup(block, system) void
+	%<mem_diag_type_setup()>
+%endfunction
 
 %% Function: Start ==========================================================
 %%
@@ -39,6 +43,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
+	%<mem_diag_start()>
 %endfunction
 
 %% Function: Output ==========================================================

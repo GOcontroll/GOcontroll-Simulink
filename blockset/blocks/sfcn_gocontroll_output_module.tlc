@@ -30,8 +30,7 @@
 %%***************************************************************************************
 %implements  sfcn_gocontroll_output_module "C"
 
-%% add required include files
-%<LibAddToCommonIncludes("GocontrollOutputModule.h")>
+%include "module_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -39,19 +38,12 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-
+	%% add required include files
+	%<LibAddToCommonIncludes("GocontrollOutputModule.h")>	
 %endfunction
 
 %function BlockInstanceSetup(block, system) void
-	%%check if slot is already occupied
-	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
-	%if EXISTS(%<slot>) == 0
-		%assign %<slot> = "6 channel output module"
-	%else
-		%assign tmp = %<slot>
-		%assign error = "Module slot %<block.RTWdata.moduleSlot> is already occupied by a %<tmp>"
-		%<LibBlockReportError(block, error)>
-	%endif
+	%<module_instance_setup(block, "6 channel output module", block.RTWdata.moduleSlot)>
 %endfunction
 
 
@@ -61,6 +53,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
+	%<module_start()>
   %%
 
   	%% Mechanism to create a global declared structure for piping

@@ -32,6 +32,7 @@
 
 %% add required include files
 %<LibAddToCommonIncludes("GocontrollProcessorboardSupply.h")>
+%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
 %<LibAddToCommonIncludes("pthread.h")>
 
 %function BlockInstanceSetup(block, system) void
@@ -52,6 +53,12 @@
 %function Start(block, system) Output
 	%if EXISTS("adc_thread") == 0
 		%assign ::adc_thread = 1
+
+		%if EXISTS(::processorboard_hw) == 0
+			%assign ::processorboard_hw = 1
+			GocontrollProcessorboard_GetHardwareVersion();
+		%endif
+
 		%openfile buff
 		pthread_t adc_thread = NULL;
 		struct  ControllerSupplyThreadArgs adc_thread_args;

@@ -1,0 +1,45 @@
+%function module_instance_setup(block, module_type, module_slot) void
+	%%check if slot is already occupied
+	%assign slot = "::slot%<module_slot>"
+	%if EXISTS(%<slot>) == 0
+		%assign %<slot> = module_type
+	%else
+		%assign module = %<slot>
+		%assign error = "Module slot %<module_slot> is already occupied by a %<module>"
+		%<LibBlockReportError(block, error)>
+	%endif
+%endfunction
+
+%function module_start() Output
+	%if EXISTS(::processorboard_hw) == 0
+		%assign ::processorboard_hw = 1
+		GocontrollProcessorboard_GetHardwareVersion();
+	%endif
+	%if EXISTS(::module_init) == 0
+		%assign ::module_init = 1
+		GocontrollProcessorboard_ModulesInitialize();
+	%endif
+%endfunction
+
+%function module_monitor_start(block, module_type, module_slot) void
+	%assign slot = "::slot%<module_slot>"
+	%assign slotmon = "::slot%<module_slot>mon"
+	%if EXISTS(%<slot>) == 0
+		%assign error = " No corresponding %<module_type> block found in the same slot"
+		%<LibBlockReportError(block, error)>
+	%else
+		%assign module = %<slot>
+		%assign type = module_type
+		%if ISEQUAL(module, type)
+			%if EXISTS(%<slotmon>) == 0
+				%assign %<slotmon> = type
+			%else
+				%assign warning = "Module slot %<module_slot> is already being monitored, if that is your intention you can ignore this warning"
+				%<LibBlockReportWarning(block, warning)>
+			%endif
+		%else
+			%assign error = "The corresponding slot is configured as a %<module>, not a %<module_type>"
+			%<LibBlockReportError(block, error)>
+		%endif
+	%endif
+%endfunction

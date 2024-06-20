@@ -30,6 +30,8 @@
 %%***************************************************************************************
 %implements  sfcn_gocontroll_bridge_module_monitor "C"
 
+%include "module_common.tlc"
+
 %% add required include files
 %<LibAddToCommonIncludes("GocontrollBridgeModule.h")>
 
@@ -39,25 +41,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
-	%assign slotmon = "::slot%<block.RTWdata.moduleSlot>mon"
-	%if EXISTS(%<slot>) == 0
-		%<LibBlockReportError(block, "No corresponding bridge module block found in the same slot")>
-	%else
-		%assign module = %<slot>
-		%assign type = "bridge module"
-		%if ISEQUAL(module, type)
-			%if EXISTS(%<slotmon>) == 0
-				%assign %<slotmon> = type
-			%else
-				%assign warning = "Module slot %<block.RTWdata.moduleSlot> is already being monitored, if that is your intention you can ignore this warning"
-				%<LibBlockReportWarning(block, warning)>
-			%endif
-		%else
-			%assign error = "The corresponding slot is configured as a %<module>, not a bridge module"
-			%<LibBlockReportError(block, error)>
-		%endif
-	%endif
+	%<module_monitor_start(block, "bridge module", block.RTWdata.moduleSlot)>
 %endfunction
 
 %% Function: Output ==========================================================

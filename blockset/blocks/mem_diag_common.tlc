@@ -1,0 +1,10 @@
+%function mem_diag_type_setup() void
+	%<LibAddToCommonIncludes("MemoryDiagnostic.h")>
+%endfunction
+
+%function mem_diag_start() Output
+	%if EXISTS(::memory_diag_init) == 0
+		%assign ::memory_diag_init = 1
+		MemoryDiagnostic_InitializeMemory();
+	%endif
+%endfunction

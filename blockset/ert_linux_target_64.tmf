@@ -40,16 +40,16 @@
 HOST                            = ANY
 COMPUTER =|>COMPUTER<|
 
-ifeq ($(COMPUTER), GLNXA64)
+ifeq ($(COMPUTER), GLNXA64) # Linux
 MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
 SHELL                           = /bin/bash
 ECHO =
-else ifeq ($(COMPUTER), PCWIN64)
+else ifeq ($(COMPUTER), PCWIN64) # Windows
 MAKECMD                         = "%MATLAB%\bin\|>ARCH<|\gmake"
 COMPILER_TOOL_CHAIN             = default
 SHELL =
 ECHO 							= @echo
-else
+else # Mac
 MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
 SHELL                           = /bin/zsh
 ECHO =
@@ -276,21 +276,19 @@ $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(
 	$(ECHO) ### Compiling relative path to anchor $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
-%.obj : $(SHARED_BIN_DIR)/%.c
-	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
-
 ifeq ($(GEN_SAMPLE_MAIN),0)
 %.obj : $(MATLAB_ROOT)/rtw/c/ert/%.c
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 endif
 
+#Compile C files
 |>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.c
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 |>END_EXPAND_RULES<|
 
+#Compile Zig files
 |>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.zig
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
@@ -312,13 +310,13 @@ $(SHARED_LIB) : $(SHARED_OBJS)
 #|---------------------------------------------------------------------------------------
 #| Project cleanup
 #|---------------------------------------------------------------------------------------
-ifeq ($(COMPUTER), PCWIN64)
+ifeq ($(COMPUTER), PCWIN64) # Windows
 .PHONY: clean
 clean :
 	$(ECHO) ### Cleaning the object and lst files
 	del *.obj
 	del *.lst
-else ifeq ($(COMPUTER), GLNXA64)
+else ifeq ($(COMPUTER), GLNXA64) # Linux
 .PHONY: clean
 clean :
 	$(ECHO) ### Cleaning the object and lst files

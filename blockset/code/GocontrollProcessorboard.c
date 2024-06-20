@@ -78,10 +78,6 @@
 #include <linux/i2c-dev.h>
 #include <signal.h>
 
-/* GOcontroll specific includes for Linux target */
-#include <MemoryEmulation.h>
-#include <MemoryDiagnostic.h>
-
 _hardwareConfig hardwareConfig;
 
 /****************************************************************************************
@@ -145,20 +141,6 @@ static int 		GocontrollProcessorboard_SpiDevice(uint8_t moduleSlot);
 static int 		GocontrollProcessorboard_ModuleReset(uint8_t moduleSlot);
 
 /**************************************************************************************
-** \brief     Initialize the leds on the enclosure
-** \param     none.
-** \return    0 if ok -1 if  failed
-****************************************************************************************/
-static int 		GocontrollProcessorboard_LedInitialize(void);
-
-/****************************************************************************************
-** \brief     Claim cpu number 3 for this process
-** \param     none.
-** \return    none
-****************************************************************************************/
-static void 	GocontrollProcessorboard_SetCpuAffinity(void);
-
-/**************************************************************************************
 ** \brief     Function that sleeps for x miliseconds
 ** \param     times number of miliseconds to sleep
 ** \return 	  none
@@ -182,13 +164,6 @@ static int8_t 	GocontrollProcessorboard_ResetStateModule(uint8_t module, uint8_t
 static uint8_t 	GocontrollProcessorboard_CheckSumCalculator(uint8_t *array,uint8_t length);
 
 /**************************************************************************************
-** \brief     Function that gets the hardware details from memory
-** \param     none
-** \return    none
-****************************************************************************************/
-static void 	GocontrollProcessorboard_GetHardwareVersion(void);
-
-/**************************************************************************************
 ** \brief     Function that creates a local iio context with all iio devices on the controller
 ** \param     slot module slot (0-7)
 ** \param	  rx the bootloader rx buffer
@@ -198,12 +173,9 @@ void 			GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx);
 
 /****************************************************************************************/
 
-void GocontrollProcessorboard_Initialize(void)
+void GocontrollProcessorboard_ModulesInitialize(void)
 {
 	int res = 0;
-
-	/* Retrieve hardware version */
-	GocontrollProcessorboard_GetHardwareVersion();
 
 	/*Start with modules in reset state so we can do other stuff during reset*/
 	for(uint8_t m = 0; m < hardwareConfig.moduleNumber; m++)
@@ -211,20 +183,10 @@ void GocontrollProcessorboard_Initialize(void)
 		GocontrollProcessorboard_ResetStateModule(m,1);
 	}
 
-	fprintf(stderr,"Processorboard initialize\n");
+	fprintf(stderr,"Modules initialize\n");
 
-	GocontrollProcessorboard_SetCpuAffinity();
 	/*Send a dummy byte to initialize the SPI. Only neccessary for Linux*/
 	GocontrollProcessorboard_DummySpiSend();
-	/*Initialize the memory dataholder for persistant data */
-	MemoryEmulation_InitializeMemory();
-	/*Initialize the memory dataholder for diagnostic data */
-	MemoryDiagnostic_InitializeMemory();
-	/* Initialize LED driver */
-	if( hardwareConfig.ledControl == LED_RUKR)
-	{
-		GocontrollProcessorboard_LedInitialize();
-	}
 	/* Short timeout before getting the modules out of reset state */
 	GocontrollProcessorboard_Delay1ms(5);
 	/*Get the modules out of reset and give some time to startup */
@@ -303,12 +265,12 @@ void GocontrollProcessorboard_Initialize(void)
 
 /****************************************************************************************/
 
-static void GocontrollProcessorboard_SetCpuAffinity(void)
+void GocontrollProcessorboard_SetCpuAffinity(void)
 {
-cpu_set_t  mask;
-CPU_ZERO(&mask);
-CPU_SET(3, &mask);
-sched_setaffinity(0, sizeof(mask), &mask);
+	cpu_set_t  mask;
+	CPU_ZERO(&mask);
+	CPU_SET(3, &mask);
+	sched_setaffinity(0, sizeof(mask), &mask);
 }
 
 /****************************************************************************************/
@@ -332,60 +294,61 @@ static void GocontrollProcessorboard_DummySpiSend(void)
 
 	for(uint8_t m = 0; m <=7; m++)
 	{
-
-	write(GocontrollProcessorboard_SpiDevice(m), &dummyT[0], 5);
-
+		write(GocontrollProcessorboard_SpiDevice(m), &dummyT[0], 5);
 	}
 }
 
 /****************************************************************************************/
 
-static int GocontrollProcessorboard_LedInitialize(void)
+int GocontrollProcessorboard_LedInitialize(void)
 {
-	const uint8_t addr = 0x14;
-	uint8_t dataTx[2];
+	if( hardwareConfig.ledControl == LED_RUKR)
+	{
+		const uint8_t addr = 0x14;
+		uint8_t dataTx[2];
 
-	static int i2cDevice = 0;
+		static int i2cDevice = 0;
 
-	/* Open I2C device */
-	if ((i2cDevice = open("/dev/i2c-2",O_RDWR)) < 0) {
-	close(i2cDevice);
-	printf("Error I2C open for LED's.\n");
-	return -1;
+		/* Open I2C device */
+		if ((i2cDevice = open("/dev/i2c-2",O_RDWR)) < 0) {
+			close(i2cDevice);
+			printf("Error I2C open for LED's.\n");
+			return -1;
+		}
+
+		/* Aquire bus acces */
+		if (ioctl(i2cDevice,I2C_SLAVE,addr) < 0) {
+			close(i2cDevice);
+			printf("Error I2C require bus for LED's.\n");
+			return -1;
+		}
+
+		/* First, reset the device */
+		dataTx[0] = 0x17;
+		dataTx[1] = 0xFF;
+
+		/* Send actual data */
+		if (write(i2cDevice,dataTx,2) != 2) {
+			close(i2cDevice);
+			printf("Error I2C write to bus for LED's.\n");
+			return -1;
+		}
+
+		/* Second, enable the device (Chip_EN)*/
+		dataTx[0] = 0x00;
+		dataTx[1] = 0x40;
+
+		/* Send actual data */
+		if (write(i2cDevice,dataTx,2) != 2) {
+			close(i2cDevice);
+			printf("Error I2C write to bus for LED's.\n");
+			return -1;
+		}
+
+		/* Close I2C connection */
+		close(i2cDevice);
 	}
-
-	/* Aquire bus acces */
-	if (ioctl(i2cDevice,I2C_SLAVE,addr) < 0) {
-	close(i2cDevice);
-    printf("Error I2C require bus for LED's.\n");
-	return -1;
-	}
-
-	/* First, reset the device */
-	dataTx[0] = 0x17;
-	dataTx[1] = 0xFF;
-
-	/* Send actual data */
-	if (write(i2cDevice,dataTx,2) != 2) {
-	close(i2cDevice);
-	printf("Error I2C write to bus for LED's.\n");
-	return -1;
-	}
-
-	/* Second, enable the device (Chip_EN)*/
-	dataTx[0] = 0x00;
-	dataTx[1] = 0x40;
-
-	/* Send actual data */
-	if (write(i2cDevice,dataTx,2) != 2) {
-	close(i2cDevice);
-	printf("Error I2C write to bus for LED's.\n");
-	return -1;
-	}
-
-	/* Close I2C connection */
-	close(i2cDevice);
-return 0;
+	return 0;
 }
 
 /****************************************************************************************/
@@ -401,26 +364,16 @@ int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t va
 
 		/* Select proper LED with color address */
 		if(led == 1)
-		{
-		dataTx[0] = 0x0A + color;
-		}
+			dataTx[0] = 0x0A + color;
 		else if(led == 2)
-		{
-		dataTx[0] = 0x0D + color;
-		}
+			dataTx[0] = 0x0D + color;
 		else if(led == 3)
-		{
-		dataTx[0] = 0x10 + color;
-		}
+			dataTx[0] = 0x10 + color;
 		else if(led == 4)
-		{
-		dataTx[0] = 0x13 + color;
-		}
+			dataTx[0] = 0x13 + color;
 		else
-		{
-		return -1;
-		}
-
+			return -1;
+		
 		/* Load data that needs to be send */
 		dataTx[1] = value;
 
@@ -591,12 +544,12 @@ static int spiDevice[8] = {0};
 
 	if(spiDevice[moduleSlot] == 0)
 	{
-	spiDevice[moduleSlot] = open(moduleSpi[moduleSlot].channel, O_RDWR);
+		spiDevice[moduleSlot] = open(moduleSpi[moduleSlot].channel, O_RDWR);
 
-	ioctl(spiDevice[moduleSlot], SPI_IOC_WR_MODE, &mode);
-	ioctl(spiDevice[moduleSlot], SPI_IOC_WR_BITS_PER_WORD, &bits);
-	ioctl(spiDevice[moduleSlot], SPI_IOC_WR_MAX_SPEED_HZ, &speed);
-	}
+		ioctl(spiDevice[moduleSlot], SPI_IOC_WR_MODE, &mode);
+		ioctl(spiDevice[moduleSlot], SPI_IOC_WR_BITS_PER_WORD, &bits);
+		ioctl(spiDevice[moduleSlot], SPI_IOC_WR_MAX_SPEED_HZ, &speed);
+		}
 
 return spiDevice[moduleSlot];
 }
@@ -617,8 +570,8 @@ static int moduleReset[8] = {0};
 		moduleReset[moduleSlot] = open(path, O_WRONLY);
 
 		if (-1 == moduleReset[moduleSlot]) {
-		fprintf(stderr, "Error GPOI write module reset!\n");
-		return(-1);
+			fprintf(stderr, "Error GPOI write module reset!\n");
+			return(-1);
 		}
 	}
 
@@ -660,10 +613,10 @@ float GocontrollProcessorboard_ControllerTemperature(void)
 
 	if((fileId = open("/sys/devices/virtual/thermal/thermal_zone0/temp", O_RDONLY | O_NONBLOCK)) <= 0)
 	{
-	/* Here means the file is not opend properly */
-	/* To be sure it is closed, force a close */
-	close(fileId);
-	return 0;
+		/* Here means the file is not opend properly */
+		/* To be sure it is closed, force a close */
+		close(fileId);
+		return 0;
 	}
 
 	/* If we are here, we have acces to a valid file */
@@ -683,7 +636,7 @@ static uint8_t GocontrollProcessorboard_CheckSumCalculator(uint8_t *array,uint8_
 	uint8_t checkSum = 0;
 	for (uint8_t pointer = 0; pointer<length; pointer++)
 	{
-	checkSum += array[pointer];
+		checkSum += array[pointer];
 	}
 return checkSum;
 }
@@ -733,7 +686,7 @@ void GocontrollProcessorboard_ExitProgram(void* Terminate)
 
 /****************************************************************************************/
 
-static void GocontrollProcessorboard_GetHardwareVersion(void)
+void GocontrollProcessorboard_GetHardwareVersion(void)
 {
 	int fileId = 0;
 	/* Open the file that contains the hardware version of the controller */

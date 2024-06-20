@@ -30,19 +30,13 @@
 %%***************************************************************************************
 %implements  sfcn_gocontroll_input_module_10 "C"
 
+%include "module_common.tlc"
+
 %% add required include files
 %<LibAddToCommonIncludes("GocontrollInputModule.h")>
 
 %function BlockInstanceSetup(block, system) void
-	%%check if slot is already occupied
-	%assign slot = "::slot%<block.RTWdata.moduleSlot>"
-	%if EXISTS(%<slot>) == 0
-		%assign %<slot> = "10 channel input module"
-	%else
-		%assign tmp = %<slot>
-		%assign error = "Module slot %<block.RTWdata.moduleSlot> is already occupied by a %<tmp>"
-		%<LibBlockReportError(block, error)>
-	%endif
+	%<module_instance_setup(block, "10 channel input module", block.RTWdata.moduleSlot)>
 %endfunction
 
 %% Function: Start ==========================================================
@@ -51,6 +45,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
+	%<module_start()>
   %%
 
 	%% Mechanism to create a global declared structure for piping

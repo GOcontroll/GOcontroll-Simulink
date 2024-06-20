@@ -30,8 +30,12 @@
 %%***************************************************************************************
 %implements  sfcn_memory_emulation_read "C"
 
+%include "mem_emu_common.tlc"
+
 %% add required include files
-%<LibAddToCommonIncludes("MemoryEmulation.h")>
+%function BlockTypeSetup(block, system) void
+	%<mem_emu_type_setup()>
+%endfunction
 
 %% Function: Start ==========================================================
 %%
@@ -39,6 +43,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
+	%<mem_emu_start()>
 	%% Mechanism to create a global declared float which hold value from memory
 
 	%openfile tmpBuf
@@ -48,15 +53,15 @@
 	%assign srcFile = LibGetModelDotCFile()
 	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
 
-  	if(%<block.RTWdata.memType> == 1) { /* index 1 means eMMC memory */
+  	%if %<block.RTWdata.memType> == 1 %% index 1 means eMMC memory 
 		MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
 		/* Ensure the value is loaded before step starts */
 		MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-	} else {
+	%else 
 		MemoryEmulation_WriteToMemory("/dev/shm/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
 		/* Ensure the value is loaded before step starts */
 		MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-	}
+	%endif
 	%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
 %endfunction
 

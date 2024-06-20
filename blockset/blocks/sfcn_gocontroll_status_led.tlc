@@ -49,8 +49,14 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-  %%
-  %%
+	%if EXISTS(::processorboard_hw) == 0
+		%assign ::processorboard_hw = 1
+		GocontrollProcessorboard_GetHardwareVersion();
+	%endif
+	%if EXISTS(::led_init) == 0
+		%assign ::led_init = 1
+		GocontrollProcessorboard_LedInitialize();
+	%endif
 %endfunction
 
 %% Function: Output ==========================================================
