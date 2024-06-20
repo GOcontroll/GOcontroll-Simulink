@@ -1,6 +1,6 @@
 # GOcontroll-Simulink
 A Matlab/Simulink toolbox for working with GOcontroll Moduline controllers, it contains a blockset to access the hardware and a toolchain to compile it.  
-This is the branch made with Matlab 2023b, it will not work for 2018b, see the 2018b branch for that version.
+This is the branch made with Matlab 2023b+, it will not work for 2018b, see the 2018b branch for that version.
 
 ## Upgrading from the 2018b blockset/installing
 
@@ -10,9 +10,9 @@ Change the installation folder to something like "MATLAB*your matlab version*_ad
 This way it is also easier to maintain version compatibility between toolboxes and Matlab. For more info see [the help page](https://nl.mathworks.com/help/matlab/matlab_env/get-add-ons.html).  
 For Windows users it is especially recommended to change this folder to a shorter path. Windows by default has a 256 character file path limit and there have been issues because of this, it should be fine as long as your username part of the path is shorter than 20 characters.  
 
-To update your project to the 2023b blockset you can do these steps:
+To update your project to the 2023b+ blockset you can do these steps:
 1. Copy your project so we have a test version for the new blockset without changing your current version.
-2. Install the GOcontroll-Simulink blockset through either the mltbx downloaded from the github releases page or through the Matlab add-on explorer.
+2. Install the GOcontroll-Simulink blockset through either the mltbx downloaded from the github.com releases page or through the Matlab add-on explorer.
 3. In your model, right click on an open space and open the 'Model Properties' menu, select the Callbacks tab, in either PreLoadFcn or PostLoadFcn remove the call to 'librarySetup' as this script will now disturb the newly installed toolbox.
 4. Restart Matlab for good measure, now there are some potential breaking changes to check.
 5. If you are using any output module monitor blocks, check these as they've had a change in this version, this causes the signals to no longer be attached to the correct outputs of the block.
@@ -29,8 +29,9 @@ To check what release your controller is running see /etc/controller_update/curr
 ## GOcontroll Moduline IV toolchain setup
 
 To compile the Linux based blockset for GOcontroll Moduline IV/Mini/Display, some initial steps needs to be made:
-- The template project is created in Matlab Simulink R2023b. This is the tested version so it is strongly recommended to use this version of Matlab.
+- The template project is created in Matlab Simulink R2023b. 2024a is also confirmed to work and brings some nice improvemetns
 - To compile some necessary mex files on Windows you may need to install the "MATLAB Support for MinGW-w64 C/C++/Fortran Compiler" add-on from the Matlab add-on explorer.
+- To compile some necessary mex files on Mac you need to install and activate some Xcode programs. To install the proper components run `xcode-select --install` and `defaults write com.apple.dt.Xcode IDEXcodeVersionForAgreedToGMLicense 12.0` where 12.0 has to be replaced with your xcode version.
 
 ## Setting up a new project
 
