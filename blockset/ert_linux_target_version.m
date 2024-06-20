@@ -30,11 +30,16 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.3.0-pre2';
+version = 'GOcontroll V4.3.0-pre3';
 
 %% V4.3.0 Update 18-6-2024:
 % XCP server can now use UDP or TCP
 % Zig code can be used during the build process
+% Removed module initialization from ert_main.tlc
+% Removed diag/emu memory initialization from ert_main.tlc
+% XCP server now always runs at a 0.01 sample time
+% Extracted some common tlc functions
+% Fixed the version not appearing on the bridge module block mask
 
 %% V4.2.0 Update 5-6-2024:
 % Documentation fix on the license block

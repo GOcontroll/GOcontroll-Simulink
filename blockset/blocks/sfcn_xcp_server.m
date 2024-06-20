@@ -49,7 +49,7 @@ function setup(block)
 
 	%% Number of S-Function parameters expected
 	block.NumDialogPrms     = 0;
-	block.SampleTimes = [-1 0];
+	block.SampleTimes = [0.01 0];
 	%% -----------------------------------------------------------------
 	%% Register methods called at run-time
 	%% -----------------------------------------------------------------
