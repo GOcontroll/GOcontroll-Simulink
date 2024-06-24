@@ -44,11 +44,11 @@
 
 %function Start(block, system) Output
 	%assign socket_id = block.SFcnParamSettings.socket_id
-	%if EXISTS(::%<socket_id>) == 0
+	%if EXISTS(::udp_%<socket_id>) == 0
 		%assign error = "No UDP Configuration block present with the socket ID %<socket_id>"
 		%<LibBlockReportError(block, error)>
 	%endif
-	%assign receive_socket = "::receive_%<socket_id>"
+	%assign receive_socket = "::udp_receive_%<socket_id>"
 	%if EXISTS(%<receive_socket>) == 0
 		%assign %<receive_socket> = 1
 	%else

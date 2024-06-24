@@ -1,5 +1,5 @@
 %%***************************************************************************************
-%% file         sfcn_UDPSend.tlc
+%% file         sfcn_TCPSend.tlc
 %% brief        Target Language Compiler file that contains the code generation specifics
 %%              for an S-function with the same name.
 %%
@@ -30,8 +30,8 @@
 %%
 %%***************************************************************************************
 
-%implements sfcn_UDPSend "C"
-%include "udp_common.tlc"
+%implements sfcn_TCPSend "C"
+%include "tcp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -39,12 +39,14 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-	%<UdpCommonBlockTypeSetup()>
+	%<TcpCommonBlockTypeSetup()>
 %endfunction
 
 %function Start(block, system) Output
-	%if EXISTS(::udp_%<block.RTWdata.socket_id>) == 0
-		%assign error = "No UDP Configuration block present with the socket ID %<block.RTWdata.socket_id>"
+%assign socket_id = block.RTWdata.socket_id
+	%assign socket = "::tcp_%<socket_id>"	
+	%if EXISTS(%<socket>) == 0
+		%assign error = "No TCP Configuration block present with the socket ID %<socket_id>"
 		%<LibBlockReportError(block, error)>
 	%endif
 %endfunction
@@ -58,15 +60,23 @@
 %function Outputs(block, system) Output
 	%assign send_buffer = LibBlockInputSignalAddr(0, "", "", 0)
 	%assign send_buffer_size = LibBlockInputSignalWidth(0)
-	%assign socket = "udp_socket_%<block.RTWdata.socket_id>"
+	%assign socket_mode = block.RTWdata.socket_mode
+	%assign socket_id = block.RTWdata.socket_id
+	%if %<socket_mode> == 1
+		%assign socket = "tcp_socket_%<socket_id>_remote"
+	%else
+		%assign socket = "tcp_socket_%<socket_id>"
+	%endif
+	%assign socket_state = "tcp_socket_%<socket_id>_state"
 	{
-		struct sockaddr_in client_addr;
-		client_addr.sin_family = AF_INET;
-		client_addr.sin_port = htons(%<block.RTWdata.port>);
-		client_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
-		if (sendto(%<socket>, %<send_buffer>, %<send_buffer_size>, 0,
-				(struct sockaddr*)&client_addr, sizeof(client_addr)) < 0){
-			fprintf(stderr, "Can't send UDP packet\n");
+		if (%<socket_state> == connected){
+			int res;
+			res = send(%<socket>, %<send_buffer>, %<send_buffer_size>, MSG_DONTWAIT | MSG_NOSIGNAL);
+			if (res < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) { %%unexpected error, close socket
+				%<socket_state> = not_connected;
+				fprintf(stderr, "send error: %s\n", strerror(errno));
+				close(%<socket>);
+			}
 		}
 	}
 %endfunction

@@ -1,0 +1,234 @@
+%%***************************************************************************************
+%% file         sfcn_TCPConfig.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%% endinternal
+%%
+%%***************************************************************************************
+
+%implements sfcn_TCPConfig "C"
+%include "tcp_common.tlc"
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Runs once for the block type, no matter how many blocks are present in the model
+
+%function BlockTypeSetup(block, system) void
+	%<TcpCommonBlockTypeSetup()>
+	%openfile tmpBufDecls
+		enum socket_state_e {
+			not_connected,
+			connecting,
+			connected,
+		};	
+	%closefile tmpBufDecls
+	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+%endfunction
+
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Runs once for every instance of the block in the model
+
+%function BlockInstanceSetup(block, system) void
+	%assign socket_id = block.RTWdata.socket_id
+	%assign socket_mode = block.RTWdata.socket_mode
+	%assign socket = "::tcp_%<socket_id>"
+	%if EXISTS(%<socket>) == 0
+		%openfile tmpBufDecls
+			int tcp_socket_%<socket_id>;
+			%if %<socket_mode> == 1
+				int tcp_socket_%<socket_id>_remote;
+			%endif
+			struct sockaddr_in tcp_addr_%<socket_id>_remote;
+			enum socket_state_e tcp_socket_%<socket_id>_state = not_connected;
+			%if %<socket_mode> == 2 %%client mode
+				fd_set %<socket_id>_set;
+			%endif
+		%closefile tmpBufDecls
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+		%assign %<socket> = 1
+	%else
+		%<LibBlockReportError(block, "A TCP socket is already configured with that socket ID, can't configure the same socket twice")>
+	%endif
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      initialize the reconnect_state struct
+
+%function Start(block, system) Output
+	%assign socket = "tcp_socket_%<block.RTWdata.socket_id>"
+	%assign remote_addr = "tcp_addr_%<block.RTWdata.socket_id>_remote"
+	%assign timeout = block.RTWdata.timeout
+	{
+		%if %<block.RTWdata.socket_mode> == 1 %%server mode
+			%<socket> = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
+			if(%<socket> < 0)
+				fprintf(stderr, "Error while creating TCP socket: %s\n", strerror(errno));
+			
+			if (setsockopt(%<socket>, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)))
+				fprintf(stderr, "Could not set socket SO_REUSEADDR: %s\n", strerror(errno));
+
+			struct sockaddr_in server_addr;
+			// Set port and IP:
+			server_addr.sin_family = AF_INET;
+			server_addr.sin_port = htons(%<block.RTWdata.port>);
+			server_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
+
+			// Bind to the set port and IP:
+			if(bind(%<socket>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+				fprintf(stderr,"Couldn't bind to the port: %s\n", strerror(errno));
+		
+			if (listen(%<socket>,1))
+				fprintf(stderr, "Couldn't set socket to listen: %s\n", strerror(errno));
+			%if %<timeout> != 0
+				if (setsockopt(%<socket>, SOL_TCP, TCP_USER_TIMEOUT, &(unsigned int){%<timeout>}, sizeof(unsigned int))<0)
+					fprintf(stderr,"setsockopt(TCP_USER_TIMEOUT) failed: %s\n", strerror(errno));
+			%endif
+
+		%else %%client mode
+			memset(&%<remote_addr>, 0 , sizeof(struct sockaddr));
+			%<remote_addr>.sin_family = AF_INET;
+			%<remote_addr>.sin_addr.s_addr = inet_addr("%<block.RTWdata.remote_ip>");
+			%<remote_addr>.sin_port = htons(%<block.RTWdata.remote_port>);
+		%endif
+	}
+%endfunction
+
+%% Function: Output ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+
+%function Outputs(block, system) Output
+	%assign socket_id = block.RTWdata.socket_id
+	%assign timeout = block.RTWdata.timeout
+	%assign socket = "tcp_socket_%<socket_id>"
+	%assign remote_socket = "tcp_socket_%<socket_id>_remote"
+	%assign remote_addr = "tcp_addr_%<socket_id>_remote"
+	%assign socket_state = "tcp_socket_%<socket_id>_state"
+	%assign fd_set = "%<socket_id>_set"
+	%if %<block.RTWdata.socket_mode> == 1 %% server mode
+		if (%<socket_state> == not_connected){
+			if ((%<remote_socket> = accept(%<socket>, (struct sockaddr *) &%<remote_addr>, &(socklen_t){sizeof(struct sockaddr)})) >= 0){
+				%<socket_state> = connected;
+			}
+		}
+	%else %%client mode
+		switch (%<socket_state>) {
+			case not_connected:
+				%<socket> = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
+				if(%<socket> < 0){
+					fprintf(stderr, "Error while creating TCP socket: %s\n", strerror(errno));
+					break;
+				}
+				
+				if (setsockopt(%<socket>, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)))
+					fprintf(stderr, "Could not set socket SO_REUSEADDR: %s\n", strerror(errno));
+
+				%if %<timeout> != 0
+					if (setsockopt(%<socket>, SOL_TCP, TCP_USER_TIMEOUT, &(unsigned int){%<timeout>}, sizeof(unsigned int))<0)
+						fprintf(stderr,"setsockopt(TCP_USER_TIMEOUT) failed: %s\n", strerror(errno));
+				%endif
+
+				struct sockaddr_in server_addr;
+				// Set port and IP:
+				server_addr.sin_family = AF_INET;
+				server_addr.sin_port = htons(%<block.RTWdata.port>);
+				server_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
+
+				// Bind to the set port and IP:
+				if(bind(%<socket>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+					fprintf(stderr,"Couldn't bind to the port: %s\n", strerror(errno));
+				int connect_res;
+				connect_res = connect(%<socket>, (struct sockaddr *) &%<remote_addr>, sizeof(struct sockaddr));
+				if (errno != EINPROGRESS && connect_res != 0) {
+					fprintf(stderr, "connect failed: %s\n", strerror(errno));
+					close(%<socket>);
+					break;
+				}
+				%<socket_state> = connecting;
+				break;
+			case connecting:
+				{
+					int res, sockopt;
+					FD_ZERO(&%<fd_set>); 
+					FD_SET(%<socket>, &%<fd_set>);
+					struct timeval select_timer = {
+						.tv_sec = 0,
+						.tv_usec = 0,
+					};
+					res = select(%<socket> + 1, 
+					NULL, &%<fd_set>, NULL, &select_timer);
+					if (res > 0) { %%ready for writing
+						res = getsockopt(%<socket>, SOL_SOCKET, SO_ERROR, (void *) &sockopt, &(socklen_t){sizeof(int)});
+						if (res < 0) {
+							close(%<socket>);
+							%<socket_state> = not_connected;
+						} else {
+							if (sockopt) {
+								%<socket_state> = not_connected;
+								close(%<socket>);
+							} else {
+								%<socket_state> = connected;
+							}
+						}
+					} else if (res < 0) { %%error
+						close(%<socket>);
+						%<socket_state> = not_connected;
+					} %%if res = 0 it is still waiting for connection
+				}
+				break;
+			case connected:
+				break; %%do nothing
+
+		}
+	%endif
+	%<LibBlockOutputSignal(0, "", "", 0)> = %<socket_state> == connected;
+%endfunction
+
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+
+%function Terminate (block, system) Output
+	%assign socket_id = block.RTWdata.socket_id
+	%assign socket_mode = block.RTWdata.socket_mode
+	%assign socket = "tcp_socket_%<socket_id>"
+	%assign remote_socket = "tcp_socket_%<socket_id>_remote"
+	%assign socket_state = "tcp_socket_%<socket_id>_state"
+	%if %<socket_mode> == 1
+	if ( %<socket_state> == connected || %<socket_state> == connecting ) {
+		close(%<remote_socket>);
+	}
+	%endif
+	close(%<socket>);
+%endfunction

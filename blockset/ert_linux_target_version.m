@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.3.0-pre3';
+version = 'GOcontroll V4.3.0-pre4';
 
 %% V4.3.0 Update 18-6-2024:
 % XCP server can now use UDP or TCP
@@ -40,6 +40,7 @@ version = 'GOcontroll V4.3.0-pre3';
 % XCP server now always runs at a 0.01 sample time
 % Extracted some common tlc functions
 % Fixed the version not appearing on the bridge module block mask
+% Added TCP blocks as a more reliable alternative to UDP
 
 %% V4.2.0 Update 5-6-2024:
 % Documentation fix on the license block

@@ -29,7 +29,7 @@ To check what release your controller is running see /etc/controller_update/curr
 ## GOcontroll Moduline IV toolchain setup
 
 To compile the Linux based blockset for GOcontroll Moduline IV/Mini/Display, some initial steps needs to be made:
-- The template project is created in Matlab Simulink R2023b. 2024a is also confirmed to work and brings some nice improvemetns
+- The template project is created in Matlab Simulink R2023b. 2024a is also confirmed to work and brings some nice improvements
 - To compile some necessary mex files on Windows you may need to install the "MATLAB Support for MinGW-w64 C/C++/Fortran Compiler" add-on from the Matlab add-on explorer.
 - To compile some necessary mex files on Mac you need to install and activate some Xcode programs. To install the proper components run `xcode-select --install` and `defaults write com.apple.dt.Xcode IDEXcodeVersionForAgreedToGMLicense 12.0` where 12.0 has to be replaced with your xcode version.
 

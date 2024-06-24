@@ -1,7 +1,6 @@
 %%***************************************************************************************
-%% file         sfcn_UDPSend.tlc
-%% brief        Target Language Compiler file that contains the code generation specifics
-%%              for an S-function with the same name.
+%% file         sfcn_TCPSend.m
+%% brief        Level-2 M file S-Function for sending an array of bytes via TCP
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
@@ -26,47 +25,69 @@
 %% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 %% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
-%% endinternal
 %%
 %%***************************************************************************************
+function sfcn_TCPSend(block)
+	setup(block);
+end
 
-%implements sfcn_UDPSend "C"
-%include "udp_common.tlc"
-
-%% Function: BlockTypeSetup ==========================================================
+%% Function: setup ===================================================
+%% Abstract:
+%%   Set up the S-function block's basic characteristics such as:
+%%   - Input ports
+%%   - Output ports
+%%   - Dialog parameters
+%%   - Options
 %%
-%% Purpose:
-%%      Code generation for configuration
-%%
-%function BlockTypeSetup(block, system) void
-	%<UdpCommonBlockTypeSetup()>
-%endfunction
+%%   Required         : Yes
+%%   C-Mex counterpart: mdlInitializeSizes
 
-%function Start(block, system) Output
-	%if EXISTS(::udp_%<block.RTWdata.socket_id>) == 0
-		%assign error = "No UDP Configuration block present with the socket ID %<block.RTWdata.socket_id>"
-		%<LibBlockReportError(block, error)>
-	%endif
-%endfunction
+%% DatatypeID's
+%% DOUBLE  =  0
+%% SINGLE  =  1
+%% INT8    =  2
+%% UINT8   =  3
+%% INT16   =  4
+%% UINT16  =  5
+%% INT32   =  6
+%% UINT32  =  7
+%% BOOLEAN =  8
+
+function setup(block)
+	tsamp = 1;
+	%% Register number of input and output ports
+	% manually configure input without defined dimensions.
+	block.NumInputPorts = 1;
+	block.InputPort(1).Complexity = 'Real';
+	block.InputPort(1).DirectFeedthrough = false;
+	block.InputPort(1).SamplingMode = 'sample';
+	block.InputPort(1).DatatypeID = double(DatatypeID.Uint8);
+
+	block.NumOutputPorts = 0;
+
+	block.NumDialogPrms  = 1;
+	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
+
+	block.RegBlockMethod('Start', @Start);
+
+	block.RegBlockMethod('Outputs', @Outputs);
+
+	block.RegBlockMethod('Update', @Update);
+end
+
+function Start(~)
+end
 
 
-%% Function: Output ==========================================================
-%%
-%% Purpose:
-%%      Code generation for signal output
-%%
-%function Outputs(block, system) Output
-	%assign send_buffer = LibBlockInputSignalAddr(0, "", "", 0)
-	%assign send_buffer_size = LibBlockInputSignalWidth(0)
-	%assign socket = "udp_socket_%<block.RTWdata.socket_id>"
-	{
-		struct sockaddr_in client_addr;
-		client_addr.sin_family = AF_INET;
-		client_addr.sin_port = htons(%<block.RTWdata.port>);
-		client_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
-		if (sendto(%<socket>, %<send_buffer>, %<send_buffer_size>, 0,
-				(struct sockaddr*)&client_addr, sizeof(client_addr)) < 0){
-			fprintf(stderr, "Can't send UDP packet\n");
-		}
-	}
-%endfunction
+function Outputs(~)
+
+end
+
+
+function Update(~)
+end
+
+%%******************************* end of sfcn_UDPSend.m **********************

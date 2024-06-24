@@ -227,7 +227,7 @@ void *XcpInitialize_tcp(void *aArgument){
 
 	/* Enable possibility to reconnect next time */
 	if (setsockopt(XcpSocket, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0)
-    fprintf(stderr,"setsockopt(SO_REUSEADDR) failed");
+    	fprintf(stderr,"setsockopt(SO_REUSEADDR) failed");
 
 	memset(&XcpSocketAddr, 0, sizeof(struct sockaddr_in)); 	/* Clear the socket address */
 	XcpSocketAddr.sin_family = AF_INET;						/* Set as internet socket */
@@ -249,7 +249,7 @@ void *XcpInitialize_tcp(void *aArgument){
 	unsigned int timeout = 5000;
 
 	if (setsockopt(XcpSocket, SOL_TCP, TCP_USER_TIMEOUT, &timeout, sizeof(timeout))<0)
-		fprintf(stderr,"setsockopt(SO_SNDTIMEO) failed");
+		fprintf(stderr,"setsockopt(TCP_USER_TIMEOUT) failed\n");
 
 	for(;;)
 	{

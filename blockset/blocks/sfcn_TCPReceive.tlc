@@ -1,5 +1,5 @@
 %%***************************************************************************************
-%% file         sfcn_UDPSend.tlc
+%% file         sfcn_TCPReceive.tlc
 %% brief        Target Language Compiler file that contains the code generation specifics
 %%              for an S-function with the same name.
 %%
@@ -30,8 +30,8 @@
 %%
 %%***************************************************************************************
 
-%implements sfcn_UDPSend "C"
-%include "udp_common.tlc"
+%implements sfcn_TCPReceive "C"
+%include "tcp_common.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -39,16 +39,24 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-	%<UdpCommonBlockTypeSetup()>
+	%<TcpCommonBlockTypeSetup()>
 %endfunction
 
 %function Start(block, system) Output
-	%if EXISTS(::udp_%<block.RTWdata.socket_id>) == 0
-		%assign error = "No UDP Configuration block present with the socket ID %<block.RTWdata.socket_id>"
+	%assign socket_id = block.SFcnParamSettings.socket_id
+	%assign socket = "::tcp_%<socket_id>"
+	%if EXISTS(%<socket>) == 0
+		%assign error = "No TCP Configuration block present with the socket ID %<socket_id>"
 		%<LibBlockReportError(block, error)>
 	%endif
+	%assign receive_socket = "::tcp_receive_%<socket_id>"
+	%if EXISTS(%<receive_socket>) == 0
+		%assign %<receive_socket> = 1
+	%else
+		%assign error = "There is already a TCP Receive block for the socket ID %<socket_id>, there is only supposed to be one receiver per socket."
+		%<LibBlockReportError(block,error)>
+	%endif
 %endfunction
-
 
 %% Function: Output ==========================================================
 %%
@@ -56,17 +64,40 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	%assign send_buffer = LibBlockInputSignalAddr(0, "", "", 0)
-	%assign send_buffer_size = LibBlockInputSignalWidth(0)
-	%assign socket = "udp_socket_%<block.RTWdata.socket_id>"
+	%assign bytes_read = LibBlockOutputSignal(2, "", "", 0) %% uint32
+	%assign receive_buffer = LibBlockOutputSignalAddr(1, "", "", 0) %% uint8[]
+	%assign receive_buffer_size = LibBlockOutputSignalWidth(1)
+	%assign socket_mode_par = LibBlockParameterValue(socket_mode, 0)
+	%assign socket_id = block.SFcnParamSettings.socket_id
+	%if %<socket_mode_par> == 1
+		%assign socket = "tcp_socket_%<socket_id>_remote"
+	%else
+		%assign socket = "tcp_socket_%<socket_id>"
+	%endif
+	%assign socket_state = "tcp_socket_%<socket_id>_state"
 	{
-		struct sockaddr_in client_addr;
-		client_addr.sin_family = AF_INET;
-		client_addr.sin_port = htons(%<block.RTWdata.port>);
-		client_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
-		if (sendto(%<socket>, %<send_buffer>, %<send_buffer_size>, 0,
-				(struct sockaddr*)&client_addr, sizeof(client_addr)) < 0){
-			fprintf(stderr, "Can't send UDP packet\n");
+		if (%<socket_state> == connected) {
+			int res;
+			while(true){
+				res = recv(%<socket>, %<receive_buffer>, %<receive_buffer_size>, MSG_DONTWAIT | MSG_NOSIGNAL);
+				if ((res < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) || res == 0) { %%unexpected error or socket closed, close socket
+					%<socket_state> = not_connected;
+					fprintf(stderr, "receive error: %s\n", strerror(errno));
+					close(%<socket>);
+					break;
+				} else if (res < 0) { %%socket empty
+					break;
+				}
+				%<bytes_read> = res;
+				%% Call a function to process the received message via function-call subsystem
+				%foreach callIdx = NumSFcnSysOutputCalls
+					%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+						%continue
+					%endif
+					%% call the downstream system
+					%<LibBlockExecuteFcnCall(block, callIdx)>\
+				%endforeach
+			}
 		}
 	}
 %endfunction
