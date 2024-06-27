@@ -68,6 +68,7 @@ int16_t temperature;
 uint16_t ground;
 uint32_t moduleIdentifier;
 uint8_t moduleSlot;
+uint32_t sw_version;
 }_bridgeModule;
 
 /****************************************************************************************

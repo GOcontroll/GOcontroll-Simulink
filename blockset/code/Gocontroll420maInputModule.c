@@ -46,11 +46,19 @@
 static uint8_t inputModule420maDataTx[INPUTMODULE420MAMESSAGELENGTH+MESSAGEOVERLENGTH];
 static uint8_t inputModule420maDataRx[INPUTMODULE420MAMESSAGELENGTH+MESSAGEOVERLENGTH];
 
+const uint8_t INPUTMODULE420MAID[] = {20,10,3};
+
+extern _hardwareConfig hardwareConfig;
+
 /****************************************************************************************/
 
 void InputModule420ma_Configuration(_inputModule420ma *inputModule420ma)
 {
-uint8_t dataPointer = 6;
+	inputModule420ma->sw_version = hardwareConfig.moduleOccupancy[inputModule420ma->moduleSlot][4] << 16 |
+		hardwareConfig.moduleOccupancy[inputModule420ma->moduleSlot][5] << 8 |
+		hardwareConfig.moduleOccupancy[inputModule420ma->moduleSlot][6];
+
+	uint8_t dataPointer = 6;
 
 	for(uint8_t pointer = 0; pointer <10; pointer++)
 	{

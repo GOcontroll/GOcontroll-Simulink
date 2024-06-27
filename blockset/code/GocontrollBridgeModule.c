@@ -49,18 +49,24 @@ static uint8_t bridgeModuleDataRx[BRIDGEMODULEMESSAGELENGTH+MESSAGEOVERLENGTH];
 
 const uint8_t BRIDGEMODULECHANNELID[] = {20,10,1};
 
+const uint32_t VERSIONSPIPROTOCOLV2_BRIDGE = 2 << 16;
+
 extern _hardwareConfig hardwareConfig;
 
 /****************************************************************************************/
 
 void BridgeModule_Configuration(_bridgeModule *bridgeModule)
 {
+	bridgeModule->sw_version = hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][4] << 16 |
+		hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][5] << 8 |
+		hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][6];
+
 	for(uint8_t channel = 0; channel <2; channel++)
 	{
 	bridgeModuleDataTx[6+channel]						= bridgeModule->configuration[channel];
 	*(uint16_t*) &bridgeModuleDataTx[12+(channel*2)]	= 4000; //bridgeModule->maxCurrent[channel];
 	}
-	if (hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][4] >= 2) {
+	if (bridgeModule->sw_version >= VERSIONSPIPROTOCOLV2_BRIDGE) {
 		GocontrollProcessorboard_SendSpi(1, BRIDGEMODULEMESSAGELENGTH, 1,21,2,1, bridgeModule->moduleSlot, &bridgeModuleDataTx[0],0);
 	} else {
 		GocontrollProcessorboard_SendSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2d,0x01,0x00,0x00, bridgeModule->moduleSlot, &bridgeModuleDataTx[0],0);
@@ -78,7 +84,7 @@ void BridgeModule_SendValues(_bridgeModule *bridgeModule)
 	*(uint32_t*) &bridgeModuleDataTx[(channel*6)+8]		= bridgeModule->syncCounter[channel];
 	}
 
-	if (hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][4] >= 2) {
+	if (bridgeModule->sw_version >= VERSIONSPIPROTOCOLV2_BRIDGE) {
 		res = GocontrollProcessorboard_SendReceiveSpi(1, BRIDGEMODULEMESSAGELENGTH, 1,21,3,1, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], &bridgeModuleDataRx[0]);
 	}else {
 		res = GocontrollProcessorboard_SendReceiveSpi(1, BRIDGEMODULEMESSAGELENGTH, 0x2e,0x01,0,0, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], &bridgeModuleDataRx[0]);

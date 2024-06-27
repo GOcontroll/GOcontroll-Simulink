@@ -50,12 +50,18 @@ static uint8_t outputModuleDataRx[OUTPUTMODULE10CHMESSAGELENGTH+MESSAGEOVERLENGT
 const uint8_t OUTPUTMODULE6CHANNELID[] = {20,20,2};
 const uint8_t OUTPUTMODULE10CHANNELID[] = {20,20,3};
 
+const uint32_t VERSIONSPIPROTOCOLV2_6CHANNEL = 2 << 16;
+
 extern _hardwareConfig hardwareConfig;
 
 /****************************************************************************************/
 
 void OutputModule_Configuration(_outputModule *outputModule)
 {
+	outputModule->sw_version = hardwareConfig.moduleOccupancy[outputModule->moduleSlot][4] << 16 |
+		hardwareConfig.moduleOccupancy[outputModule->moduleSlot][5] << 8 |
+		hardwareConfig.moduleOccupancy[outputModule->moduleSlot][6];
+
 	if(outputModule->moduleType == OUTPUTMODULE6CHANNEL)
 	{
 		for(uint8_t channel = 0; channel <6; channel++)
@@ -64,7 +70,7 @@ void OutputModule_Configuration(_outputModule *outputModule)
 		*(uint16_t*) &outputModuleDataTx[channel*2+12]	= outputModule->currentMax[channel];
 		}
 
-		if (hardwareConfig.moduleOccupancy[outputModule->moduleSlot][4] >= 2) {
+		if (outputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNEL) {
 			GocontrollProcessorboard_SendSpi(outputModule->moduleSlot+1, OUTPUTMODULE6CHMESSAGELENGTH, 1,22,2,1, outputModule->moduleSlot, &outputModuleDataTx[0],0);
 		} else {
 			GocontrollProcessorboard_SendSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 101,0,0,0, outputModule->moduleSlot, &outputModuleDataTx[0],0);
@@ -77,7 +83,7 @@ void OutputModule_Configuration(_outputModule *outputModule)
 		}
 
 		/* The second initialization message is delayed by 500 us because the module needs to handle the first message */
-		if (hardwareConfig.moduleOccupancy[outputModule->moduleSlot][4] >= 2) {
+		if (outputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNEL) {
 			GocontrollProcessorboard_SendSpi(outputModule->moduleSlot+1, OUTPUTMODULE6CHMESSAGELENGTH, 1,22,2,2, outputModule->moduleSlot, &outputModuleDataTx[0],500);
 		} else {
 			GocontrollProcessorboard_SendSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 111,0,0,0, outputModule->moduleSlot, &outputModuleDataTx[0],500);
@@ -121,7 +127,7 @@ void OutputModule_SendValues(_outputModule *outputModule)
 		*(uint16_t*) &outputModuleDataTx[(channel*6)+6]		= outputModule->value[channel];
 		*(uint32_t*) &outputModuleDataTx[(channel*6)+8]		= outputModule->syncCounter[channel];
 		}
-		if (hardwareConfig.moduleOccupancy[outputModule->moduleSlot][4] >= 2) {
+		if (outputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNEL) {
 			res = GocontrollProcessorboard_SendReceiveSpi(outputModule->moduleSlot+1, OUTPUTMODULE6CHMESSAGELENGTH, 1,22,3,1, outputModule->moduleSlot, &outputModuleDataTx[0], &outputModuleDataRx[0]);
 		} else {
 			res = GocontrollProcessorboard_SendReceiveSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 102,0,0,0, outputModule->moduleSlot, &outputModuleDataTx[0], &outputModuleDataRx[0]);

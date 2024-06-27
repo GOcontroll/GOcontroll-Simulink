@@ -55,6 +55,7 @@ uint8_t status;
 uint32_t moduleIdentifier;
 uint8_t supply16ch[5];
 uint8_t moduleSlot;
+uint32_t sw_version;
 } _inputModule420ma;
 
 /****************************************************************************************

@@ -104,6 +104,7 @@ uint8_t sensorSupply2;
 uint8_t sensorSupply3;
 uint8_t moduleType;
 uint8_t moduleSlot;
+uint32_t sw_version;
 } _inputModule;
 
 /****************************************************************************************

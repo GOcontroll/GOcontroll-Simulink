@@ -111,6 +111,7 @@ uint8_t 	communicationCheck;
 uint32_t 	moduleIdentifier;
 uint8_t     moduleType;
 uint8_t     moduleSlot;
+uint32_t	sw_version;
 } _outputModule;
 
 /****************************************************************************************
