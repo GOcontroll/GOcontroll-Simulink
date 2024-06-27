@@ -61,6 +61,7 @@
 	inputModule%<block.RTWdata.moduleSlot>.moduleType = INPUTMODULE10CHANNEL;
 
 	inputModule%<block.RTWdata.moduleSlot>.sensorSupply1 			= %<block.RTWdata.SensSup1>;
+	inputModule%<block.RTWdata.moduleSlot>.sensorSupply2 			= %<block.RTWdata.SensSup2>;
 
 	inputModule%<block.RTWdata.moduleSlot>.configuration[0] 		= %<block.RTWdata.C1func>;
 	inputModule%<block.RTWdata.moduleSlot>.interface[0] 			= (resistorMatrix[(%<block.RTWdata.C1pu>)-1] | (resistorMatrix[(%<block.RTWdata.C1pd>)-1] << 2));

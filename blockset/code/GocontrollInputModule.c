@@ -94,6 +94,7 @@ void InputModule_Configuration(_inputModule *inputModule)
 			}
 
 			inputModuleDataTx[46] = inputModule->sensorSupply1;
+			inputModuleDataTx[47] = inputModule->sensorSupply2;
 
 			GocontrollProcessorboard_SendSpi(1, INPUTMODULE10CHMESSAGELENGTH, 1,12,2,1, inputModule->moduleSlot, &inputModuleDataTx[0],0);
 		}
