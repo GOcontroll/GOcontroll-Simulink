@@ -383,9 +383,9 @@ int ServeXcpConnection(void)
 		}else{
 			#if(DEBUG ==1)
 				//Print out the data of the message
-				fprintf(stderr,"Message from HANtune: ");
+				fprintf(stderr,"Message from HANtune: %d\n", ctoPacket.s.len);
 				for(int i=0;i<ctoPacket.s.len;i++){
-				fprintf(stderr,"%x ",ctoPacket.s.data[i]);
+				fprintf(stderr,"%02x ",ctoPacket.s.data[i]);
 				}
 				fprintf(stderr,"\n");
 			#endif
@@ -480,7 +480,6 @@ void XcpReadData(uint8_t* data,uint8_t elements, uint32_t* location)
 void XcpWriteData(uint8_t *data, uint8_t elements, uint64_t location)
 {
 //TODO check for write protected area's in memory
-
 	switch(elements)
 	{
 	case 1:				*(uint8_t*)location = *(uint8_t*)&data[0];				break;

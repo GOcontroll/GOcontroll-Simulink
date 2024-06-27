@@ -940,7 +940,15 @@ static void XcpAllocDaq(uint8_t *dataReceived, uint8_t *dataToSend)
 
 		daq = pvPortMalloc(*(uint16_t*)&dataReceived[2]* sizeof(_daq));
 		#else
+		#if DEBUGINFORMATION == 1
+		printf("Allocating %d elements\n", xcpCommunication.nrOfDaqLists);
+		#endif
 		daq = malloc(*(uint16_t*)&dataReceived[2]* sizeof(_daq));
+		if (daq == NULL) {
+			fprintf(stderr, " could not allocate daq\n");
+			XcpNegativeResponse(dataToSend,XCPERRORMEMORYOVERFLOW);
+			return;
+		}
 		#endif
 		}
 	#else
@@ -990,6 +998,11 @@ static void XcpAllocOdt(uint8_t *dataReceived, uint8_t *dataToSend)
 		daq[*(uint16_t*)&dataReceived[2]].odt = pvPortMalloc(dataReceived[4]* sizeof(_odt));
 		#else
 		daq[*(uint16_t*)&dataReceived[2]].odt = malloc(dataReceived[4]* sizeof(_odt)); 				//Dynamically assign memory to number of odt's
+		if (daq[*(uint16_t*)&dataReceived[2]].odt == NULL) {
+			fprintf(stderr, " could not allocate odt\n");
+			XcpNegativeResponse(dataToSend,XCPERRORMEMORYOVERFLOW);
+			return;
+		}
 		#endif
 	daq[*(uint16_t*)&dataReceived[2]].odtId = xcpCommunication.odtIdCounter;	// Assign the ODT ID of the first ODT in the daq list
 	#else
@@ -1029,6 +1042,9 @@ static void XcpAllocOdt(uint8_t *dataReceived, uint8_t *dataToSend)
 static void XcpAllocOdtEntry(uint8_t *dataReceived, uint8_t *dataToSend)
 {
 	//TODO check if incomming data is not exceeding the maximum allowed DAQ lists. ODT's and entry's
+	#if DEBUGINFORMATION == 1
+	printf("allocating ODT entries\n");
+	#endif
 
 
 	#if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
@@ -1044,7 +1060,15 @@ static void XcpAllocOdtEntry(uint8_t *dataReceived, uint8_t *dataToSend)
 
 		daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].entry = pvPortMalloc(dataReceived[5]* sizeof(_entry));
 		#else
+		#if DEBUGINFORMATION == 1
+		printf("allocating %d entries\n",daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].nrOfOdtEntries);
+		#endif
 		daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].entry = malloc(dataReceived[5]* sizeof(_entry));
+		if (daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].entry == NULL) {
+			fprintf(stderr, " could not allocate odt entry\n");
+			XcpNegativeResponse(dataToSend,XCPERRORMEMORYOVERFLOW);
+			return;
+		}
 		#endif
 	#else
 
@@ -1126,16 +1150,15 @@ return	(_entry*)odt->entry1Location + odtEntry;
 ****************************************************************************************/
 void XcpDataTransmission(void)
 {
-uint8_t data[50] = {0};
+	uint8_t data[2048];
 
 	if(xcpCommunication.status == 0x40)
 	{
 	xcpCommunication.active = 1;
 		for(uint8_t daqListCount = 0; daqListCount < xcpCommunication.nrOfDaqLists; daqListCount++) // go through the available daqLists
 		{
-
-		#if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-		daq[daqListCount].prescalerActual ++; //increase the timer counter for one specific daqlist
+			#if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
+			daq[daqListCount].prescalerActual ++; //increase the timer counter for one specific daqlist
 			if(daq[daqListCount].listStatus == 0x01 && daq[daqListCount].prescalerActual >= daq[daqListCount].prescalerSet)
 			{
 				data[1] = daq[daqListCount].odtId; // use the dynamic ODT ID to identify ODT to master
