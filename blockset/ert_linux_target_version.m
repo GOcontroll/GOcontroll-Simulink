@@ -41,6 +41,9 @@ version = 'GOcontroll V4.3.0-rc2';
 % Extracted some common tlc functions
 % Fixed the version not appearing on the bridge module block mask
 % Added TCP blocks as a more reliable alternative to UDP
+% Fixed bus error/segmentation fault caused by small buffer in the XCP stack
+% Added second supply control to the 10 channel input module for firmware version 0.0.4+
+% Improved module firmware version checks
 
 %% V4.2.0 Update 5-6-2024:
 % Documentation fix on the license block
