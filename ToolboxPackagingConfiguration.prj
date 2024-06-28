@@ -7,7 +7,7 @@
     <param.summary>A toolbox for working with the GOcontroll Moduline controllers</param.summary>
     <param.description>This toolbox contains everything necessery to get started developping for the GOcontroll Moduline controllers, it will install the proper compiler and contains various blocks made to interact with the controllers hardware.</param.description>
     <param.screenshot>${PROJECT_ROOT}/GOcontroll.png</param.screenshot>
-    <param.version>4.3.0.4</param.version>
+    <param.version>4.3.0.5</param.version>
     <param.output>${PROJECT_ROOT}/GOcontroll-Simulink.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>

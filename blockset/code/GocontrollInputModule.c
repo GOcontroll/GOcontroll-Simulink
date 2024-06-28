@@ -52,8 +52,8 @@ uint8_t resistorMatrix[4] = {0,3,1,2};
 const uint8_t INPUTMODULE6CHANNELID[] = {20,10,1};
 const uint8_t INPUTMODULE10CHANNELID[] = {20,10,2};
 
-const uint32_t VERSIONSECONDSUPPLY_10CHANNEL = 4U;
-const uint32_t VERSIONSPIPROTOCOLV2_6CHANNEL = 2 << 16;
+const uint32_t VERSIONSECONDSUPPLY_10CHANNELIN = 4U;
+const uint32_t VERSIONSPIPROTOCOLV2_6CHANNELIN = 2 << 16;
 
 extern _hardwareConfig hardwareConfig;
 
@@ -82,7 +82,7 @@ void InputModule_Configuration(_inputModule *inputModule)
 			inputModuleDataTx[43] = inputModule->sensorSupply2;
 			inputModuleDataTx[44] = inputModule->sensorSupply3;
 
-			if (inputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNEL) {
+			if (inputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNELIN) {
 				GocontrollProcessorboard_SendSpi(inputModule->moduleSlot+1, INPUTMODULE6CHMESSAGELENGTH, 1,11,2,1, inputModule->moduleSlot, &inputModuleDataTx[0],0);
 			} else {
 				GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 1,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
@@ -101,7 +101,7 @@ void InputModule_Configuration(_inputModule *inputModule)
 
 			inputModuleDataTx[46] = inputModule->sensorSupply1;
 			
-			if (inputModule->sw_version >= VERSIONSECONDSUPPLY_10CHANNEL) {
+			if (inputModule->sw_version >= VERSIONSECONDSUPPLY_10CHANNELIN) {
 				inputModuleDataTx[47] = inputModule->sensorSupply2;
 			}
 			
@@ -117,7 +117,7 @@ void InputModule_ReceiveValues(_inputModule *inputModule)
 	int res = 0;
 	if(inputModule->moduleType == INPUTMODULE6CHANNEL)
 	{
-		if (inputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNEL) {
+		if (inputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNELIN) {
 			res = GocontrollProcessorboard_SendReceiveSpi(inputModule->moduleSlot+1, INPUTMODULE6CHMESSAGELENGTH, 2,11,3,1, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]);
 		} else {
 			res = GocontrollProcessorboard_SendReceiveSpi(1, INPUTMODULE6CHMESSAGELENGTH, 2,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0], &inputModuleDataRx[0]);
@@ -163,7 +163,7 @@ void InputModule_ResetPulsCounter(_inputModule *inputModule, uint8_t channel, in
 
 		if(inputModule->moduleType == INPUTMODULE6CHANNEL)
 		{
-			if (inputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNEL) {
+			if (inputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNELIN) {
 				GocontrollProcessorboard_SendSpi(inputModule->moduleSlot+1, INPUTMODULE6CHMESSAGELENGTH, 1,11,3,2, inputModule->moduleSlot, &inputModuleDataTx[0],0);
 			} else {
 				GocontrollProcessorboard_SendSpi(1, INPUTMODULE6CHMESSAGELENGTH, 3,0,0,0, inputModule->moduleSlot, &inputModuleDataTx[0],0);
