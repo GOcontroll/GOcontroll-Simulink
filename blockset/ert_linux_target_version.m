@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.3.0-rc2';
+version = 'GOcontroll V4.3.0-rc3';
 
 %% V4.3.0 Update 18-6-2024:
 % XCP server can now use UDP or TCP
