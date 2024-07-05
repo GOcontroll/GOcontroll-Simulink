@@ -129,85 +129,97 @@
 %function Outputs(block, system) Output
 	%assign socket_id = block.RTWdata.socket_id
 	%assign timeout = block.RTWdata.timeout
+	%assign close_socket_input = LibBlockInputSignal(0, "", "", 0)
 	%assign socket = "tcp_socket_%<socket_id>"
 	%assign remote_socket = "tcp_socket_%<socket_id>_remote"
 	%assign remote_addr = "tcp_addr_%<socket_id>_remote"
 	%assign socket_state = "tcp_socket_%<socket_id>_state"
 	%assign fd_set = "%<socket_id>_set"
 	%if %<block.RTWdata.socket_mode> == 1 %% server mode
-		if (%<socket_state> == not_connected){
+		if (%<socket_state> == not_connected  && !%<close_socket_input>){
 			if ((%<remote_socket> = accept(%<socket>, (struct sockaddr *) &%<remote_addr>, &(socklen_t){sizeof(struct sockaddr)})) >= 0){
 				%<socket_state> = connected;
 			}
+		} else if (%<socket_state> == connected && %<close_socket_input>) {
+			close(%<remote_socket>);
+			%<socket_state> = not_connected;
 		}
 	%else %%client mode
 		switch (%<socket_state>) {
 			case not_connected:
-				%<socket> = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+				if (!%<close_socket_input>) {
+					%<socket> = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
-				if(%<socket> < 0){
-					fprintf(stderr, "Error while creating TCP socket: %s\n", strerror(errno));
-					break;
+					if(%<socket> < 0){
+						fprintf(stderr, "Error while creating TCP socket: %s\n", strerror(errno));
+						break;
+					}
+					
+					if (setsockopt(%<socket>, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)))
+						fprintf(stderr, "Could not set socket SO_REUSEADDR: %s\n", strerror(errno));
+
+					%if %<timeout> != 0
+						if (setsockopt(%<socket>, SOL_TCP, TCP_USER_TIMEOUT, &(unsigned int){%<timeout>}, sizeof(unsigned int))<0)
+							fprintf(stderr,"setsockopt(TCP_USER_TIMEOUT) failed: %s\n", strerror(errno));
+					%endif
+
+					struct sockaddr_in server_addr;
+					// Set port and IP:
+					server_addr.sin_family = AF_INET;
+					server_addr.sin_port = htons(%<block.RTWdata.port>);
+					server_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
+
+					// Bind to the set port and IP:
+					if(bind(%<socket>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+						fprintf(stderr,"Couldn't bind to the port: %s\n", strerror(errno));
+					int connect_res;
+					connect_res = connect(%<socket>, (struct sockaddr *) &%<remote_addr>, sizeof(struct sockaddr));
+					if (errno != EINPROGRESS && connect_res != 0) {
+						fprintf(stderr, "connect failed: %s\n", strerror(errno));
+						close(%<socket>);
+						break;
+					}
+					%<socket_state> = connecting;
 				}
-				
-				if (setsockopt(%<socket>, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)))
-					fprintf(stderr, "Could not set socket SO_REUSEADDR: %s\n", strerror(errno));
-
-				%if %<timeout> != 0
-					if (setsockopt(%<socket>, SOL_TCP, TCP_USER_TIMEOUT, &(unsigned int){%<timeout>}, sizeof(unsigned int))<0)
-						fprintf(stderr,"setsockopt(TCP_USER_TIMEOUT) failed: %s\n", strerror(errno));
-				%endif
-
-				struct sockaddr_in server_addr;
-				// Set port and IP:
-				server_addr.sin_family = AF_INET;
-				server_addr.sin_port = htons(%<block.RTWdata.port>);
-				server_addr.sin_addr.s_addr = inet_addr("%<block.RTWdata.ip>");
-
-				// Bind to the set port and IP:
-				if(bind(%<socket>, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-					fprintf(stderr,"Couldn't bind to the port: %s\n", strerror(errno));
-				int connect_res;
-				connect_res = connect(%<socket>, (struct sockaddr *) &%<remote_addr>, sizeof(struct sockaddr));
-				if (errno != EINPROGRESS && connect_res != 0) {
-					fprintf(stderr, "connect failed: %s\n", strerror(errno));
-					close(%<socket>);
-					break;
-				}
-				%<socket_state> = connecting;
 				break;
 			case connecting:
 				{
-					int res, sockopt;
-					FD_ZERO(&%<fd_set>); 
-					FD_SET(%<socket>, &%<fd_set>);
-					struct timeval select_timer = {
-						.tv_sec = 0,
-						.tv_usec = 0,
-					};
-					res = select(%<socket> + 1, 
-					NULL, &%<fd_set>, NULL, &select_timer);
-					if (res > 0) { %%ready for writing
-						res = getsockopt(%<socket>, SOL_SOCKET, SO_ERROR, (void *) &sockopt, &(socklen_t){sizeof(int)});
-						if (res < 0) {
+					if (!%<close_socket_input>) {
+						int res, sockopt;
+						FD_ZERO(&%<fd_set>); 
+						FD_SET(%<socket>, &%<fd_set>);
+						struct timeval select_timer = {
+							.tv_sec = 0,
+							.tv_usec = 0,
+						};
+						res = select(%<socket> + 1, 
+						NULL, &%<fd_set>, NULL, &select_timer);
+						if (res > 0) { %%ready for writing
+							res = getsockopt(%<socket>, SOL_SOCKET, SO_ERROR, (void *) &sockopt, &(socklen_t){sizeof(int)});
+							if (res < 0) {
+								close(%<socket>);
+								%<socket_state> = not_connected;
+							} else {
+								if (sockopt) {
+									%<socket_state> = not_connected;
+									close(%<socket>);
+								} else {
+									%<socket_state> = connected;
+								}
+							}
+						} else if (res < 0) { %%error
 							close(%<socket>);
 							%<socket_state> = not_connected;
-						} else {
-							if (sockopt) {
-								%<socket_state> = not_connected;
-								close(%<socket>);
-							} else {
-								%<socket_state> = connected;
-							}
-						}
-					} else if (res < 0) { %%error
-						close(%<socket>);
-						%<socket_state> = not_connected;
-					} %%if res = 0 it is still waiting for connection
+						} %%if res = 0 it is still waiting for connection
+					}
 				}
 				break;
 			case connected:
-				break; %%do nothing
+				if (%<close_socket_input>) {
+					close(%<socket>);
+					%<socket_state> = not_connected;
+				}
+				break;
 
 		}
 	%endif

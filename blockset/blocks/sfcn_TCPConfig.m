@@ -44,9 +44,10 @@ end
 
 function setup(block)
 	%% Register number of input and output ports
-	block.NumInputPorts = 0;
+	block.NumInputPorts = 1;
 	block.NumOutputPorts = 1;
 
+	addSimpleInput(block, 1, DatatypeID.Boolean);
 	addSimpleOutput(block, 1, DatatypeID.Boolean); % Connection status
 
 	%% Number of S-Function parameters expected
