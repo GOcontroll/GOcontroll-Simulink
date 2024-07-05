@@ -147,20 +147,18 @@ static void mdlInitializeSizes(SimStruct *S)
 	CAN_Common_MdlInitSizes(S);
 
 	if (!SetNumParams(S, PARAM_COUNT)) {
-        	return;
-    	}
+		return;
+	}
+	if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
+        return;
+    }
 
-	/*
-	 * Configure input ports: 1
-	 *	- Message to be sent
-	 */
 	if (!ssSetNumInputPorts(S, IN_COUNT)) {
 		return;
 	}
 
 	AddInputPort(S, IN_MSG, DYNAMICALLY_TYPED);
 
-	/* No output ports */
 	if (!ssSetNumOutputPorts(S, 0)) {
 		return;
 	}
@@ -188,7 +186,7 @@ void mdlSetInputPortDataType(SimStruct *S, int_T port, DTypeId type)
 		    type == ssGetDataTypeId(S, SL_CAN_EXTENDED_FRAME_DTYPE_NAME))
 			ssSetInputPortDataType(S, port, type);
 		else {
-			char msg[300];
+			static char msg[300];
 			snprintf(msg, sizeof(msg), "Unsupported data type '%s' on Msg input port.",
 				 ssGetDataTypeName(S, type));
 			ssSetErrorStatus(S, msg);

@@ -74,22 +74,17 @@ static void mdlInitializeSizes(SimStruct *S){
 
 	CAN_Common_MdlInitSizes(S);
 
-	/*DTypeId type;*/
-
 	if(!SetNumParams(S, PARAM_COUNT)) {
 		return;
 	}
+	if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
+        return;
+    }
 
-	/* No input ports */
 	if(!ssSetNumInputPorts(S, 0)) {
 		return;
 	}
      
-	/*
-	 * Configure output ports:
-	 *	- Received Message
-	 *	- Message is received
-	 */
 	if(!ssSetNumOutputPorts(S, OUT_COUNT)) {
 		return;
 	}
@@ -108,7 +103,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 	ssSetSampleTime(S, 0, mxGetPr(ssGetSFcnParam(S, PARAM_TSAMP))[0]);
 	ssSetOffsetTime(S, 0, 0);
 
-    ssSetCallSystemOutput(S,0);  /* call on first element */
+    ssSetCallSystemOutput(S,0);  /* function call on first output */
 }
 
 

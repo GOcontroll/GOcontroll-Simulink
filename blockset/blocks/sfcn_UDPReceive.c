@@ -52,7 +52,12 @@ enum outputs {
 };
 
 static void mdlInitializeSizes(SimStruct *S) {
-	ssSetNumSFcnParams(S, PARAM_COUNT);
+	if(!SetNumParams(S, PARAM_COUNT)) {
+		return;
+	}
+	if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
+        return;
+    }
 	ssSetSFcnParamTunable(S,PARAM_TSAMP,false);
 	ssSetSFcnParamTunable(S,PARAM_BUFF_LEN,false);
 	ssSetSFcnParamTunable(S,PARAM_SOCKET_ID,false);
