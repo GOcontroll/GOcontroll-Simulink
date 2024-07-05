@@ -63,26 +63,25 @@
 %function Update(block, system) Output
 	/* Sending a message over CAN */
 	{
-	struct can_frame sendframe; /* Declare a frame to send */
-	sendframe.can_id = %<LibBlockInputSignal(0, "", "", 0)>; /* Mask value for ID */
+		struct can_frame sendframe; /* Declare a frame to send */
+		sendframe.can_id = %<LibBlockInputSignal(0, "", "", 0)>; /* Mask value for ID */
 
-	%if(block.RTWdata.RTR)
-		sendframe.can_id |= CAN_RTR_FLAG; /* Add RTR bit to identifier */
-	%endif
+		%if(block.RTWdata.RTR)
+			sendframe.can_id |= CAN_RTR_FLAG; /* Add RTR bit to identifier */
+		%endif
 
-	%if CAST("Number",block.RTWdata.frameType) == 2
-		sendframe.can_id |= CAN_EFF_FLAG; /* Set CAN_EFF_FLAG for extended identifiers */
-	%endif
+		%if CAST("Number",block.RTWdata.frameType) == 2
+			sendframe.can_id |= CAN_EFF_FLAG; /* Set CAN_EFF_FLAG for extended identifiers */
+		%endif
 
-	sendframe.can_dlc = %<block.RTWdata.dataLength>; /* Mask value for number of bytes */
+		sendframe.can_dlc = %<block.RTWdata.dataLength>; /* Mask value for number of bytes */
 
-	/* prepare the data */
-    %foreach counter = block.RTWdata.dataLength
-        sendframe.data[%<counter>] = %<LibBlockInputSignal(counter + 1, "", "", 0)>;
-    %endforeach
+		/* prepare the data */
+		%foreach counter = block.RTWdata.dataLength
+			sendframe.data[%<counter>] = %<LibBlockInputSignal(counter + 1, "", "", 0)>;
+		%endforeach
 
-	if(write(canConnection.socket[%<block.RTWdata.canBus>], &sendframe, sizeof(struct can_frame)) < 0)		/* Send message */
-		perror("Error in sending a CAN message");
+		write(canConnection.socket[%<block.RTWdata.canBus>], &sendframe, sizeof(struct can_frame))	/* Send message */
 	}
 %endfunction
 
