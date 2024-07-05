@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.3.0-rc3';
+version = 'GOcontroll V4.3.0';
 
 %% V4.3.0 Update 18-6-2024:
 % XCP server can now use UDP or TCP
@@ -44,6 +44,7 @@ version = 'GOcontroll V4.3.0-rc3';
 % Fixed bus error/segmentation fault caused by small buffer in the XCP stack
 % Added second supply control to the 10 channel input module for firmware version 0.0.4+
 % Improved module firmware version checks
+% Removed the buffer full message from the legacy CAN send block
 
 %% V4.2.0 Update 5-6-2024:
 % Documentation fix on the license block

@@ -7,7 +7,7 @@
     <param.summary>A toolbox for working with the GOcontroll Moduline controllers</param.summary>
     <param.description>This toolbox contains everything necessery to get started developping for the GOcontroll Moduline controllers, it will install the proper compiler and contains various blocks made to interact with the controllers hardware.</param.description>
     <param.screenshot>${PROJECT_ROOT}/GOcontroll.png</param.screenshot>
-    <param.version>4.2.0.3</param.version>
+    <param.version>4.3.0</param.version>
     <param.output>${PROJECT_ROOT}/GOcontroll-Simulink.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -67,6 +67,7 @@ GOcontroll_Linux.a2l
 GOcontroll_Linux.slxc
 GOcontroll_Linux.mdl
 GOcontroll_Linux.mdl.autosave
+GOcontroll_Linux_startup.m
 **/*.mex*
 doc
 slprj
@@ -147,6 +148,7 @@ slprj
     <fileset.rootfiles>
       <file>${PROJECT_ROOT}/+GOcontroll_Simulink_2023b_dev</file>
       <file>${PROJECT_ROOT}/GOcontroll.png</file>
+      <file>${PROJECT_ROOT}/GOcontroll_Linux.sltx</file>
       <file>${PROJECT_ROOT}/LICENSE</file>
       <file>${PROJECT_ROOT}/README.md</file>
       <file>${PROJECT_ROOT}/blockset</file>
@@ -184,7 +186,7 @@ slprj
       <vista>false</vista>
       <linux>true</linux>
       <solaris>false</solaris>
-      <osver>5.15.0-107-generic</osver>
+      <osver>5.15.0-113-generic</osver>
       <os32>false</os32>
       <os64>true</os64>
       <arch>glnxa64</arch>

@@ -8,6 +8,7 @@
 *.a2l
 *.slx.autosave
 /*.mdl
+/*.m
 *.zip
 .vscode/settings.json
 .vscode*
