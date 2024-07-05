@@ -119,8 +119,6 @@ switch hookMethod
 
 		fprintf(['\n### Starting Real-Time Workshop build procedure for ', ...
 						'model: %s\n'],modelName);
-		fprintf('### Checking for the use of HANcoder blocks...\n');
-
 
 	case 'before_tlc'
 		% Called just prior to invoking TLC Compiler (actual code generation.)
@@ -232,11 +230,11 @@ switch hookMethod
 		% Get the Linux target from the model parameters tab
 		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
 
-		xcp_server = find_system(modelName, 'RegExp', 'on', 'LookUnderMasks', 'all', 'MaskType', 'XCP Server');
+		xcp_server = find_system(modelName, 'RegExp', 'on', 'MaskType', 'XCP Server');
 
-		if (length(xcp_server) == 1)
+		if (isscalar(xcp_server)) %check if there is only one
 			medium = get_param(xcp_server{1}, 'server_type');
-		else % length > 1 generates a tlc error, so it must be 0 here
+		else
 			medium = 'TCP'; % no XCP server present, just generate an a2l for TCP
 		end
 
@@ -268,7 +266,7 @@ end
 % SYS_config.h file with the number of blocks found %
 function nrOfCANreceiveBlocks = searchCANreceive(modelName)
     % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
-    blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'CAN receive');
+    blockArray = find_system(modelName, 'RegExp', 'on', 'MaskType', 'CAN receive');
     % only perform check if at least 1 or more HANcoder Target blocks were used
     nrOfCANreceiveBlocks = length(blockArray);
 end
