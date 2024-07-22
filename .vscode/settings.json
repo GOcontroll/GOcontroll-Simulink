@@ -1,0 +1,22 @@
+{
+	"files.associations": {
+		"gocontrollprocessorboardsupply.h": "c",
+		"candriver.h": "c",
+		"sys_config.h": "c",
+		"if.h": "c",
+		"ioctl.h": "c",
+		"raw.h": "c",
+		"can.h": "c",
+		"inet.h": "c",
+		"socket.h": "c",
+		"types.h": "c"
+	},
+	"C_Cpp.default.includePath": [
+		"/home/maud/.local/share/MATLAB/R2024a/extern/include/",
+		"/home/maud/.local/share/MATLAB/R2024a/simulink/include/",
+		"/home/maud/.local/share/MATLAB/R2024a/toolbox/rtw/accel/accelTemplateFolder",
+		"/home/maud/.local/share/MATLAB/R2024a/toolbox/rtw/targets/common/can/datatypes",
+		"/home/maud/.local/share/MATLAB/R2024a/toolbox/shared/can/src/scanutil",
+		"/home/maud/.local/share/MATLAB/R2024a/rtw/c/src"
+	]
+}

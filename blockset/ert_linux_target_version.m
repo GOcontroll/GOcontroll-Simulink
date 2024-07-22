@@ -30,7 +30,10 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.3.0';
+version = 'GOcontroll V4.3.1';
+
+%% V4.3.1 -
+% Removed duplicated upload function, auto upload now uses the manual upload script
 
 %% V4.3.0 Update 18-6-2024:
 % XCP server can now use UDP or TCP

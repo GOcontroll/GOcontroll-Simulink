@@ -255,7 +255,13 @@ switch hookMethod
 		disp(['### Successful completion of Real-Time Workshop build ',...
 				'procedure for model: ', modelName]);
 
-		ert_linux_target_upload(modelName);
+		AutoUpload = get_param(modelName,'tlcAutoUpload');
+
+		%Only upload file when Auto upload setting is switched on
+		if (strcmp(AutoUpload,'Auto upload'))
+			disp('### Starting automatic flash procedure');
+			ManualUpload(['..' filesep modelName], get_param(modelName,'tlcXcpTcpAddress'), port=num2str(get_param(modelName,'tlcUploadPort')));
+		end
 end
 end
 %%******************************* end of ert_linux_make_rtw_hook.m ****************************

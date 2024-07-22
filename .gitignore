@@ -10,8 +10,6 @@
 /*.mdl
 /*.m
 *.zip
-.vscode/settings.json
-.vscode*
 crank_files/
 *.slxc
 *.autosave
