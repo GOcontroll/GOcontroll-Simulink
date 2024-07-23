@@ -35,7 +35,40 @@ To compile the Linux based blockset for GOcontroll Moduline IV/Mini/Display, som
 
 ## Setting up a new project
 
-In Matlab on the 'HOME' tab, select 'Simulink Model' from the 'New' dropdown menu. There will be a template called 'GOcontroll Linux', this template contains a basic model and the required settings for the toolchain, from this template you can start building your model.
+### Rolling release
+1. Install the addon from the Matlab addon explorer
+2.  There will be a template called 'GOcontroll Linux', this template contains a basic model and the required settings for the toolchain, from this template you can start building your model.
+You must save the model before being able to build it.
+
+### Stable blockset
+
+If you do not want the blockset to update, there are a couple of steps to be taken:
+
+1. The add-on must be installed through the addon store to install the compilers and such.
+2. Download the zip/tarball of the specific version that is desired from the [Github releases](https://github.com/GOcontroll/GOcontroll-Simulink/releases)
+3. Add a startup script to the project that is in there with `matlab.addons.disableAddon('GOcontroll-Simulink')` to force the rolling release blockset to not be loaded when this project is loaded
+4. In the home tab of Matlab, find the Add-Ons option then select Manage Add-Ons, click the three dots on the right on the GOcontroll-Simulink and select 'Open Folder'  
+Navigate to the '+GOcontroll_Simulink_2023b_dev folder, and copy the getInstallationLocation.mlx to this position in your new project. This file allows Simulink to find the proper compiler when building.
+5. Make a new Simulink model with the GOcontroll_Linux template, and it is good to go.
+
+## Adding a project specific library
+
+To add your own reusable blocks it is possible to create your own library that will be loaded upon startup.  
+It is not a good idea to modify the existing GOcontroll libraries, as this will cause major issues when you want to update.
+1. Create a folder in your project that will contain the library.
+2. In Matlab on the 'HOME' tab, select 'Simulink Model' from the 'New' dropdown menu. Select the 'Blank Library' option, place your block(s) in here and save it in this new folder
+3. In this folder create a file called 'slblocks.m'
+4. In this file should be the following with the 2 name fields replaced with relevant values for you:
+```matlab
+function blkStruct = slblocks()
+	Browser.Library = 'YourLibraryFileName'; %no file extension, so 'Library.mdl' would be 'Library'
+	Browser.Name = 'VisualLibraryName'; %this name will show up in the Library Browser
+	blkStruct.Browser = Browser;
+end
+```
+5. Add this folder to the path of your project so it gets properly loaded. This is done in the 'PROJECT' tab of Matlab, from this tab select 'Project Path'. Then use either 'Add Folder' or 'Add with Subfolders' to add your new folder to the path
+
+### Support
 
 Please let us know when interface blocks are not working properly. You can contact us at support@gocontroll.com  
 Or make a pull request with changes to fix issues that you are experiencing.
