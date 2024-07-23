@@ -1,0 +1,1 @@
+matlab.addons.disableAddon("GOcontroll-Simulink");
