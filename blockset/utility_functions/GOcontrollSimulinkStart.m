@@ -1,5 +1,9 @@
-if ~matlab.addons.isAddonEnabled('GOcontroll-Simulink')
-	matlab.addons.enableAddon('GOcontroll-Simulink');
+try
+	if ~matlab.addons.isAddonEnabled('GOcontroll-Simulink')
+		matlab.addons.enableAddon('GOcontroll-Simulink');
+	end
+catch
+	error("The GOcontroll-Simulink toolbox must be installed to properly load this project, please install it first");
 end
 
 movefile('+GOcontroll_Simulink_2023b_dev', 'temp');
