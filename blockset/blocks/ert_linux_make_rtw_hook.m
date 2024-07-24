@@ -91,60 +91,60 @@ switch hookMethod
 		% at this stage are hookMethod and modelName. This enables cleaning up
 		% any static or global data used by this hook file.
 		disp(['### Real-Time Workshop build procedure for model: ''' modelName...
-				''' aborted due to an error.']);
-
+			''' aborted due to an error.']);
+		
 	case 'entry'
 		fprintf('########################### ENTRY\n');
 		% Called at start of code generation process (before anything happens.)
 		% Valid arguments at this stage are hookMethod, modelName, and buildArgs.
-
+		
 		% The following warning must be given if the evaluation version is
 		% used, comment for licensed use.
 		%uiwait(warndlg('This version is for evaluation purposes only','HANcoder','modal'));
 		% The following warning is given for the student version, comment for
 		% licensed use.
 		%uiwait(warndlg(sprintf('You are using an educational version of HANcoder\n\nCommercial usage is not allowed in any way\n\nContact hancoder@han.nl for more information'),'HANcoder','modal'));
-
+		
 		% Check if the code generation is started from the correct path
-
+		
 		model_path = get_param(bdroot, 'FileName');
 		model_path = regexprep(model_path, ['\' filesep modelName '.slx'],''); %windows needs the '\' and linux seems fine with or without it
 		model_path = regexprep(model_path, ['\' filesep modelName '.mdl'],'');
-
+		
 		if (~(strcmp(pwd,model_path)))
 			errorMessage = strcat('The current folder is incorrect, please', ...
-			' set the current folder to:', model_path);
+				' set the current folder to:', model_path);
 			error(errorMessage);
 		end
-
+		
 		fprintf(['\n### Starting Real-Time Workshop build procedure for ', ...
-						'model: %s\n'],modelName);
-
+			'model: %s\n'],modelName);
+		
 	case 'before_tlc'
 		% Called just prior to invoking TLC Compiler (actual code generation.)
 		% Valid arguments at this stage are hookMethod, modelName, and
 		% buildArgs
-
-
+		
+		
 	case 'after_tlc'
 		% Called just after to invoking TLC Compiler (actual code generation.)
 		% Valid arguments at this stage are hookMethod, modelName, and
 		% buildArgs
 		%% get the necessary information from the model
-
+		
 		nrOfCANreceiveBlocks = searchCANreceive(modelName);
-			% Add software version to the SYS_config.h file.
+		% Add software version to the SYS_config.h file.
 		fprintf('\n### Adding data to SYS_config.h...\n');
 		formatOut = 'ddMMyy_HHmmSS';
 		daten = char(datetime('now','Format', formatOut));
 		stationID = strcat(modelName,daten); %assign to static variable as it is needed in the after_make step
 		% Get XCP port
 		XCPport = get_param(modelName,'tlcXcpTcpPort');
-
+		
 		% Open file in write mode 'w'
 		file = fopen('SYS_config.h', 'w');
 		if file == -1
-				error('### failed to open SYS_config.h');
+			error('### failed to open SYS_config.h');
 		end
 		if numel(stationID) > 255
 			msg = 'Error: Station ID is larger than 255 characters. Use a shorter name as ID!\n';
@@ -160,7 +160,7 @@ switch hookMethod
 		fprintf(file, '#define CANBUFSIZE                     %d\n', nrOfCANreceiveBlocks);
 		fprintf(file, '#endif');
 		fclose(file);
-
+		
 	case 'before_make'
 		% Called after code generation is complete, and just prior to kicking
 		% off make process (assuming code generation only is not selected.)  All
@@ -173,7 +173,7 @@ switch hookMethod
 		end
 		%remove the filename from the end
 		[path, ~, ~] = fileparts(mfilePath);
-
+		
 		%set the compiler path in the tmf
 		if (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'GCC'))
 			gccpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('aarch64-none-linux-gnu-gcc');
@@ -191,7 +191,7 @@ switch hookMethod
 			if (~strcmp(computer(), "MACA64")) %if not apple silicon it is x86
 				zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-x86');
 			else %is apple silicon, use aarch64 possibly in the future also windows and linux
-				zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-aarch64'); 
+				zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-aarch64');
 			end
 			zigpath = ['"' fullfile(zigpath, 'zig') '"'];
 			addTMFTokens(buildInfo, '|>CC<|', [zigpath ' cc -target aarch64-linux-gnu.2.31'],'LINK_INFO');
@@ -205,7 +205,7 @@ switch hookMethod
 		else
 			error("No valid compiler selected");
 		end
-
+		
 		%add the source code/libraries to the tmf
 		codepath = fullfile(path, '..', 'code');
 		xcppath = fullfile(codepath, 'XCP');
@@ -217,37 +217,37 @@ switch hookMethod
 		addSourceFiles(buildInfo, '*.c', xcppath);
 		addLinkObjects(buildInfo, fullfile(oaespath, 'liboaes_lib.a'), '', 1000,true, true);
 		addLinkObjects(buildInfo, fullfile(iiopath, 'libiio.so.0'), '', 1000,true, true);
-
+		
 	case 'after_make'
 		% Called after make process is complete. All arguments are valid at
 		% this stage.
 		% Adding the memory addresses to the ASAP2 file
-
+		
 		% Get XCP port
 		XCPport = get_param(modelName,'tlcXcpTcpPort');
 		% Get XCP address
 		XCPaddress = get_param(modelName,'tlcXcpTcpAddress');
 		% Get the Linux target from the model parameters tab
 		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
-
+		
 		xcp_server = find_system(modelName, 'RegExp', 'on', 'MaskType', 'XCP Server');
-
+		
 		if (isscalar(xcp_server)) %check if there is only one
 			medium = get_param(xcp_server{1}, 'server_type');
 		else
 			medium = 'TCP'; % no XCP server present, just generate an a2l for TCP
 		end
-
+		
 		if isfile(fullfile(pwd, '..', [modelName '.map']))
 			MAPfile = fullfile(pwd, '..', [modelName '.map']);
 			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile, medium);
-
+			
 			% Moving the A2L file to the user directory and the map file away
 			movefile(['..' filesep modelName '.map'],[modelName '.map']);
 		else
 			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '', medium);
 		end
-
+		
 		%new versions of matlab sometimes put 2 spaces after /begin, this messes up HANtune (for now?)
 		%fix the a2l so characteristics get properly loaded
 		a2lfile_str = fileread([modelName '.a2l']);
@@ -255,17 +255,17 @@ switch hookMethod
 		a2lfile = fopen([modelName '.a2l'], 'w');
 		fwrite(a2lfile, a2lfile_str);
 		fclose(a2lfile);
-
+		
 		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
-
+		
 	case 'exit'
 		% Called at the end of the RTW build process.  All arguments are valid
 		% at this stage.
 		disp(['### Successful completion of Real-Time Workshop build ',...
-				'procedure for model: ', modelName]);
-
+			'procedure for model: ', modelName]);
+		
 		AutoUpload = get_param(modelName,'tlcAutoUpload');
-
+		
 		%Only upload file when Auto upload setting is switched on
 		if (strcmp(AutoUpload,'Auto upload'))
 			disp('### Starting automatic flash procedure');
@@ -280,8 +280,8 @@ end
 % This function searches for CAN receive blocks and adds a define to the
 % SYS_config.h file with the number of blocks found %
 function nrOfCANreceiveBlocks = searchCANreceive(modelName)
-    % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
-    blockArray = find_system(modelName, 'RegExp', 'on', 'MaskType', 'CAN receive');
-    % only perform check if at least 1 or more HANcoder Target blocks were used
-    nrOfCANreceiveBlocks = length(blockArray);
+% build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
+blockArray = find_system(modelName, 'RegExp', 'on', 'MaskType', 'CAN receive');
+% only perform check if at least 1 or more HANcoder Target blocks were used
+nrOfCANreceiveBlocks = length(blockArray);
 end
