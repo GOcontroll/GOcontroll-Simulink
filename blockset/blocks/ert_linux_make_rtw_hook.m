@@ -247,6 +247,15 @@ switch hookMethod
 		else
 			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '', medium);
 		end
+
+		%new versions of matlab sometimes put 2 spaces after /begin, this messes up HANtune (for now?)
+		%fix the a2l so characteristics get properly loaded
+		a2lfile_str = fileread([modelName '.a2l']);
+		a2lfile_str = strrep(a2lfile_str, '/begin  ', '/begin ');
+		a2lfile = fopen([modelName '.a2l'], 'w');
+		fwrite(a2lfile, a2lfile_str);
+		fclose(a2lfile);
+
 		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
 
 	case 'exit'
