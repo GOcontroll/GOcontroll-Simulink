@@ -71,7 +71,15 @@ end
 ```
 5. Add this folder to the path of your project so it gets properly loaded. This is done in the 'PROJECT' tab of Matlab, from this tab select 'Project Path'. Then use either 'Add Folder' or 'Add with Subfolders' to add your new folder to the path
 
-### Support
+## Developing for the blockset
+
+To develop for this project, clone it, then open the project.  
+This will disable the installed version and allow you to work with the one that is tracked in git.
+
+Never commit +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx, in theory this should work out fine, but as it is a binary file it will cause annoying merge conflicts.  
+To force this run `git update-index --skip-worktree +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx` in the repository.
+
+## Support
 
 Please let us know when interface blocks are not working properly. You can contact us at support@gocontroll.com  
 Or make a pull request with changes to fix issues that you are experiencing.
