@@ -6,5 +6,6 @@
 		"/home/maud/.local/share/MATLAB/R2024a/toolbox/rtw/targets/common/can/datatypes",
 		"/home/maud/.local/share/MATLAB/R2024a/toolbox/shared/can/src/scanutil",
 		"/home/maud/.local/share/MATLAB/R2024a/rtw/c/src"
-	]
+	],
+	"editor.formatOnSave": true
 }
