@@ -30,11 +30,12 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.3.1-rc1';
+version = 'GOcontroll V4.3.1';
 
-%% V4.3.1 -
+%% V4.3.1 Update 24-7-2024:
 % Removed duplicated upload function, auto upload now uses the manual upload script
-% Added template for a project
+% Added template for a project with a stable blockset
+% Improved the developer experience when working on the blockset, compiler paths are now auto updated when loading the project
 
 %% V4.3.0 Update 18-6-2024:
 % XCP server can now use UDP or TCP

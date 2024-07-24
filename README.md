@@ -37,19 +37,22 @@ To compile the Linux based blockset for GOcontroll Moduline IV/Mini/Display, som
 
 ### Rolling release
 1. Install the addon from the Matlab addon explorer
-2.  There will be a template called 'GOcontroll Linux', this template contains a basic model and the required settings for the toolchain, from this template you can start building your model.
-You must save the model before being able to build it.
+2. In the 'HOME' tab of Matlab, from the 'New' dropdown menu, select 'Simulink Model'
+3. Make a new Simulink model with the 'GOcontroll Linux' template
+4. Save the model
+5. Build
 
 ### Stable blockset
 
 If you do not want the blockset to update, there are a couple of steps to be taken:
 
-1. The add-on must be installed through the addon store to install the compilers and such.
-2. Download the zip/tarball of the specific version that is desired from the [Github releases](https://github.com/GOcontroll/GOcontroll-Simulink/releases)
-3. Add a startup script to the project that is in there with `matlab.addons.disableAddon('GOcontroll-Simulink')` to force the rolling release blockset to not be loaded when this project is loaded
-4. In the home tab of Matlab, find the Add-Ons option then select Manage Add-Ons, click the three dots on the right on the GOcontroll-Simulink and select 'Open Folder'  
-Navigate to the '+GOcontroll_Simulink_2023b_dev folder, and copy the getInstallationLocation.mlx to this position in your new project. This file allows Simulink to find the proper compiler when building.
-5. Make a new Simulink model with the GOcontroll_Linux template, and it is good to go.
+1. The add-on must be installed through the addon store to install the compilers and such
+2. In the 'HOME' tab of Matlab, from the 'New' dropdown menu, select 'Project -> From Simulink Template'
+3. Create the project where you want it
+4. In the 'HOME' tab of Matlab, from the 'New' dropdown menu, select 'Simulink Model'
+5. Make a new Simulink model with the 'GOcontroll Linux' template
+6. Save the model
+7. Build
 
 ## Adding a project specific library
 

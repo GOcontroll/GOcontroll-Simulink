@@ -7,7 +7,7 @@
     <param.summary>A toolbox for working with the GOcontroll Moduline controllers</param.summary>
     <param.description>This toolbox contains everything necessery to get started developping for the GOcontroll Moduline controllers, it will install the proper compiler and contains various blocks made to interact with the controllers hardware.</param.description>
     <param.screenshot>${PROJECT_ROOT}/GOcontroll.png</param.screenshot>
-    <param.version>4.3.0.1</param.version>
+    <param.version>4.3.1</param.version>
     <param.output>${PROJECT_ROOT}/GOcontroll-Simulink.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -74,7 +74,8 @@ doc
 slprj
 .git*
 .vscode/
-*_generated_code/</param.exclude.filters>
+*_generated_code/
+updating_project_template.md</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples />
     <param.demosxml />
@@ -149,7 +150,7 @@ slprj
     <fileset.rootfiles>
       <file>${PROJECT_ROOT}/+GOcontroll_Simulink_2023b_dev</file>
       <file>${PROJECT_ROOT}/GOcontroll.png</file>
-      <file>${PROJECT_ROOT}/GOcontrollSimulink.sltx</file>
+      <file>${PROJECT_ROOT}/GOcontrollSimulinkProject.sltx</file>
       <file>${PROJECT_ROOT}/LICENSE</file>
       <file>${PROJECT_ROOT}/README.md</file>
       <file>${PROJECT_ROOT}/blockset</file>
