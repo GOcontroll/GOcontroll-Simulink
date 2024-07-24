@@ -60,8 +60,9 @@ To add your own reusable blocks it is possible to create your own library that w
 It is not a good idea to modify the existing GOcontroll libraries, as this will cause major issues when you want to update.
 1. Create a folder in your project that will contain the library.
 2. In Matlab on the 'HOME' tab, select 'Simulink Model' from the 'New' dropdown menu. Select the 'Blank Library' option, place your block(s) in here and save it in this new folder
-3. In this folder create a file called 'slblocks.m'
-4. In this file should be the following with the 2 name fields replaced with relevant values for you:
+3. With the library open, unlock it and then run `set_param('YourLibraryFileName','EnableLBRepository','on');` and then save it
+4. In this folder create a file called 'slblocks.m'
+5. In this file should be the following with the 2 name fields replaced with relevant values for you:
 ```matlab
 function blkStruct = slblocks()
 	Browser.Library = 'YourLibraryFileName'; %no file extension, so 'Library.mdl' would be 'Library'
@@ -69,7 +70,9 @@ function blkStruct = slblocks()
 	blkStruct.Browser = Browser;
 end
 ```
-5. Add this folder to the path of your project so it gets properly loaded. This is done in the 'PROJECT' tab of Matlab, from this tab select 'Project Path'. Then use either 'Add Folder' or 'Add with Subfolders' to add your new folder to the path
+6. Add this folder to the path of your project so it gets properly loaded. This is done in the 'PROJECT' tab of Matlab, from this tab select 'Project Path'. Then use either 'Add Folder' or 'Add with Subfolders' to add your new folder to the path
+
+for more info see the [Matlab documentation](https://nl.mathworks.com/help/simulink/ug/adding-libraries-to-the-library-browser.html).
 
 ## Developing for the blockset
 
