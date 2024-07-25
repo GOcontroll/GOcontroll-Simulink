@@ -25,6 +25,8 @@
 %% add required include files
 %<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
 %<LibAddToCommonIncludes("stdlib.h")>
+%<LibAddToCommonIncludes("unistd.h")>
+%<LibAddToCommonIncludes("sys/types.h")>
 
 %% Function: Start ==========================================================
 %%
@@ -41,8 +43,11 @@
 %%
 %function Outputs(block, system) Output
 	if (%<LibBlockInputSignal(0, "", "", 0)>){
-        system("%<block.RTWdata.command>");
-    }
+		pid_t pid = fork();
+		if (pid == 0) {
+			exit(system("%<block.RTWdata.command>"));
+		}
+	}
 %endfunction
 
 
