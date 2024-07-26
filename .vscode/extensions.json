@@ -1,0 +1,7 @@
+{
+	"recommendations": [
+		"MathWorks.language-matlab",
+		"ms-vscode.cpptools-extension-pack",
+		"Swellaby.workspace-config-plus"
+	]
+}
