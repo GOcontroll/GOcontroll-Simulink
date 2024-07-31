@@ -30,10 +30,11 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.3.2-rc1';
+version = 'GOcontroll V4.3.2-rc2';
 
 %% V4.3.2 Update -
 % The Execute shell command block now forks the process before calling system() to not block the main thread.
+% Fixed missing semicolon in sfcn_can_send.tlc
 
 %% V4.3.1 Update 24-7-2024:
 % Removed duplicated upload function, auto upload now uses the manual upload script

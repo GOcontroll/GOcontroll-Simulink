@@ -81,7 +81,7 @@
 			sendframe.data[%<counter>] = %<LibBlockInputSignal(counter + 1, "", "", 0)>;
 		%endforeach
 
-		write(canConnection.socket[%<block.RTWdata.canBus>], &sendframe, sizeof(struct can_frame))	/* Send message */
+		write(canConnection.socket[%<block.RTWdata.canBus>], &sendframe, sizeof(struct can_frame));	/* Send message */
 	}
 %endfunction
 

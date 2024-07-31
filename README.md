@@ -74,13 +74,18 @@ end
 
 for more info see the [Matlab documentation](https://nl.mathworks.com/help/simulink/ug/adding-libraries-to-the-library-browser.html).
 
-## Developing for the blockset
+## Developing the blockset
 
-To develop for this project, clone it, then open the project.  
+To develop for this project, fork/clone it, then open the Matlab project.  
 This will disable the installed version and allow you to work with the one that is tracked in git.
 
 Never commit +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx, in theory this should work out fine, but as it is a binary file it will cause annoying merge conflicts.  
-To force this run `git update-index --skip-worktree +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx` in the repository.
+This file will get automatically updated to your local situation everytime the Matlab project is opened.  
+To force this run `git update-index --skip-worktree +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx` in the repository.  
+This will make sure this file doesn't show up in `git status` for example.
+
+GOcontrollSimulinkProject.sltx should not contain itself or any mex files, [see the guide to updating it](/updating_project_template.md).  
+GOcontroll-Simulink.mltbx should contain GOcontrollSimulinkProject.sltx, but still no mex files.
 
 ## Support
 

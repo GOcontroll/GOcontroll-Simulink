@@ -232,7 +232,7 @@ switch hookMethod
 		
 		xcp_server = find_system(modelName, 'RegExp', 'on', 'MaskType', 'XCP Server');
 		
-		if (isscalar(xcp_server)) %check if there is only one
+		if (isscalar(xcp_server)) %check if there is only one, more than one will never reach this point
 			medium = get_param(xcp_server{1}, 'server_type');
 		else
 			medium = 'TCP'; % no XCP server present, just generate an a2l for TCP
