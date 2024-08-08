@@ -79,27 +79,27 @@
 	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[8] = %<block.RTWdata.C910freq> | (%<block.RTWdata.C9func> <<4);
 	outputModule10ch%<block.RTWdata.moduleSlot>.configuration[9] = %<block.RTWdata.C910freq> | (%<block.RTWdata.C10func> <<4);
 
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[0] = %<block.RTWdata.C1peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[1] = %<block.RTWdata.C2peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[2] = %<block.RTWdata.C3peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[3] = %<block.RTWdata.C4peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[4] = %<block.RTWdata.C5peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[5] = %<block.RTWdata.C6peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[6] = %<block.RTWdata.C7peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[7] = %<block.RTWdata.C8peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[8] = %<block.RTWdata.C9peakDuty>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[9] = %<block.RTWdata.C10peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[0] = %<block.RTWdata.C1peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[1] = %<block.RTWdata.C2peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[2] = %<block.RTWdata.C3peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[3] = %<block.RTWdata.C4peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[4] = %<block.RTWdata.C5peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[5] = %<block.RTWdata.C6peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[6] = %<block.RTWdata.C7peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[7] = %<block.RTWdata.C8peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[8] = %<block.RTWdata.C9peakDuty>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakDuty[9] = %<block.RTWdata.C10peakDuty>;
 
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[0] = %<block.RTWdata.C1peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[1] = %<block.RTWdata.C2peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[2] = %<block.RTWdata.C3peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[3] = %<block.RTWdata.C4peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[4] = %<block.RTWdata.C5peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[5] = %<block.RTWdata.C6peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[6] = %<block.RTWdata.C7peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[7] = %<block.RTWdata.C8peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[8] = %<block.RTWdata.C9peakTime>;
-	outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[9] = %<block.RTWdata.C10peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[0] = %<block.RTWdata.C1peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[1] = %<block.RTWdata.C2peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[2] = %<block.RTWdata.C3peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[3] = %<block.RTWdata.C4peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[4] = %<block.RTWdata.C5peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[5] = %<block.RTWdata.C6peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[6] = %<block.RTWdata.C7peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[7] = %<block.RTWdata.C8peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[8] = %<block.RTWdata.C9peakTime>;
+	%% outputModule10ch%<block.RTWdata.moduleSlot>.peakTime[9] = %<block.RTWdata.C10peakTime>;
 
 	OutputModule_Configuration(&outputModule10ch%<block.RTWdata.moduleSlot>);
   %%
