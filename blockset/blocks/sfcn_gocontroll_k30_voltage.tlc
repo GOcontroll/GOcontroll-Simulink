@@ -60,7 +60,7 @@
 		%endif
 
 		%openfile buff
-		pthread_t adc_thread = NULL;
+		pthread_t adc_thread;
 		struct  ControllerSupplyThreadArgs adc_thread_args;
 		%closefile buff
 
