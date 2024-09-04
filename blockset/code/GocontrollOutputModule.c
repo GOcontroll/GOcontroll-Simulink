@@ -78,7 +78,7 @@ void OutputModule_Configuration(_outputModule *outputModule) {
     if (outputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNELOUT) {
       GocontrollProcessorboard_SendSpi(
           outputModule->moduleSlot + 1, OUTPUTMODULE6CHMESSAGELENGTH, 1, 22, 2,
-          1, outputModule->moduleSlot, &outputModuleDataTx[0], 1000);
+          1, outputModule->moduleSlot, &outputModuleDataTx[0], 0);
     } else {
       GocontrollProcessorboard_SendSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 101, 0,
                                        0, 0, outputModule->moduleSlot,
@@ -97,7 +97,7 @@ void OutputModule_Configuration(_outputModule *outputModule) {
     if (outputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNELOUT) {
       GocontrollProcessorboard_SendSpi(
           outputModule->moduleSlot + 1, OUTPUTMODULE6CHMESSAGELENGTH, 1, 22, 2,
-          2, outputModule->moduleSlot, &outputModuleDataTx[0], 1000);
+          2, outputModule->moduleSlot, &outputModuleDataTx[0], 0);
     } else {
       GocontrollProcessorboard_SendSpi(1, OUTPUTMODULE6CHMESSAGELENGTH, 111, 0,
                                        0, 0, outputModule->moduleSlot,
