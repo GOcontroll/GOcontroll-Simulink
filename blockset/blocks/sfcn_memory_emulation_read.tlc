@@ -57,10 +57,18 @@
 		MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
 		/* Ensure the value is loaded before step starts */
 		MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-	%else 
+	%elseif %<block.RTWdata.memType> == 2
 		MemoryEmulation_WriteToMemory("/dev/shm/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
 		/* Ensure the value is loaded before step starts */
 		MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+	%elseif %<block.RTWdata.memType> == 3
+		%% only init the key if the config doesn't exist yet
+		MemoryEmulation_WriteToMemory("/etc/go-simulink/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
+		/* Ensure the value is loaded before step starts */
+		MemoryEmulation_ReadFromMemory("/etc/go-simulink/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+	%else
+		%assign error = "Memory type did not match any valid value: %<block.RTWdata.memType> is not in [1,2,3]"
+		%<LibBlockReportError(block,error)>
 	%endif
 	%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
 %endfunction
@@ -72,16 +80,21 @@
 %%
 %function Outputs(block, system) Output
 	/* Write memory value to output of the block */
-	if(%<block.RTWdata.memRead> == 2) {
-	  	if(%<block.RTWdata.memType> == 1) { /* index 1 means eMMC memory */
+	%if %<block.RTWdata.memRead> == 2
+		%if %<block.RTWdata.memType> == 1 %% index 1 means eMMC memory 
 			MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-		} else {
+		%elseif %<block.RTWdata.memType> == 2
 			MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-		}
+		%elseif %<block.RTWdata.memType> == 3
+			MemoryEmulation_ReadFromMemory("/etc/go-simulink/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+		%else
+			%assign error = "Memory type did not match any valid value: %<block.RTWdata.memType> is not in [1,2,3]"
+			%<LibBlockReportError(block,error)>
+		%endif
 		%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
-	} else {
+	%else
 		%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
-	}
+	%endif
 %endfunction
 
 %%******************************* end of sfcn_memory_emulation_read.tlc ***************************
