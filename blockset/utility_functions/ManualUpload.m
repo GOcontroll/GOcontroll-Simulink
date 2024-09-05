@@ -39,28 +39,28 @@
 %%***************************************************************************************
 
 function ManualUpload(modelname, ip, options)
-	arguments
-		modelname {mustBeTextScalar}
-		ip {mustBeTextScalar}
-		options.port {mustBeTextScalar} = '8001'
-	end
+arguments
+	modelname {mustBeTextScalar}
+	ip {mustBeTextScalar}
+	options.port {mustBeTextScalar} = '8001'
+end
 
-	elfPath = [pwd filesep modelname '.elf'];
-	a2lPath = [pwd filesep modelname '.a2l'];
+elfPath = [modelname '.elf'];
+a2lPath = [modelname '.a2l'];
 
-	% Upload the file to the controller
-	if (isfile(elfPath))
+% Upload the file to the controller
+if (isfile(elfPath))
 	cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "elfFile=@',elfPath,'" ',' http://',ip,':',options.port,'/upload');
 	disp(cmdCommand)
 	system(cmdCommand);
-	else
-		error(['Could not find the elf that belongs with ', modelname]);
-	end
-	if (isfile(a2lPath))
-		cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',ip,':',options.port,'/upload');
-		disp(cmdCommand)
-		system(cmdCommand);
-	elseif (~isfile(a2lPath))
-		error(['Could not find the a2l file that belongs with ', modelname]);
-	end
+else
+	error(['Could not find the elf that belongs with ', modelname]);
+end
+if (isfile(a2lPath))
+	cmdCommand = strcat('curl --connect-timeout 2 -i -X POST -H "Content-Type: multipart/form-data"',' -F "a2lFile=@',a2lPath,'" ',' http://',ip,':',options.port,'/upload');
+	disp(cmdCommand)
+	system(cmdCommand);
+elseif (~isfile(a2lPath))
+	error(['Could not find the a2l file that belongs with ', modelname]);
+end
 end % end of function ManualUpload()

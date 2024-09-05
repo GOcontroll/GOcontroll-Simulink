@@ -83,6 +83,7 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 % various callbacks to fully integrate ERT into your environment.
 
 persistent stationID;
+persistent model_path;
 switch hookMethod
 	case 'error'
 		fprintf('########################### ERROR\n');
@@ -111,11 +112,14 @@ switch hookMethod
 		model_path = regexprep(model_path, ['\' filesep modelName '.slx'],''); %windows needs the '\' and linux seems fine with or without it
 		model_path = regexprep(model_path, ['\' filesep modelName '.mdl'],'');
 		
-		if (~(strcmp(pwd,model_path)))
-			errorMessage = strcat('The current folder is incorrect, please', ...
-				' set the current folder to: ', model_path,...
-				' instead of: ', pwd);
-			error(errorMessage);
+		%check if a custom setting is set for the code gen folder, if set don't perform this check
+		if (~strcmp(pwd, get_param(0, 'CodeGenFolder')))
+			if (~(strcmp(pwd,model_path)))
+				errorMessage = strcat('The current folder is incorrect, please', ...
+					' set the current folder to: ', model_path,...
+					' instead of: ', pwd);
+				error(errorMessage);
+			end
 		end
 		
 		fprintf(['\n### Starting Real-Time Workshop build procedure for ', ...
@@ -243,7 +247,7 @@ switch hookMethod
 			MAPfile = fullfile(pwd, '..', [modelName '.map']);
 			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile, medium);
 			
-			% Moving the A2L file to the user directory and the map file away
+			% Moving the map file away
 			movefile(['..' filesep modelName '.map'],[modelName '.map']);
 		else
 			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '', medium);
@@ -257,7 +261,14 @@ switch hookMethod
 		fwrite(a2lfile, a2lfile_str);
 		fclose(a2lfile);
 		
-		movefile([modelName '.a2l'],['..' filesep modelName '.a2l']);
+		movefile([modelName '.a2l'],[model_path filesep modelName '.a2l']);
+		try
+			movefile(['..' filesep modelName '.elf'],[model_path filesep modelName '.elf']);
+		catch err
+			if (~strcmp(err.identifier, 'MATLAB:MOVEFILE:SourceAndDestinationSame'))
+				rethrow(err)
+			end
+		end
 		
 	case 'exit'
 		% Called at the end of the RTW build process.  All arguments are valid
