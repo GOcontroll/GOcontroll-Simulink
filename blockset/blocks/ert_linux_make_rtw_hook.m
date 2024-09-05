@@ -113,7 +113,8 @@ switch hookMethod
 		
 		if (~(strcmp(pwd,model_path)))
 			errorMessage = strcat('The current folder is incorrect, please', ...
-				' set the current folder to:', model_path);
+				' set the current folder to: ', model_path,...
+				' instead of: ', pwd);
 			error(errorMessage);
 		end
 		
