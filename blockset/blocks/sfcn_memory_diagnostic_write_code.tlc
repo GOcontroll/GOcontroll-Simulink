@@ -53,8 +53,8 @@
 %%
 %function Outputs(block, system) Output
   %%
-	MemoryDiagnostic_WriteToMemory(%<block.RTWdata.diagType> ,%<LibBlockInputSignal(0, "", "", 0)>,"",0,DIAGNOSTICSTART);
-	MemoryDiagnostic_WriteToMemory(0,0,"",0,DIAGNOSTICSTOP);
+	MemoryDiagnostic_WriteToMemory(%<block.RTWdata.spn>,%<block.RTWdata.fmi>,1,"",0,DIAGNOSTICSTART);
+	MemoryDiagnostic_WriteToMemory(0,0,0,"",0,DIAGNOSTICSTOP);
   %%
 %endfunction
 

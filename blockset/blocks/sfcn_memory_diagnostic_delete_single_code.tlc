@@ -1,5 +1,5 @@
 %%***************************************************************************************
-%% file         sfcn_memory_diagnostic_nrcodes_read.tlc
+%% file         sfcn_memory_diagnostic_delete_single_code.tlc
 %% brief        Target Language Compiler file that contains the code generation specifics
 %%              for an S-function with the same name.
 %%
@@ -28,7 +28,7 @@
 %% DEALINGS IN THE SOFTWARE.
 %%
 %%***************************************************************************************
-%implements  sfcn_memory_diagnostic_nrcodes_read "C"
+%implements  sfcn_memory_diagnostic_delete_single_code "C"
 
 %include "mem_diag_common.tlc"
 
@@ -53,9 +53,9 @@
 %%
 %function Outputs(block, system) Output
   %%
-	%<LibBlockOutputSignal(0, "", "", 0)> =  MemoryDiagnostic_CountDiagCodes();
+	MemoryDiagnostic_DeleteSingleCode(%<LibBlockInputSignal(0, "", "", 0)>,%<LibBlockInputSignal(1, "", "", 0)>,1);
   %%
 %endfunction
 
 
-%%******************************* end of sfcn_memory_diagnostic_nrcodes_read.tlc ***************************
+%%******************************* end of sfcn_memory_diagnostic_delete_single_code.tlc ***************************

@@ -46,10 +46,9 @@
 
 static int remove_directory(const char *path);
 
-
 /***************************************************************************************
 ** \brief	Function that needs to be called once during initialze to create the folder
-**			to store diagnostic data.
+**			to store diagnostic trouble codes
 ** \param	None
 ** \return	None.
 **
@@ -62,26 +61,6 @@ void MemoryDiagnostic_InitializeMemory(void)
 	if (stat("/usr/mem-diag", &st) == -1) {
 	mkdir("/usr/mem-diag", 0555);
 	}
-
-	if (stat("/usr/mem-diag/1", &st) == -1) {
-	mkdir("/usr/mem-diag/1", 0555);
-	}
-
-	if (stat("/usr/mem-diag/2", &st) == -1) {
-	mkdir("/usr/mem-diag/2", 0555);
-	}
-
-	if (stat("/usr/mem-diag/3", &st) == -1) {
-	mkdir("/usr/mem-diag/3", 0555);
-	}
-
-	if (stat("/usr/mem-diag/4", &st) == -1) {
-	mkdir("/usr/mem-diag/4", 0555);
-	}
-
-	if (stat("/usr/mem-diag/5", &st) == -1) {
-	mkdir("/usr/mem-diag/5", 0555);
-	}
 }
 
 
@@ -92,26 +71,28 @@ void MemoryDiagnostic_InitializeMemory(void)
 ** \return	If requested, the memory location of the modules data holder.
 **
 ****************************************************************************************/
-void MemoryDiagnostic_WriteToMemory(uint8_t diagType,uint32_t diagCode, char* freezedDescription, float freezedParameter, uint8_t messageType)
+void MemoryDiagnostic_WriteToMemory(uint32_t spn, uint8_t fmi, uint8_t oc, char* freezedDescription, float freezedParameter, uint8_t messageType)
 {
 	/* Write string to file */
 	static int fileId = 0;
+	static uint32_t diagnosticCode;
 
 	/* Open file to write data to */
 	if(messageType == DIAGNOSTICSTART)
 	{
+	/* Create diagnostic code to store */
+	diagnosticCode = (spn&0xffff); //1234
+	diagnosticCode += (spn&0x70000) << 5; //1234
+	diagnosticCode += (fmi&0x1f) << 16; //2
+	diagnosticCode += (oc&0x7f) << 24; //1
+		
 	char path[50] = {0};
-	/* Create string from diagnostic type */
-	char diagTypeStr[5];
-	sprintf(diagTypeStr, "%u",(int)diagType);
 	/* Create string from diagnostic code */
-	char diagCodeStr[15];
-	sprintf(diagCodeStr, "%u",(int)diagCode);
+	char diagnosticCodeStr[15];
+	sprintf(diagnosticCodeStr, "%u",(int)diagnosticCode);
 	/* Combine strings to correct file naming */
 	strcat(path, "/usr/mem-diag/");
-	strcat(path, diagTypeStr);
-	strcat(path, "/");
-	strcat(path, diagCodeStr);
+	strcat(path, diagnosticCodeStr);
 	/* Create diagnostic error code file */
 	fileId = open(path, O_WRONLY | O_CREAT | O_NONBLOCK  | O_TRUNC, 0555);
 	}
@@ -141,25 +122,20 @@ void MemoryDiagnostic_WriteToMemory(uint8_t diagType,uint32_t diagCode, char* fr
 }
 
 /***************************************************************************************
-** \brief	Function that stores and provides the memory locations for each module
-** \		data holder.
-** \param	Module slot on which the module is installed to. Value from 1 to 8
-** \return	If requested, the memory location of the modules data holder.
+** \brief	Function that counts the number of DTC's stored in /usr/mem-diag folder 
+** \param	None
+** \return	Number of stored DTC's
 **
 ****************************************************************************************/
-uint16_t MemoryDiagnostic_CountDiagCodes(uint8_t diagType)
+uint16_t MemoryDiagnostic_CountDiagCodes(void)
 {
 uint16_t file_count = 0;
 DIR * dirp;
 struct dirent * entry;
 
 	char path[20] = {0};
-	/* Create string from diagnostic type */
-	char diagTypeStr[5];
-	sprintf(diagTypeStr, "%u",(int)diagType);
-	/* Combine string to construct properpath name */
+	/* Construct properpath name */
 	strcat(path, "/usr/mem-diag/");
-	strcat(path, diagTypeStr);
 
 	dirp = opendir(path); /* There should be error handling after this */
 	while ((entry = readdir(dirp)) != NULL) {
@@ -168,35 +144,59 @@ struct dirent * entry;
 		}
 	}
 	closedir(dirp);
-
-	/* For debug purpose */
-	//printf("codes: %d\n",file_count);
-
+	
 return file_count;
 }
 
 /***************************************************************************************
-** \brief	Function that stores and provides the memory locations for each module
-** \		data holder.
-** \param	Module slot on which the module is installed to. Value from 1 to 8
-** \return	If requested, the memory location of the modules data holder.
+** \brief	Delete all stored codes from /usr/mem-diag folder
+** \param	None
+** \return	None
 **
 ****************************************************************************************/
-void MemoryDiagnostic_DeleteCodes(uint8_t diagType)
+void MemoryDiagnostic_DeleteAllCodes(void)
 {
-	/* Create string from diagnostic type */
-	char diagTypeStr[5];
-	sprintf(diagTypeStr, "%u",(int)diagType);
-	/* Combine string to construct proper path name */
 	char path[20] = {0};
 	strcat(path, "/usr/mem-diag/");
-	strcat(path, diagTypeStr);
-	strcat(path, "/");
 	/* Remove the actual folder */
 	if(remove_directory(path) ==0)
 	{
 		/* Recreate the path */
 		mkdir(path, 0555);
+	}
+}
+
+
+/***************************************************************************************
+** \brief	Function that deletes only one specific diagnostic code from /usr/mem-sim folder
+** \param	spn number
+			fmi regarding J1939
+			oc which need to be set to one by default
+** \return	None
+**
+****************************************************************************************/
+void MemoryDiagnostic_DeleteSingleCode(uint32_t spn, uint8_t fmi, uint8_t oc)
+{
+	static uint32_t diagnosticCode;
+	
+	/* Create diagnostic code to store */
+	diagnosticCode = (spn&0xffff); //1234
+	diagnosticCode += (spn&0x70000) << 5; //1234
+	diagnosticCode += (fmi&0x1f) << 16; //2
+	diagnosticCode += (oc&0x7f) << 24; //1
+	
+	/* Create string from diagnostic code */
+	char diagCodeStr[20];
+	sprintf(diagCodeStr, "%u",(int)diagnosticCode);
+	/* Combine string to construct proper path name */
+	char file[35] = {0};
+	strcat(file, "/usr/mem-diag/");
+	strcat(file, diagCodeStr);
+	/* Remove the actual folder */
+	if(remove(file) ==0)
+	{
+		/* Recreate the path */
+		//mkdir(path, 0555);
 	}
 }
 
@@ -261,16 +261,11 @@ static int remove_directory(const char *path) {
 ** \return	If requested, the memory location of the modules data holder.
 **
 ****************************************************************************************/
-uint32_t MemoryDiagnostic_DiagCodeOnIndex(uint8_t diagType,uint16_t index)
+uint32_t MemoryDiagnostic_DiagCodeOnIndex(uint16_t index)
 {
-	if (1 <= diagType && diagType <= 5){
-		/* Create string from diagnostic type */
-		char diagTypeStr[5];
-		sprintf(diagTypeStr, "%u",(int)diagType);
-		/* Combine string to construct proper path name */
+		/* Construct proper path name */
 		char path[20] = {0};
 		strcat(path, "/usr/mem-diag/");
-		strcat(path, diagTypeStr);
 
 		DIR *d;
 		struct dirent *dir;
@@ -299,6 +294,5 @@ uint32_t MemoryDiagnostic_DiagCodeOnIndex(uint8_t diagType,uint16_t index)
 			}
 			closedir(d);
 		}
-	}
 	return(0);
 }

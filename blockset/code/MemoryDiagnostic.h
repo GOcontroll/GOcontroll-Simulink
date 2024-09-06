@@ -41,10 +41,11 @@
 #define DIAGNOSTICSTOP		3
 
 void 		MemoryDiagnostic_InitializeMemory(void);
-void 		MemoryDiagnostic_WriteToMemory(uint8_t diagType,uint32_t diagCode, char* freezedDescription, float freezedParameter, uint8_t messageType);
-uint16_t 	MemoryDiagnostic_CountDiagCodes(uint8_t diagType);
-void 		MemoryDiagnostic_DeleteCodes(uint8_t diagType);
-uint32_t 	MemoryDiagnostic_DiagCodeOnIndex(uint8_t diagType,uint16_t index);
+void 		MemoryDiagnostic_WriteToMemory(uint32_t spn, uint8_t fmi, uint8_t oc, char* freezedDescription, float freezedParameter, uint8_t messageType);
+uint16_t 	MemoryDiagnostic_CountDiagCodes(void);
+void 		MemoryDiagnostic_DeleteAllCodes(void);
+uint32_t 	MemoryDiagnostic_DiagCodeOnIndex(uint16_t index);
+void 		MemoryDiagnostic_DeleteSingleCode(uint32_t spn, uint8_t fmi, uint8_t oc);
 
 #endif // _MEMORY_DIAGNOSTIC_H
 

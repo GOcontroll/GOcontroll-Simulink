@@ -1,7 +1,6 @@
 %%***************************************************************************************
-%% file         sfcn_memory_diagnostic_nrcodes_read.tlc
-%% brief        Target Language Compiler file that contains the code generation specifics
-%%              for an S-function with the same name.
+%% file         sfcn_memory_diagnostic_delete_single_code.m
+%% brief        Level-2 M file S-Function for GOcontroll diagnostic code system.
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
@@ -28,34 +27,75 @@
 %% DEALINGS IN THE SOFTWARE.
 %%
 %%***************************************************************************************
-%implements  sfcn_memory_diagnostic_nrcodes_read "C"
+function sfcn_memory_diagnostic_delete_single_code(block)
+	setup(block);
+end
 
-%include "mem_diag_common.tlc"
-
-%% add required include files
-%function BlockTypeSetup(block, system) void
-	%<mem_diag_type_setup()>
-%endfunction
-
-%% Function: Start ==========================================================
+%% Function: setup ===================================================
+%% Abstract:
+%%   Set up the S-function block's basic characteristics such as:
+%%   - Input ports
+%%   - Output ports
+%%   - Dialog parameters
+%%   - Options
 %%
-%% Purpose:
-%%      Code generation for initialization
-%%
-%function Start(block, system) Output
-	%<mem_diag_start()>
-%endfunction
+%%   Required         : Yes
+%%   C-Mex counterpart: mdlInitializeSizes
 
-%% Function: Output ==========================================================
-%%
-%% Purpose:
-%%      Code generation for signal output
-%%
-%function Outputs(block, system) Output
-  %%
-	%<LibBlockOutputSignal(0, "", "", 0)> =  MemoryDiagnostic_CountDiagCodes();
-  %%
-%endfunction
+function setup(block)
+	%% Register number of input and output ports
+	block.NumInputPorts = 2;
+	block.NumOutputPorts = 0;
+
+	block.NumDialogPrms     = 0;
+	block.SampleTimes = [-1 0];
+	%% -----------------------------------------------------------------
+	%% Register methods called at run-time
+	%% -----------------------------------------------------------------
+
+	%%
+	%% Start:
+	%%   Functionality    : Called in order to initialize state and work
+	%%                      area values
+	%%   C-Mex counterpart: mdlStart
+	%%
+	block.RegBlockMethod('Start', @Start);
+
+	%%
+	%% Outputs:
+	%%   Functionality    : Called to generate block outputs in
+	%%                      simulation step
+	%%   C-Mex counterpart: mdlOutputs
+	%%
+	block.RegBlockMethod('Outputs', @Outputs);
+
+	%%
+	%% Update:
+	%%   Functionality    : Called to update discrete states
+	%%                      during simulation step
+	%%   C-Mex counterpart: mdlUpdate
+	%%
+	block.RegBlockMethod('Update', @Update);
+end
+
+function Start(~)
+
+  %% No start
+
+end
 
 
-%%******************************* end of sfcn_memory_diagnostic_nrcodes_read.tlc ***************************
+function Outputs(~)
+
+  %% No output
+
+end
+
+
+function Update(~)
+
+  %% No update
+
+end
+
+%%******************************* end of sfcn_memory_diagnostic_delete_single_code.m **********************

@@ -53,7 +53,7 @@
 %%
 %function Outputs(block, system) Output
   %%
-	%<LibBlockOutputSignal(0, "", "", 0)> = MemoryDiagnostic_DiagCodeOnIndex(%<LibBlockInputSignal(0, "", "", 0)>,%<LibBlockInputSignal(1, "", "", 0)>);
+	%<LibBlockOutputSignal(0, "", "", 0)> = MemoryDiagnostic_DiagCodeOnIndex(%<LibBlockInputSignal(0, "", "", 0)>);
 
   %%
 %endfunction

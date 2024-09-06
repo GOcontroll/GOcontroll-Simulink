@@ -53,7 +53,7 @@
 %%
 %function Outputs(block, system) Output
   %%
-	MemoryDiagnostic_DeleteCodes(%<block.RTWdata.diagType>);
+	MemoryDiagnostic_DeleteAllCodes();
   %%
 %endfunction
 

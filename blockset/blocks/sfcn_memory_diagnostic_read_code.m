@@ -46,17 +46,15 @@ end
 function setup(block)
 	tsamp = 1;
 	%% Register number of input and output ports
-	block.NumInputPorts = 2;
+	block.NumInputPorts = 1;
 	block.NumOutputPorts = 1;
 
 	% inputs
-	type = 1;
-	index = 2;
+	index = 1;
 
 	% outputs
 	code = 1;
 
-	addSimpleInput(block, type, DatatypeID.Uint8);
 	addSimpleInput(block, index, DatatypeID.Uint16);
 
 	addSimpleOutput(block, code, DatatypeID.Uint32);

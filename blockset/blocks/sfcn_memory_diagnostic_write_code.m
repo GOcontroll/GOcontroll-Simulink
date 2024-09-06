@@ -44,11 +44,8 @@ end
 
 function setup(block)
 	%% Register number of input and output ports
-	block.NumInputPorts = 1;
+	block.NumInputPorts = 0;
 	block.NumOutputPorts = 0;
-
-	%% configurable inputs on diagnostic block
-	addSimpleInput(block, 1, DatatypeID.Uint32);
 
 	block.NumDialogPrms     = 0;
 	block.SampleTimes = [-1 0];
