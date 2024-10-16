@@ -29,11 +29,16 @@ To check what release your controller is running see /etc/controller_update/curr
 ## GOcontroll Moduline IV toolchain setup
 
 To compile the Linux based blockset for GOcontroll Moduline IV/Mini/Display, some initial steps needs to be made:
-- The template project is created in Matlab Simulink R2023b. 2024a is also confirmed to work and brings some nice improvements
 - To compile some necessary mex files on Windows you may need to install the "MATLAB Support for MinGW-w64 C/C++/Fortran Compiler" add-on from the Matlab add-on explorer.
 - To compile some necessary mex files on Mac you need to install and activate some Xcode programs. To install the proper components run `xcode-select --install` and `defaults write com.apple.dt.Xcode IDEXcodeVersionForAgreedToGMLicense 12.0` where 12.0 has to be replaced with your xcode version.
 
 ## Setting up a new project
+There are two ways to set up a project, using a rolling release or a locked version.  |
+A project set up using the Rolling release method will use the installed version of the blockset.  
+So when the blockset is updated through the Add-On manager, all projects using this will automatically use the new version.  
+  
+The locked version method creates a project that is locked to the version of the blockset that is installed at the point of project creation.  
+This makes sure there will never be a sudden breaking change that has to be dealt with, but makes getting updates much more difficult.
 
 ### Rolling release
 1. Install the addon from the Matlab addon explorer
@@ -42,22 +47,19 @@ To compile the Linux based blockset for GOcontroll Moduline IV/Mini/Display, som
 4. Save the model
 5. Build
 
-### Stable blockset
-
-If you do not want the blockset to update, there are a couple of steps to be taken:
-
+### Locked version
 1. The add-on must be installed through the addon store to install the compilers and such
 2. In the 'HOME' tab of Matlab, from the 'New' dropdown menu, select 'Project -> From Simulink Template'
-3. Create the project where you want it
+3. Create the project from the ' GOcontroll-Simulink-Project' template where you want it
 4. In the 'HOME' tab of Matlab, from the 'New' dropdown menu, select 'Simulink Model'
 5. Make a new Simulink model with the 'GOcontroll Linux' template
-6. Save the model
+6. Save the model in the root of the project folder from before and make sure this folder is also opened in matlab.
 7. Build
 
 ## Adding a project specific library
 
 To add your own reusable blocks it is possible to create your own library that will be loaded upon startup.  
-It is not a good idea to modify the existing GOcontroll libraries, as this will cause major issues when you want to update.
+**It is not a good idea to modify the existing GOcontroll libraries, as this will cause major issues when you want to update.**
 1. Create a folder in your project that will contain the library.
 2. In Matlab on the 'HOME' tab, select 'Simulink Model' from the 'New' dropdown menu. Select the 'Blank Library' option, place your block(s) in here and save it in this new folder
 3. With the library open, unlock it and then run `set_param('YourLibraryFileName','EnableLBRepository','on');` and then save it
@@ -76,10 +78,13 @@ for more info see the [Matlab documentation](https://nl.mathworks.com/help/simul
 
 ## Developing the blockset
 
-To develop for this project, fork/clone it, then open the Matlab project.  
+Since this blockset is intended to support 2023b and up, it is best to do any development in 2023b.  
+This way there is no risk of accidentally adding unsupport features. All files like the blockset also need to be saved in the 2023b format.  
+
+To develop for this project, fork/clone it, then open the Matlab project in the repo.  
 This will disable the installed version and allow you to work with the one that is tracked in git.
 
-Never commit +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx, in theory this should work out fine, but as it is a binary file it will cause annoying merge conflicts.  
+Never commit +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx, in theory this should work out fine, but as it is a binary file it will cause annoying merge conflicts. Revert/discard changes before comitting.  
 This file will get automatically updated to your local situation everytime the Matlab project is opened.  
 To force this run `git update-index --skip-worktree +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx` in the repository.  
 This will make sure this file doesn't show up in `git status` for example.
@@ -92,4 +97,4 @@ GOcontroll-Simulink.mltbx should contain GOcontrollSimulinkProject.sltx, but sti
 Please let us know when interface blocks are not working properly. You can contact us at support@gocontroll.com  
 Or make a pull request with changes to fix issues that you are experiencing.
 
-The changelog can be found in blockset/ert_linux_target_version.m
+The [changelog](/blockset/ert_linux_target_version.m) can be found in blockset/ert_linux_target_version.m
