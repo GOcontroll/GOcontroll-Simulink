@@ -30,13 +30,14 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.4.0-rc1';
+version = 'GOcontroll V4.4.0-rc2';
 
 %% V4.4.0 Update -:
-% Added standardised version block to help with in model version management
+% Added standardised a version block to help with in model version management
 % Added config parameter to Memory read, which reads a config parameter from /etc/go-simulink/
 % User can now configure a simulink codegen/cache folder to prevent cluttering of the project folder
 % Fixed output module groundshift datatype
+% Diagnostic blocks now follow the SAE J1939 DTC standard
 
 %% V4.3.2 Update 8-8-2024:
 % The Execute shell command block now forks the process before calling system() to not block the main thread.
