@@ -33,7 +33,7 @@ To compile the Linux based blockset for GOcontroll Moduline IV/Mini/Display, som
 - To compile some necessary mex files on Mac you need to install and activate some Xcode programs. To install the proper components run `xcode-select --install` and `defaults write com.apple.dt.Xcode IDEXcodeVersionForAgreedToGMLicense 12.0` where 12.0 has to be replaced with your xcode version.
 
 ## Setting up a new project
-There are two ways to set up a project, using a rolling release or a locked version.  |
+There are two ways to set up a project, using a rolling release or a locked version.  
 A project set up using the Rolling release method will use the installed version of the blockset.  
 So when the blockset is updated through the Add-On manager, all projects using this will automatically use the new version.  
   
