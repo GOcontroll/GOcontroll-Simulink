@@ -99,6 +99,7 @@
 		iio_channel_enable(accel_x_chan);
 		iio_channel_enable(accel_y_chan);
 		iio_channel_enable(accel_z_chan);
+		
 		%%even though scale seems to be a channel_attr, changing it for one channel changes it for all of them.
 		bytes = iio_channel_attr_write(accel_x_chan, "scale", "%<block.RTWdata.scale>");
 		if (bytes < 0) {
@@ -125,6 +126,8 @@
 			goto accel_end;
 		}
 accel_end:
+%%This has to be here otherwise gcc errors and zig generates a warning as it is only allowed past C23?
+bytes = 0;
 	}
 %endfunction
 
