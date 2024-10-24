@@ -319,9 +319,6 @@ clean :
 else ifeq ($(COMPUTER), GLNXA64) # Linux
 .PHONY: clean
 clean :
-	$(ECHO) ### Cleaning the object and lst files
-	rm -f *.obj
-	rm -f *.lst
 else # apple doesn't like cleanup
 .PHONY: clean
 clean :
