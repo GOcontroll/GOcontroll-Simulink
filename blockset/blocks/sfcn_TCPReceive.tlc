@@ -68,13 +68,17 @@
 	%assign receive_buffer = LibBlockOutputSignalAddr(1, "", "", 0) %% uint8[]
 	%assign receive_buffer_size = LibBlockOutputSignalWidth(1)
 	%assign socket_mode_par = LibBlockParameterValue(socket_mode, 0)
+	%assign num_sockets_par = LibBlockParameterValue(num_sockets, 0)
 	%assign socket_id = block.SFcnParamSettings.socket_id
-	%if %<socket_mode_par> == 1
-		%assign socket = "tcp_socket_%<socket_id>_remote"
-	%else
+	%if %<socket_mode_par> == 1 %% server
+		%assign socket_idx = LibBlockInputSignal(0, "", "", 0)
+		%assign socket = "%<socket_id>_remotes[%<socket_idx>].socket"
+		%assign socket_state = "%<socket_id>_remotes[%<socket_idx>].state"
+		if (%<socket_idx> < %<num_sockets_par>)
+	%else %% client
 		%assign socket = "tcp_socket_%<socket_id>"
+		%assign socket_state = "tcp_socket_%<socket_id>_state"
 	%endif
-	%assign socket_state = "tcp_socket_%<socket_id>_state"
 	{
 		if (%<socket_state> == connected) {
 			int res;

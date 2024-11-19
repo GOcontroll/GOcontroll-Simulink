@@ -28,7 +28,7 @@
 %%
 %%***************************************************************************************
 function sfcn_TCPConfig(block)
-	setup(block);
+setup(block);
 end
 
 %% Function: setup ===================================================
@@ -43,27 +43,49 @@ end
 %%   C-Mex counterpart: mdlInitializeSizes
 
 function setup(block)
-	%% Register number of input and output ports
-	block.NumInputPorts = 1;
-	block.NumOutputPorts = 1;
+%% Number of S-Function parameters expected
+block.NumDialogPrms     = 2;
+param_mode = 1;
+param_num_sockets = 2;
 
+mode = block.DialogPrm(param_mode).Data;
+
+
+%% Register number of input and output ports
+block.NumInputPorts = 1;
+block.NumOutputPorts = 1;
+
+if mode == 1 %server
+	num_sockets = block.DialogPrm(param_num_sockets).Data;
+	
+	block.InputPort(1).Dimensions = num_sockets;
+	block.InputPort(1).DatatypeID = double(DatatypeID.Boolean);
+	block.InputPort(1).Complexity = 'Real';
+	block.InputPort(1).DirectFeedthrough = false;
+	block.InputPort(1).SamplingMode = 'sample';
+	
+	block.OutputPort(1).Dimensions = num_sockets;
+	block.OutputPort(1).DatatypeID = double(DatatypeID.Boolean);
+	block.OutputPort(1).Complexity = 'Real';
+	block.OutputPort(1).SamplingMode = 'sample';
+else %client
 	addSimpleInput(block, 1, DatatypeID.Boolean);
 	addSimpleOutput(block, 1, DatatypeID.Boolean); % Connection status
+end
 
-	%% Number of S-Function parameters expected
-	block.NumDialogPrms     = 0;
-	block.SampleTimes = [0.01 0];
-	%% -----------------------------------------------------------------
-	%% Register methods called at run-time
-	%% -----------------------------------------------------------------
+%% Set block sample time
+block.SampleTimes = [0.01 0];
+%% -----------------------------------------------------------------
+%% Register methods called at run-time
+%% -----------------------------------------------------------------
 
-	block.RegBlockMethod('Start', @Start);
+block.RegBlockMethod('Start', @Start);
 
-	block.RegBlockMethod('Outputs', @Outputs);
+block.RegBlockMethod('Outputs', @Outputs);
 
-	block.RegBlockMethod('Update', @Update);
+block.RegBlockMethod('Update', @Update);
 
-	block.RegBlockMethod('Terminate', @Terminate);
+block.RegBlockMethod('Terminate', @Terminate);
 end
 
 function Start(~)

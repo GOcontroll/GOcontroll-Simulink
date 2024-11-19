@@ -28,7 +28,7 @@
 %%
 %%***************************************************************************************
 function sfcn_TCPSend(block)
-	setup(block);
+setup(block);
 end
 
 %% Function: setup ===================================================
@@ -54,28 +54,37 @@ end
 %% BOOLEAN =  8
 
 function setup(block)
-	tsamp = 1;
-	%% Register number of input and output ports
-	% manually configure input without defined dimensions.
+block.NumDialogPrms  = 2;
+param_mode = 1;
+tsamp = 2;
+
+mode = block.DialogPrm(param_mode).Data;
+
+%% Register number of input and output ports
+% manually configure input without defined dimensions.
+if mode == 1 %server
+	block.NumInputPorts = 2;
+	addSimpleInput(block, 2, DatatypeID.Uint8);
+else %client
 	block.NumInputPorts = 1;
-	block.InputPort(1).Complexity = 'Real';
-	block.InputPort(1).DirectFeedthrough = false;
-	block.InputPort(1).SamplingMode = 'sample';
-	block.InputPort(1).DatatypeID = double(DatatypeID.Uint8);
+end
+block.InputPort(1).Complexity = 'Real';
+block.InputPort(1).DirectFeedthrough = false;
+block.InputPort(1).SamplingMode = 'sample';
+block.InputPort(1).DatatypeID = double(DatatypeID.Uint8);
 
-	block.NumOutputPorts = 0;
+block.NumOutputPorts = 0;
 
-	block.NumDialogPrms  = 1;
-	block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
-	%% -----------------------------------------------------------------
-	%% Register methods called at run-time
-	%% -----------------------------------------------------------------
+block.SampleTimes = [block.DialogPrm(tsamp).Data 0];
+%% -----------------------------------------------------------------
+%% Register methods called at run-time
+%% -----------------------------------------------------------------
 
-	block.RegBlockMethod('Start', @Start);
+block.RegBlockMethod('Start', @Start);
 
-	block.RegBlockMethod('Outputs', @Outputs);
+block.RegBlockMethod('Outputs', @Outputs);
 
-	block.RegBlockMethod('Update', @Update);
+block.RegBlockMethod('Update', @Update);
 end
 
 function Start(~)

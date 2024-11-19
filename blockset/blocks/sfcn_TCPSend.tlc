@@ -62,12 +62,16 @@
 	%assign send_buffer_size = LibBlockInputSignalWidth(0)
 	%assign socket_mode = block.RTWdata.socket_mode
 	%assign socket_id = block.RTWdata.socket_id
+	%assign num_sockets_par = block.RTWdata.num_sockets
 	%if %<socket_mode> == 1
-		%assign socket = "tcp_socket_%<socket_id>_remote"
+		%assign socket_idx = LibBlockInputSignal(1, "", "", 0)
+		%assign socket = "%<socket_id>_remotes[%<socket_idx>].socket"
+		%assign socket_state = "%<socket_id>_remotes[%<socket_idx>].state"
+		if (%<socket_idx> < %<num_sockets_par>)
 	%else
 		%assign socket = "tcp_socket_%<socket_id>"
+		%assign socket_state = "tcp_socket_%<socket_id>_state"
 	%endif
-	%assign socket_state = "tcp_socket_%<socket_id>_state"
 	{
 		if (%<socket_state> == connected){
 			int res;

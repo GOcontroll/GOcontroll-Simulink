@@ -44,7 +44,13 @@
 			not_connected,
 			connecting,
 			connected,
-		};	
+		};
+
+		struct tcp_remote_socket {
+			int socket;
+			enum socket_state_e state;
+			%%struct sockadder_in remote_addr;
+		};
 	%closefile tmpBufDecls
 	%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
 %endfunction
@@ -56,17 +62,18 @@
 %function BlockInstanceSetup(block, system) void
 	%assign socket_id = block.RTWdata.socket_id
 	%assign socket_mode = block.RTWdata.socket_mode
+	%assign num_sockets = block.RTWdata.num_sockets
 	%assign socket = "::tcp_%<socket_id>"
 	%if EXISTS(%<socket>) == 0
 		%openfile tmpBufDecls
 			int tcp_socket_%<socket_id>;
-			%if %<socket_mode> == 1
-				int tcp_socket_%<socket_id>_remote;
+			%if %<socket_mode> == 1 %%server mode
+				struct tcp_remote_socket %<socket_id>_remotes[%<num_sockets>];
 			%endif
-			struct sockaddr_in tcp_addr_%<socket_id>_remote;
-			enum socket_state_e tcp_socket_%<socket_id>_state = not_connected;
 			%if %<socket_mode> == 2 %%client mode
 				fd_set %<socket_id>_set;
+				struct sockaddr_in tcp_addr_%<socket_id>_remote;
+				enum socket_state_e tcp_socket_%<socket_id>_state = not_connected;
 			%endif
 		%closefile tmpBufDecls
 		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
@@ -82,8 +89,9 @@
 %%      initialize the reconnect_state struct
 
 %function Start(block, system) Output
-	%assign socket = "tcp_socket_%<block.RTWdata.socket_id>"
-	%assign remote_addr = "tcp_addr_%<block.RTWdata.socket_id>_remote"
+	%assign socket_id = block.RTWdata.socket_id
+	%assign socket = "tcp_socket_%<socket_id>"
+	%assign remote_addr = "tcp_addr_%<socket_id>_remote"
 	%assign timeout = block.RTWdata.timeout
 	{
 		%if %<block.RTWdata.socket_mode> == 1 %%server mode
@@ -112,6 +120,8 @@
 					fprintf(stderr,"setsockopt(TCP_USER_TIMEOUT) failed: %s\n", strerror(errno));
 			%endif
 
+			memset(%<socket_id>_remotes, 0, sizeof(%<socket_id>_remotes));
+
 		%else %%client mode
 			memset(&%<remote_addr>, 0 , sizeof(struct sockaddr));
 			%<remote_addr>.sin_family = AF_INET;
@@ -129,22 +139,31 @@
 %function Outputs(block, system) Output
 	%assign socket_id = block.RTWdata.socket_id
 	%assign timeout = block.RTWdata.timeout
-	%assign close_socket_input = LibBlockInputSignal(0, "", "", 0)
+	%assign num_sockets = block.RTWdata.num_sockets
 	%assign socket = "tcp_socket_%<socket_id>"
 	%assign remote_socket = "tcp_socket_%<socket_id>_remote"
 	%assign remote_addr = "tcp_addr_%<socket_id>_remote"
 	%assign socket_state = "tcp_socket_%<socket_id>_state"
 	%assign fd_set = "%<socket_id>_set"
 	%if %<block.RTWdata.socket_mode> == 1 %% server mode
-		if (%<socket_state> == not_connected  && !%<close_socket_input>){
-			if ((%<remote_socket> = accept(%<socket>, (struct sockaddr *) &%<remote_addr>, &(socklen_t){sizeof(struct sockaddr)})) >= 0){
-				%<socket_state> = connected;
+		%assign close_socket_input = LibBlockInputSignalAddr(0, "", "", 0)
+		for (int i = 0; i < %<num_sockets>; i++) {
+			if (%<socket_id>_remotes[i].state == not_connected  && !(%<close_socket_input>)[i]){
+				%%if ((%<socket_id>_remotes[i].socket = accept(%<socket>, (struct sockaddr *) &%<socket_id>_remotes[i].remote_addr, &(socklen_t){sizeof(struct sockaddr)})) >= 0){
+					if ((%<socket_id>_remotes[i].socket = accept(%<socket>, NULL, NULL)) >= 0){
+					%<socket_id>_remotes[i].state = connected;
+					(%<LibBlockOutputSignalAddr(0, "", "", 0)>)[i] = true;
+				}
+			} else if (%<socket_id>_remotes[i].state == connected && (%<close_socket_input>)[i]) {
+				close(%<socket_id>_remotes[i].socket);
+				%<socket_id>_remotes[i].state = not_connected;
+				(%<LibBlockOutputSignalAddr(0, "", "", 0)>)[i] = false;
+			} else {
+				(%<LibBlockOutputSignalAddr(0, "", "", 0)>)[i] = %<socket_id>_remotes[i].state == connected;
 			}
-		} else if (%<socket_state> == connected && %<close_socket_input>) {
-			close(%<remote_socket>);
-			%<socket_state> = not_connected;
 		}
 	%else %%client mode
+		%assign close_socket_input = LibBlockInputSignal(0, "", "", 0)
 		switch (%<socket_state>) {
 			case not_connected:
 				if (!%<close_socket_input>) {
@@ -222,8 +241,8 @@
 				break;
 
 		}
+		%<LibBlockOutputSignal(0, "", "", 0)> = %<socket_state> == connected;
 	%endif
-	%<LibBlockOutputSignal(0, "", "", 0)> = %<socket_state> == connected;
 %endfunction
 
 %% Function: Terminate ==========================================================
@@ -234,12 +253,15 @@
 %function Terminate (block, system) Output
 	%assign socket_id = block.RTWdata.socket_id
 	%assign socket_mode = block.RTWdata.socket_mode
+	%assign num_sockets = block.RTWdata.num_sockets
 	%assign socket = "tcp_socket_%<socket_id>"
 	%assign remote_socket = "tcp_socket_%<socket_id>_remote"
 	%assign socket_state = "tcp_socket_%<socket_id>_state"
 	%if %<socket_mode> == 1
-	if ( %<socket_state> == connected || %<socket_state> == connecting ) {
-		close(%<remote_socket>);
+	for (int i = 0; i < %<num_sockets>; i++){
+		if ( %<socket_id>_remotes[i].state == connected || %<socket_id>_remotes[i].state == connecting ) {
+			close(%<socket_id>_remotes[i].socket);
+		}
 	}
 	%endif
 	close(%<socket>);

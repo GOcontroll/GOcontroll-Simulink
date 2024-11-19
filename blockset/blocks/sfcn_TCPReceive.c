@@ -1,107 +1,115 @@
-/************************************************************************************//**
-* \file			sfcn_TCPReceive.c
-* \brief		matlab s-function for receiving TCP messages
-* \internal
-*----------------------------------------------------------------------------------------
-*                          C O P Y R I G H T
-*----------------------------------------------------------------------------------------
-*  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com   All rights reserved
-*
-*----------------------------------------------------------------------------------------
-*                            L I C E N S E
-*----------------------------------------------------------------------------------------
-* Permission is hereby granted, free of charge, to any person obtaining a copy of this
-* software and associated documentation files (the "Software"), to deal in the Software
-* without restriction, including without limitation the rights to use, copy, modify, merge,
-* publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-* persons to whom the Software is furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in all copies or
-* substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-* INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-* PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
-* FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-* OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-* DEALINGS IN THE SOFTWARE.
-* \endinternal
-****************************************************************************************/
+/**************************************************************************************
+ * \file			sfcn_TCPReceive.c
+ * \brief		matlab s-function for receiving TCP messages
+ * \internal
+ *----------------------------------------------------------------------------------------
+ *                          C O P Y R I G H T
+ *----------------------------------------------------------------------------------------
+ *  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com   All rights
+ *reserved
+ *
+ *----------------------------------------------------------------------------------------
+ *                            L I C E N S E
+ *----------------------------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ *of this software and associated documentation files (the "Software"), to deal
+ *in the Software without restriction, including without limitation the rights
+ *to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *copies of the Software, and to permit persons to whom the Software is
+ *furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ *all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *SOFTWARE. \endinternal
+ ****************************************************************************************/
 
 #define S_FUNCTION_NAME sfcn_TCPReceive
 
 #include "header.c"
-
 #include "simstruc.h"
 
 #define PARAM_NAME_BUFF_LEN "buff_len"
 #define PARAM_NAME_SOCKET_ID "socket_id"
 #define PARAM_NAME_SOCKET_MODE "socket_mode"
+#define PARAM_NAME_NUM_SOCKETS "num_sockets"
 
 enum params {
-	PARAM_BUFF_LEN,
-	PARAM_SOCKET_MODE,
-	PARAM_SOCKET_ID,
-	PARAM_TSAMP,
-	PARAM_COUNT,
+  PARAM_BUFF_LEN,
+  PARAM_SOCKET_MODE,
+  PARAM_NUM_SOCKETS,
+  PARAM_SOCKET_ID,
+  PARAM_TSAMP,
+  PARAM_COUNT,
 };
 
-enum outputs {
-	OUT_FCN_CALL,
-	OUT_MSG,
-	OUT_LEN,
-	OUT_COUNT
-};
+enum outputs { OUT_FCN_CALL, OUT_MSG, OUT_LEN, OUT_COUNT };
+
+enum inputs { IN_SOCKET_NUM, IN_COUNT };
 
 static void mdlInitializeSizes(SimStruct *S) {
-	if(!SetNumParams(S, PARAM_COUNT)) {
-		return;
-	}
-	if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
-        return;
-    }
-	ssSetSFcnParamTunable(S,PARAM_TSAMP,false);
-	ssSetSFcnParamTunable(S,PARAM_BUFF_LEN,false);
-	ssSetSFcnParamTunable(S,PARAM_SOCKET_ID,false);
-	ssSetSFcnParamTunable(S, PARAM_SOCKET_MODE, false);
+  if (!SetNumParams(S, PARAM_COUNT)) {
+    return;
+  }
+  if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
+    return;
+  }
+  ssSetSFcnParamTunable(S, PARAM_TSAMP, false);
+  ssSetSFcnParamTunable(S, PARAM_BUFF_LEN, false);
+  ssSetSFcnParamTunable(S, PARAM_SOCKET_ID, false);
+  ssSetSFcnParamTunable(S, PARAM_SOCKET_MODE, false);
 
-	if (!ssSetNumInputPorts(S,0))
-		return;
-	if (!ssSetNumOutputPorts(S, OUT_COUNT))
-		return;
+  if ((int_T)mxGetPr(ssGetSFcnParam(S, PARAM_SOCKET_MODE))[0] == 1) {  // server
+    if (!ssSetNumInputPorts(S, IN_COUNT)) return;
+    AddInputPort(S, IN_SOCKET_NUM, SS_UINT8);
+  } else {  // client
+    if (!ssSetNumInputPorts(S, 0)) return;
+  }
 
-	AddOutputPort(S, OUT_FCN_CALL, SS_FCN_CALL);
-	AddOutputVectorPort(S, OUT_MSG, SS_UINT8, (int_T)mxGetPr(ssGetSFcnParam(S,PARAM_BUFF_LEN))[0]);
-	AddOutputPort(S, OUT_LEN, SS_UINT32);
+  if (!ssSetNumOutputPorts(S, OUT_COUNT)) return;
 
-	ssSetSimStateCompliance(S, USE_DEFAULT_SIM_STATE);
-	SetStandardOptions(S);
+  AddOutputPort(S, OUT_FCN_CALL, SS_FCN_CALL);
+  AddOutputVectorPort(S, OUT_MSG, SS_UINT8,
+                      (int_T)mxGetPr(ssGetSFcnParam(S, PARAM_BUFF_LEN))[0]);
+  AddOutputPort(S, OUT_LEN, SS_UINT32);
+
+  ssSetSimStateCompliance(S, USE_DEFAULT_SIM_STATE);
+  SetStandardOptions(S);
 }
 
 static void mdlInitializeSampleTimes(SimStruct *S) {
-	ssSetNumSampleTimes(S,1);
-	ssSetSampleTime(S, 0, mxGetPr(ssGetSFcnParam(S, PARAM_TSAMP))[0]);
-	ssSetOffsetTime(S, 0, 0);
-	ssSetCallSystemOutput(S,OUT_FCN_CALL);
+  ssSetNumSampleTimes(S, 1);
+  ssSetSampleTime(S, 0, mxGetPr(ssGetSFcnParam(S, PARAM_TSAMP))[0]);
+  ssSetOffsetTime(S, 0, 0);
+  ssSetCallSystemOutput(S, OUT_FCN_CALL);
 }
 
 #ifdef MATLAB_MEX_FILE
 #define MDL_SET_WORK_WIDTHS
 static void mdlSetWorkWidths(SimStruct *S) {
-	if (!ssSetNumRunTimeParams(S, 2))
-		return;
-	
-	ssRegDlgParamAsRunTimeParam(S, PARAM_BUFF_LEN, PARAM_BUFF_LEN, PARAM_NAME_BUFF_LEN, SS_UINT32);
-	ssRegDlgParamAsRunTimeParam(S, PARAM_SOCKET_MODE, PARAM_SOCKET_MODE, PARAM_NAME_SOCKET_MODE, SS_UINT8);
+  if (!ssSetNumRunTimeParams(S, 3)) return;
+
+  ssRegDlgParamAsRunTimeParam(S, PARAM_BUFF_LEN, PARAM_BUFF_LEN,
+                              PARAM_NAME_BUFF_LEN, SS_UINT32);
+  ssRegDlgParamAsRunTimeParam(S, PARAM_SOCKET_MODE, PARAM_SOCKET_MODE,
+                              PARAM_NAME_SOCKET_MODE, SS_UINT8);
+  ssRegDlgParamAsRunTimeParam(S, PARAM_NUM_SOCKETS, PARAM_NUM_SOCKETS,
+                              PARAM_NAME_NUM_SOCKETS, SS_UINT8);
 }
 #endif
 
-//Only allowed to write string parameter to RTW here
+// Only allowed to write string parameter to RTW here
 #ifdef MATLAB_MEX_FILE
 #define MDL_RTW
-static void mdlRTW(SimStruct *S){
-	char_T *id = mxArrayToString(ssGetSFcnParam(S,PARAM_SOCKET_ID));
-	ssWriteRTWParamSettings(S, 1, SSWRITE_VALUE_STR, PARAM_NAME_SOCKET_ID, id);
+static void mdlRTW(SimStruct *S) {
+  char_T *id = mxArrayToString(ssGetSFcnParam(S, PARAM_SOCKET_ID));
+  ssWriteRTWParamSettings(S, 1, SSWRITE_VALUE_STR, PARAM_NAME_SOCKET_ID, id);
 }
 #endif
 
