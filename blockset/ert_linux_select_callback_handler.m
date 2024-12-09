@@ -59,3 +59,9 @@ function ert_linux_select_callback_handler(varargin)
      slConfigUISetEnabled(hDlg, hSrc, 'GenerateSampleERTMain',false);
 
     % ----- other -------------------------------------------------------------
+	
+	% Enable possibility to build referenced models parallel if the Parallel 
+	% Computing toolbox is used.
+	slConfigUISetVal(hDlg, hSrc, 'ParMdlRefBuildCompliant','on');
+	slConfigUISetEnabled(hDlg, hSrc, 'ParMdlRefBuildCompliant',false);
+	
