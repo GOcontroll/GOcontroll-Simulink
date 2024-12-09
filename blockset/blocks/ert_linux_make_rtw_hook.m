@@ -112,8 +112,12 @@ switch hookMethod
 		model_path = regexprep(model_path, ['\' filesep modelName '.slx'],''); %windows needs the '\' and linux seems fine with or without it
 		model_path = regexprep(model_path, ['\' filesep modelName '.mdl'],'');
 		
-		%check if a custom setting is set for the code gen folder, if set don't perform this check
-		if (~strcmp(pwd, get_param(0, 'CodeGenFolder')))
+		% Check if this is a referenced model
+		mdlRefTargetType = get_param(modelName,'ModelReferenceTargetType');
+		isNotModelRefTarget = strcmp(mdlRefTargetType, 'NONE'); % NONE, SIM, or RTW
+		
+		%check if a custom setting is set for the code gen folder or a referenced model, if so don't perform this check
+		if (~strcmp(pwd, get_param(0, 'CodeGenFolder')) || isNotModelRefTarget)
 			if (~(strcmp(pwd,model_path)))
 				errorMessage = strcat('The current folder is incorrect, please', ...
 					' set the current folder to: ', model_path,...
@@ -226,64 +230,77 @@ switch hookMethod
 	case 'after_make'
 		% Called after make process is complete. All arguments are valid at
 		% this stage.
-		% Adding the memory addresses to the ASAP2 file
 		
-		% Get XCP port
-		XCPport = get_param(modelName,'tlcXcpTcpPort');
-		% Get XCP address
-		XCPaddress = get_param(modelName,'tlcXcpTcpAddress');
-		% Get the Linux target from the model parameters tab
-		LinuxTarget = get_param(modelName,'tlcLinuxTarget');
+		% Check if this is the main model
+		mdlRefTargetType = get_param(modelName,'ModelReferenceTargetType');
+		isNotModelRefTarget = strcmp(mdlRefTargetType, 'NONE'); % NONE, SIM, or RTW
 		
-		xcp_server = find_system(modelName, 'RegExp', 'on', 'MaskType', 'XCP Server');
-		
-		if (isscalar(xcp_server)) %check if there is only one, more than one will never reach this point
-			medium = get_param(xcp_server{1}, 'server_type');
-		else
-			medium = 'TCP'; % no XCP server present, just generate an a2l for TCP
-		end
-		
-		if isfile(fullfile(pwd, '..', [modelName '.map']))
-			MAPfile = fullfile(pwd, '..', [modelName '.map']);
-			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile, medium);
+		if isNotModelRefTarget
 			
-			% Moving the map file away
-			movefile(['..' filesep modelName '.map'],[modelName '.map']);
-		else
-			create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '', medium);
-		end
-		
-		%new versions of matlab sometimes put 2 spaces after /begin, this messes up HANtune (for now?)
-		%fix the a2l so characteristics get properly loaded
-		a2lfile_str = fileread([modelName '.a2l']);
-		a2lfile_str = strrep(a2lfile_str, '/begin  ', '/begin ');
-		a2lfile = fopen([modelName '.a2l'], 'w');
-		fwrite(a2lfile, a2lfile_str);
-		fclose(a2lfile);
-		
-		movefile([modelName '.a2l'],[model_path filesep modelName '.a2l']);
-		try
-			movefile(['..' filesep modelName '.elf'],[model_path filesep modelName '.elf']);
-		catch err
-			if (~strcmp(err.identifier, 'MATLAB:MOVEFILE:SourceAndDestinationSame'))
-				rethrow(err)
+			% Adding the memory addresses to the ASAP2 file
+			
+			% Get XCP port
+			XCPport = get_param(modelName,'tlcXcpTcpPort');
+			% Get XCP address
+			XCPaddress = get_param(modelName,'tlcXcpTcpAddress');
+			% Get the Linux target from the model parameters tab
+			LinuxTarget = get_param(modelName,'tlcLinuxTarget');
+			
+			xcp_server = find_system(modelName, 'RegExp', 'on', 'MaskType', 'XCP Server');
+			
+			if (isscalar(xcp_server)) %check if there is only one, more than one will never reach this point
+				medium = get_param(xcp_server{1}, 'server_type');
+			else
+				medium = 'TCP'; % no XCP server present, just generate an a2l for TCP
+			end
+			
+			if isfile(fullfile(pwd, '..', [modelName '.map']))
+				MAPfile = fullfile(pwd, '..', [modelName '.map']);
+				create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile, medium);
+				
+				% Moving the map file away
+				movefile(['..' filesep modelName '.map'],[modelName '.map']);
+			else
+				create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '', medium);
+			end
+			
+			%new versions of matlab sometimes put 2 spaces after /begin, this messes up HANtune (for now?)
+			%fix the a2l so characteristics get properly loaded
+			a2lfile_str = fileread([modelName '.a2l']);
+			a2lfile_str = strrep(a2lfile_str, '/begin  ', '/begin ');
+			a2lfile = fopen([modelName '.a2l'], 'w');
+			fwrite(a2lfile, a2lfile_str);
+			fclose(a2lfile);
+			
+			movefile([modelName '.a2l'],[model_path filesep modelName '.a2l']);
+			try
+				movefile(['..' filesep modelName '.elf'],[model_path filesep modelName '.elf']);
+			catch err
+				if (~strcmp(err.identifier, 'MATLAB:MOVEFILE:SourceAndDestinationSame'))
+					rethrow(err)
+				end
 			end
 		end
-		
+
 	case 'exit'
 		% Called at the end of the RTW build process.  All arguments are valid
 		% at this stage.
 		disp(['### Successful completion of Real-Time Workshop build ',...
 			'procedure for model: ', modelName]);
 		
-		AutoUpload = get_param(modelName,'tlcAutoUpload');
+		% Check if this is the main model
+		mdlRefTargetType = get_param(modelName,'ModelReferenceTargetType');
+		isNotModelRefTarget = strcmp(mdlRefTargetType, 'NONE'); % NONE, SIM, or RTW
 		
-		%Only upload file when Auto upload setting is switched on
-		if (strcmp(AutoUpload,'Auto upload'))
-			disp('### Starting automatic flash procedure');
-			ManualUpload(['..' filesep modelName], get_param(modelName,'tlcXcpTcpAddress'), port=num2str(get_param(modelName,'tlcUploadPort')));
+		if isNotModelRefTarget
+			AutoUpload = get_param(modelName,'tlcAutoUpload');
+			%Only upload file when Auto upload setting is switched on
+			if (strcmp(AutoUpload,'Auto upload'))
+				disp('### Starting automatic flash procedure');
+				ManualUpload(['..' filesep modelName], get_param(modelName,'tlcXcpTcpAddress'), port=num2str(get_param(modelName,'tlcUploadPort')));
+			end
 		end
-end
+	end
 end
 %%******************************* end of ert_linux_make_rtw_hook.m ****************************
 
