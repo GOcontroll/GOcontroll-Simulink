@@ -29,6 +29,7 @@
 #|---------------------------------------------------------------------------------------
 #| Macros read by make_rtw
 #|---------------------------------------------------------------------------------------
+
 # The following macros are read by the Real-Time Workshop build procedure:
 #
 #  HOST            - What platform this template makefile is targeted for
@@ -48,7 +49,7 @@ else ifeq ($(COMPUTER), PCWIN64) # Windows
 MAKECMD                         = "%MATLAB%\bin\|>ARCH<|\gmake"
 COMPILER_TOOL_CHAIN             = default
 SHELL =
-ECHO 							= @echo
+ECHO                            = @echo
 else # Mac
 MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
 SHELL                           = /bin/zsh
@@ -61,6 +62,7 @@ BUILD                           = yes
 #|---------------------------------------------------------------------------------------
 #| Tokens expanded by make_rtw
 #|---------------------------------------------------------------------------------------
+
 # The following tokens, when wrapped with "|>" and "<|" are expanded by the
 # Real-Time Workshop build procedure.
 #
@@ -85,51 +87,51 @@ BUILD                           = yes
 #  EXTMODE_STATIC      - yes (1) or no (0): Use static instead of dynamic mem alloc.
 #  EXTMODE_STATIC_SIZE - Size of static memory allocation buffer.
 #  MULTI_INSTANCE_CODE - Is the generated code multi instantiable (1/0)?
-MODEL                = |>MODEL_NAME<|
-MODULES              = |>MODEL_MODULES<|
-MAKEFILE             = |>MAKEFILE_NAME<|
-MATLAB_ROOT          = |>MATLAB_ROOT<|
-ALT_MATLAB_ROOT      = |>ALT_MATLAB_ROOT<|
-MATLAB_BIN           = |>MATLAB_BIN<|
-ALT_MATLAB_BIN       = |>ALT_MATLAB_BIN<|
-S_FUNCTIONS_LIB      = |>S_FUNCTIONS_LIB<|
-NUMST                = |>NUMST<|
-NCSTATES             = |>NCSTATES<|
-BUILDARGS            = |>BUILDARGS<|
-MULTITASKING         = |>MULTITASKING<|
-INTEGER_CODE         = |>INTEGER_CODE<|
-MAT_FILE             = |>MAT_FILE<|
-ONESTEPFCN           = |>COMBINE_OUTPUT_UPDATE_FCNS<|
-TERMFCN              = |>INCLUDE_MDL_TERMINATE_FCN<|
-B_ERTSFCN            = |>GENERATE_ERT_S_FUNCTION<|
-MEXEXT               = |>MEXEXT<|
-EXT_MODE             = |>EXT_MODE<|
-TMW_EXTMODE_TESTING  = |>TMW_EXTMODE_TESTING<|
-EXTMODE_TRANSPORT    = |>EXTMODE_TRANSPORT<|
-EXTMODE_STATIC       = |>EXTMODE_STATIC_ALLOC<|
-EXTMODE_STATIC_SIZE  = |>EXTMODE_STATIC_ALLOC_SIZE<|
-MULTI_INSTANCE_CODE  = |>MULTI_INSTANCE_CODE<|
-MODELREFS            = |>MODELREFS<|
-GEN_SAMPLE_MAIN      = |>GEN_SAMPLE_MAIN<|
-TARGET_LANG_EXT      = |>TARGET_LANG_EXT<|
-OTHER                = |>DEFINES_OTHER<|
-OTHER_FLAGS          = |>COMPILE_FLAGS_OTHER<|
-ADD_FLAGS            = |>ADDITIONAL_LDFLAGS<|
-START_DIR            = |>START_DIR<|
-
+MODEL                     = |>MODEL_NAME<|
+MODULES                   = |>MODEL_MODULES<|
+MAKEFILE                  = |>MAKEFILE_NAME<|
+MATLAB_ROOT               = |>MATLAB_ROOT<|
+ALT_MATLAB_ROOT           = |>ALT_MATLAB_ROOT<|
+MATLAB_BIN                = |>MATLAB_BIN<|
+ALT_MATLAB_BIN            = |>ALT_MATLAB_BIN<|
+S_FUNCTIONS_LIB           = |>S_FUNCTIONS_LIB<|
+NUMST                     = |>NUMST<|
+NCSTATES                  = |>NCSTATES<|
+BUILDARGS                 = |>BUILDARGS<|
+MULTITASKING              = |>MULTITASKING<|
+INTEGER_CODE              = |>INTEGER_CODE<|
+MAT_FILE                  = |>MAT_FILE<|
+ONESTEPFCN                = |>COMBINE_OUTPUT_UPDATE_FCNS<|
+TERMFCN                   = |>INCLUDE_MDL_TERMINATE_FCN<|
+B_ERTSFCN                 = |>GENERATE_ERT_S_FUNCTION<|
+MEXEXT                    = |>MEXEXT<|
+EXT_MODE                  = |>EXT_MODE<|
+TMW_EXTMODE_TESTING       = |>TMW_EXTMODE_TESTING<|
+EXTMODE_TRANSPORT         = |>EXTMODE_TRANSPORT<|
+EXTMODE_STATIC            = |>EXTMODE_STATIC_ALLOC<|
+EXTMODE_STATIC_SIZE       = |>EXTMODE_STATIC_ALLOC_SIZE<|
+MULTI_INSTANCE_CODE       = |>MULTI_INSTANCE_CODE<|
+MODELREFS                 = |>MODELREFS<|
+GEN_SAMPLE_MAIN           = |>GEN_SAMPLE_MAIN<|
+TARGET_LANG_EXT           = |>TARGET_LANG_EXT<|
+OTHER                     = |>DEFINES_OTHER<|
+OTHER_FLAGS               = |>COMPILE_FLAGS_OTHER<|
+ADD_FLAGS                 = |>ADDITIONAL_LDFLAGS<|
+START_DIR                 = |>START_DIR<|
 
 #|---------------------------------------------------------------------------------------
 #| Model and reference models
 #|---------------------------------------------------------------------------------------
+
 MODELLIB                  = |>MODELLIB<|
 MODELREF_LINK_LIBS        = |>MODELREF_LINK_LIBS<|
 RELATIVE_PATH_TO_ANCHOR   = |>RELATIVE_PATH_TO_ANCHOR<|
 MODELREF_TARGET_TYPE      = |>MODELREF_TARGET_TYPE<|
 
-
 #|---------------------------------------------------------------------------------------
 #| Environment Specifications
 #|---------------------------------------------------------------------------------------
+
 # In the case when directory name contains space
 ifneq ($(MATLAB_ROOT),$(ALT_MATLAB_ROOT))
 MATLAB_ROOT := $(ALT_MATLAB_ROOT)
@@ -147,6 +149,7 @@ BIN_PATH     = $(RELATIVE_PATH_TO_ANCHOR)
 #|---------------------------------------------------------------------------------------|
 #| Compiler binaries                                                                     |
 #|---------------------------------------------------------------------------------------|
+
 # ARMv8_64
 CC = |>CC<|
 AS = |>AS<|
@@ -176,11 +179,12 @@ SHARED_INCLUDES = -I$(SHARED_SRC_DIR)
 endif
 
 CC_INCLUDES = -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(ADD_INCLUDES) \
-	$(USER_INCLUDES) $(SHARED_INCLUDES)
+	$(USER_INCLUDES) $(SHARED_INCLUDES) $(MODELREF_INC_PATH)
 
 #|---------------------------------------------------------------------------------------
 #| Tool flags
 #|---------------------------------------------------------------------------------------
+
 # MATLAB settings flags
 # CPP_REQ_DEFINES = -DMODEL=$(MODEL) -DNUMST=$(NUMST) -DNCSTATES=$(NCSTATES) \
 		  -DMT=$(MULTITASKING) -DMODEL_INITIALIZE=$(MODEL)_initialize \
@@ -206,7 +210,6 @@ OC_FLAGS_BIN     = -O binary
 # additional object dump flags
 OD_FLAGS         = -D -t -z
 
-
 #|---------------------------------------------------------------------------------------
 #| Additional libraries
 #|---------------------------------------------------------------------------------------
@@ -220,18 +223,19 @@ LIBS += |>EXPAND_LIBRARY_LOCATION<|/|>EXPAND_LIBRARY_NAME<|.a |>END_EXPAND_LIBRA
 
 LIBS += $(EXT_LIB) $(S_FUNCTIONS_LIB)
 
-
 #|---------------------------------------------------------------------------------------
 #| Source files
 #|---------------------------------------------------------------------------------------
 
-ADD_SRCS = ert_main.c 
-
 SRCS  = $(MODULES) $(ADD_SRCS) $(S_FUNCTIONS)
 
-SRCS += $(MODEL).$(TARGET_LANG_EXT) $(EXT_SRC)
-
 SRC_DEP =
+
+ifeq ($(MODELREF_TARGET_TYPE), NONE)
+  #Topmodel for RTW
+  ADD_SRCS = ert_main.c 
+  SRCS += $(MODEL).$(TARGET_LANG_EXT)
+endif
 
 USER_SRCS =
 
@@ -252,21 +256,21 @@ SHARED_OBJS = $(addsuffix .obj, $(basename $(SHARED_SRCS)))
 #|---------------------------------------------------------------------------------------
 #| Build rules
 #|---------------------------------------------------------------------------------------
-$(PRODUCT): $(BIN_PATH)/$(MODEL_NAME).elf
-	@$(OD) $(OD_FLAGS) $< > $(BIN_PATH)/$(MODEL_NAME).map
-	$(ECHO) ### Created Map file: $(MODEL_NAME).map
-	@$(OC) $(OC_FLAGS_BIN) $< $(BIN_PATH)/$(MODEL_NAME).bin
-	$(ECHO) ### Created Binary file: $(MODEL_NAME).bin
-	@$(OC) $(OC_FLAGS) $< $@
-	$(ECHO) ### Created $(BUILD_PRODUCT_TYPE): $(notdir $@)
-	$(ECHO) ### Displaying program size info
-	@$(SZ) --format=berkeley $<
 
-$(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
+# Separate set of build rules to accomodate for referenced models
+ifeq ($(MODELREF_TARGET_TYPE), NONE)
+#Topmodel for RTW
+  $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
 	$(ECHO) ### Linking $(notdir $@)
-	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group\
+	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group \
 		-o $@ $(LINKER_FLAGS)
 	$(ECHO) ### Created $(MODEL_NAME).elf
+else
+  $(MODELLIB) : $(OBJS) $(SHARED_LIB) $(SRC_DEP) $(LIBS) $(MODELREF_LINK_LIBS)
+	$(AR) ruvs $(MODELLIB) $(LINK_OBJS)
+	$(ECHO) ### Created $(MODELLIB)
+
+endif
 
 %.obj : %.c
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
@@ -294,10 +298,10 @@ endif
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 |>END_EXPAND_RULES<|
 
-
 #|---------------------------------------------------------------------------------------
 #| Dependencies
 #|---------------------------------------------------------------------------------------
+
 $(SHARED_OBJS) : $(SHARED_SRC_DIR)/%.obj : $(SHARED_SRC_DIR)/%.c
 	$(ECHO) ### Creating shared object: $(notdir $@) from: $(addsuffix .c, $(basename $@))
 	@$(CC) -c -o $@ $(addsuffix .c, $(basename $@)) $(CC_FLAGS) $(CC_INCLUDES)
@@ -310,6 +314,7 @@ $(SHARED_LIB) : $(SHARED_OBJS)
 #|---------------------------------------------------------------------------------------
 #| Project cleanup
 #|---------------------------------------------------------------------------------------
+
 ifeq ($(COMPUTER), PCWIN64) # Windows
 .PHONY: clean
 clean :
@@ -323,4 +328,5 @@ else # apple doesn't like cleanup
 .PHONY: clean
 clean :
 endif
-#|----------------------------- end of ert_linux_target.tmf --------------------------
+
+#|----------------------------- end of ert_linux_target_64.tmf --------------------------
