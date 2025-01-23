@@ -114,20 +114,6 @@ void OutputModule_Configuration(_outputModule *outputModule) {
     GocontrollProcessorboard_SendSpi(
         outputModule->moduleSlot + 1, OUTPUTMODULE10CHMESSAGELENGTH, 1, 23, 2,
         1, outputModule->moduleSlot, &outputModuleDataTx[0], 0);
-
-    for (uint8_t channel = 0; channel < 10; channel++) {
-      *(uint16_t *)&outputModuleDataTx[channel * 2 + 6] =
-          outputModule->peakCurrent[channel];
-      *(uint16_t *)&outputModuleDataTx[channel * 2 + 26] =
-          outputModule->peakTime[channel];
-    }
-
-    /* The second initialization message is delayed by 500 us because the module
-     * needs to handle the first message */
-    /* Module ID check SPI communication protocol document */
-    GocontrollProcessorboard_SendSpi(
-        outputModule->moduleSlot + 1, OUTPUTMODULE10CHMESSAGELENGTH, 1, 23, 2,
-        2, outputModule->moduleSlot, &outputModuleDataTx[0], 500);
   }
 }
 
@@ -172,7 +158,8 @@ void OutputModule_SendValues(_outputModule *outputModule) {
         outputModule->communicationCheck--;
       }
     }
-    /* At this point we have a wrong checksum. So increase the error counter */
+    /* At this point we have a wrong checksum. So increase the error counter
+     */
     else {
       outputModule->communicationCheck++;
     }
@@ -192,7 +179,8 @@ void OutputModule_SendValues(_outputModule *outputModule) {
           outputModuleDataRx[4] == 4 && outputModuleDataRx[5] == 1) {
         outputModule->temperature = *(int16_t *)&outputModuleDataRx[6];
         outputModule->ground = *(uint16_t *)&outputModuleDataRx[8];
-        outputModule->inputVoltage = *(uint16_t *)&outputModuleDataRx[10];
+        outputModule->supply = *(uint16_t *)&outputModuleDataRx[10];
+        outputModule->errorCode = *(uint32_t *)&outputModuleDataRx[22];
         outputModule->totalCurrent = *(uint16_t *)&outputModuleDataRx[12];
       }
       /* Correct reception so decrease the error counter */
@@ -200,7 +188,8 @@ void OutputModule_SendValues(_outputModule *outputModule) {
         outputModule->communicationCheck--;
       }
     }
-    /* At this point we have a wrong checksum. So increase the error counter */
+    /* At this point we have a wrong checksum. So increase the error counter
+     */
     else {
       outputModule->communicationCheck++;
     }
@@ -240,8 +229,8 @@ void OutputModule_SetModuleSlot(_outputModule *outputModule,
     exit(-1);
   }
   printf(
-      "Invalid module slot selected for an output module, selected %d, but the "
-      "range is 1-%d.\n",
+      "Invalid module slot selected for an output module, selected %d, but "
+      "the range is 1-%d.\n",
       moduleSlot + 1, hardwareConfig.moduleNumber);
   exit(-1);
 }
@@ -271,15 +260,16 @@ void OutputModule6ch_ConfigureChannel(_outputModule *outputModule,
                                       uint16_t peak_time) {
   if (outputModule->moduleType != OUTPUTMODULE6CHANNEL) {
     printf(
-        "Incorrect module type selected for channel %d, output module in slot "
-        "%d, this function is only meant for 6 channel modules\n",
+        "Incorrect module type selected for channel %d, output module in "
+        "slot %d, this function is only meant for 6 channel modules\n",
         outputModule->moduleSlot + 1, channel + 1);
     exit(-1);
   }
   if ((func > 8) || (func == 0)) {
     printf(
-        "invalid function set for channel %d, output module in slot %d, range "
-        "is 1-8, entered is %d, please use the macros to configure channels.\n",
+        "invalid function set for channel %d, output module in slot %d, "
+        "range is 1-8, entered is %d, please use the macros to configure "
+        "channels.\n",
         channel + 1, outputModule->moduleSlot + 1, func);
     exit(-1);
   }
@@ -328,20 +318,19 @@ void OutputModule6ch_ConfigureChannel(_outputModule *outputModule,
 /****************************************************************************************/
 
 void OutputModule10ch_ConfigureChannel(_outputModule *outputModule,
-                                       uint8_t channel, uint8_t func,
-                                       uint16_t peak_current,
-                                       uint16_t peak_time) {
+                                       uint8_t channel, uint8_t func) {
   if (outputModule->moduleType != OUTPUTMODULE10CHANNEL) {
     printf(
-        "Incorrect module type selected for channel %d, output module in slot "
-        "%d, this function is only meant for 6 channel modules\n",
+        "Incorrect module type selected for channel %d, output module in "
+        "slot %d, this function is only meant for 6 channel modules\n",
         channel + 1, outputModule->moduleSlot + 1);
     exit(-1);
   }
-  if ((func > 5) || (func == 0)) {
+  if ((func > 3) || (func == 0)) {
     printf(
-        "invalid function set for channel %d, output module in slot %d, range "
-        "is 1-5, entered is %d, please use the macros to configure channels.\n",
+        "invalid function set for channel %d, output module in slot %d, "
+        "range is 1-3, entered is %d, please use the macros to configure "
+        "channels.\n",
         channel + 1, outputModule->moduleSlot + 1, func);
     exit(-1);
   }
@@ -353,14 +342,6 @@ void OutputModule10ch_ConfigureChannel(_outputModule *outputModule,
         outputModule->moduleSlot + 1, channel + 1);
     exit(-1);
   }
-  if (peak_current > PEAKCURRENTMAX) {
-    printf(
-        "Configured peak dutycycle is out of range for channel %d, output "
-        "module in slot %d, range is 0-%d, entered is %d\n",
-        channel + 1, outputModule->moduleSlot + 1, PEAKCURRENTMAX,
-        peak_current);
-    exit(-1);
-  }
   // start configuring
   // clear the func field
   outputModule->configuration[channel] =
@@ -368,9 +349,6 @@ void OutputModule10ch_ConfigureChannel(_outputModule *outputModule,
   // set the new values in the func field
   outputModule->configuration[channel] =
       outputModule->configuration[channel] | (func << 4);
-  // set the other values
-  outputModule->peakCurrent[channel] = peak_current;
-  outputModule->peakTime[channel] = peak_time;
 }
 
 /****************************************************************************************/
@@ -380,31 +358,32 @@ void OutputModule_ConfigureFrequency(_outputModule *outputModule,
   if (outputModule->moduleType == OUTPUTMODULE6CHANNEL) {
     if (channel > 2) {
       printf(
-          "Frequency channel out of range for output module in slot %d, range "
-          "is 0-2, entered was %d, please use the macros to configure "
+          "Frequency channel out of range for output module in slot %d, "
+          "range is 0-2, entered was %d, please use the macros to configure "
           "channels.\n",
           outputModule->moduleSlot + 1, channel);
       exit(-1);
     }
     if ((frequency == 0) || (frequency > 7)) {
       printf(
-          "Configured frequency on frequency channel %d, output module in slot "
-          "%d, is out of range, please use the output frequency macros.\n",
+          "Configured frequency on frequency channel %d, output module in "
+          "slot %d, is out of range, please use the output frequency macros.\n",
           channel, outputModule->moduleSlot + 1);
       exit(-1);
     }
   } else if (outputModule->moduleType == OUTPUTMODULE10CHANNEL) {
     if (channel > 4) {
       printf(
-          "Frequency channel out of range for output module in slot %d, range "
-          "is 0-4, entered was %d\n",
+          "Frequency channel out of range for output module in slot %d, "
+          "range is 0-4, entered was %d\n",
           outputModule->moduleSlot + 1, channel);
       exit(-1);
     }
-    if ((frequency == 0) || (frequency > 4)) {
+    if ((frequency == 0) || (frequency > 2)) {
       printf(
-          "Configured frequency on frequency channel %d, output module in slot "
-          "%d, is out of range, please use the macros to configure channels.\n",
+          "Configured frequency on frequency channel %d, output module in "
+          "slot %d, is out of range, please use the macros to configure "
+          "channels.\n",
           channel, outputModule->moduleSlot + 1);
       exit(-1);
     }

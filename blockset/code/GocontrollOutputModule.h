@@ -61,14 +61,11 @@
 #define OUTPUTFUNC_10CH_HIGHSIDEDUTY \
   2  // high side switching duty cycle controlled
 #define OUTPUTFUNC_10CH_HIGHSIDEBOOL 3  // high side switching on or off (0-1)
-#define OUTPUTFUNC_10CH_PEAKANDHOLD \
-  4  // peak and hold function (uses high side switching)
-#define OUTPUTFUNC_10CH_FREQUENCYOUT 5  // frequency output (0-500Hz)
 
 #define OUTPUTFREQ_100HZ 1      // duty cycle frequency
 #define OUTPUTFREQ_200HZ 2      // duty cycle frequency
-#define OUTPUTFREQ_500HZ 3      // duty cycle frequency
-#define OUTPUTFREQ_1KHZ 4       // duty cycle frequency
+#define OUTPUTFREQ_6CH_500HZ 3  // duty cycle frequency (6 channel module only)
+#define OUTPUTFREQ_6CH_1KHZ 4   // duty cycle frequency (6 channel module only)
 #define OUTPUTFREQ_6CH_2KHZ 5   // duty cycle frequency (6 channel module only)
 #define OUTPUTFREQ_6CH_5KHZ 6   // duty cycle frequency (6 channel module only)
 #define OUTPUTFREQ_6CH_10KHZ 7  // duty cycle frequency (6 channel module only)
@@ -109,17 +106,16 @@
 typedef struct {
   uint8_t configuration[10];
   uint16_t value[10];
-  uint16_t dutyCycle[10];
+  uint16_t dutyCycle[6];
   uint32_t syncCounter[6];
   int16_t current[6];
   uint16_t currentMax[6];
-  uint16_t peakCurrent[10];
-  uint16_t peakTime[10];
+  uint16_t peakCurrent[6];
+  uint16_t peakTime[6];
   int16_t temperature;
   int16_t ground;
   uint16_t supply;
   uint16_t totalCurrent;
-  uint16_t inputVoltage;
   uint32_t errorCode;
   uint8_t communicationCheck;
   uint32_t moduleIdentifier;
@@ -206,9 +202,7 @@ void OutputModule6ch_ConfigureChannel(_outputModule *outputModule,
 ** \return	none
 ****************************************************************************************/
 void OutputModule10ch_ConfigureChannel(_outputModule *outputModule,
-                                       uint8_t channel, uint8_t func,
-                                       uint16_t peak_current,
-                                       uint16_t peak_time);
+                                       uint8_t channel, uint8_t func);
 
 /***************************************************************************************
 ** \brief	Function that initializes sensor supplies on the module for 6
