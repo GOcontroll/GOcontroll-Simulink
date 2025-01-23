@@ -70,7 +70,7 @@ moduleStat = 4;
 addSimpleOutput(block, moduleStat, DatatypeID.Uint32);
 
 moduleCurrent = 5;
-addSimpleOutput(block, moduleCurrent, DatatypeID.Uint16);
+addSimpleOutput(block, moduleCurrent, DatatypeID.Int16);
 
 %% -----------------------------------------------------------------
 %% Register methods called at run-time

@@ -115,7 +115,7 @@ typedef struct {
   int16_t temperature;
   int16_t ground;
   uint16_t supply;
-  uint16_t totalCurrent;
+  int16_t totalCurrent;
   uint32_t errorCode;
   uint8_t communicationCheck;
   uint32_t moduleIdentifier;

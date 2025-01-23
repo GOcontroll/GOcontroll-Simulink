@@ -178,10 +178,10 @@ void OutputModule_SendValues(_outputModule *outputModule) {
       if (outputModuleDataRx[2] == 2 && outputModuleDataRx[3] == 23 &&
           outputModuleDataRx[4] == 4 && outputModuleDataRx[5] == 1) {
         outputModule->temperature = *(int16_t *)&outputModuleDataRx[6];
-        outputModule->ground = *(uint16_t *)&outputModuleDataRx[8];
+        outputModule->ground = *(int16_t *)&outputModuleDataRx[8];
         outputModule->supply = *(uint16_t *)&outputModuleDataRx[10];
+        outputModule->totalCurrent = *(int16_t *)&outputModuleDataRx[12];
         outputModule->errorCode = *(uint32_t *)&outputModuleDataRx[22];
-        outputModule->totalCurrent = *(uint16_t *)&outputModuleDataRx[12];
       }
       /* Correct reception so decrease the error counter */
       if (outputModule->communicationCheck > 0) {
