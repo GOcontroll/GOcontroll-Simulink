@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.4.0-rc7';
+version = 'GOcontroll V4.4.0-rc8';
 
 %% V4.4.0 Update -:
 % BREAKING Fixed mask errors in the 10 channel input, reset pulse counter and all the output blocks have been fixed this can reset certain parameters
@@ -42,6 +42,7 @@ version = 'GOcontroll V4.4.0-rc7';
 % User can now configure a simulink codegen/cache folder to prevent cluttering of the project folder
 % Added read accelerometer block for reading out the accelerometer on the moduline mini
 % Added the 10 channel output monitor block to the library
+% Changed the CAN_MESSAGE datatype into CAN_MESSAGE_EXTENDED in can_receive_v2, this has no functional difference but makes building work better
 
 %% V4.3.2 Update 8-8-2024:
 % The Execute shell command block now forks the process before calling system() to not block the main thread
