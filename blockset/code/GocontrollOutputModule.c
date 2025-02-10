@@ -73,6 +73,10 @@ void OutputModule_Configuration(_outputModule *outputModule) {
       outputModuleDataTx[channel + 6] = outputModule->configuration[channel];
       *(uint16_t *)&outputModuleDataTx[channel * 2 + 12] =
           outputModule->currentMax[channel];
+      outputModuleDataTx[channel * 2 + 24] =
+          outputModule->fastLoopModule[channel];
+      outputModuleDataTx[channel * 2 + 25] =
+          outputModule->fastLoopChannel[channel];
     }
 
     if (outputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNELOUT) {
@@ -87,9 +91,9 @@ void OutputModule_Configuration(_outputModule *outputModule) {
 
     for (uint8_t channel = 0; channel < 6; channel++) {
       *(uint16_t *)&outputModuleDataTx[channel * 2 + 6] =
-          outputModule->peakCurrent[channel];
+          outputModule->channelParameter1[channel].raw;
       *(uint16_t *)&outputModuleDataTx[channel * 2 + 18] =
-          outputModule->peakTime[channel];
+          outputModule->channelParameter2[channel].raw;
     }
 
     /* The second initialization message is delayed by 500 us because the module
@@ -311,8 +315,8 @@ void OutputModule6ch_ConfigureChannel(_outputModule *outputModule,
       outputModule->configuration[channel] | (func << 4);
   // set the other values
   outputModule->currentMax[channel] = currentMax;
-  outputModule->peakCurrent[channel] = peak_current;
-  outputModule->peakTime[channel] = peak_time;
+  outputModule->channelParameter1[channel].peakCurrent = peak_current;
+  outputModule->channelParameter2[channel].peakTime = peak_time;
 }
 
 /****************************************************************************************/

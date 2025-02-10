@@ -82,19 +82,31 @@
 	outputModule%<block.RTWdata.moduleSlot>.currentMax[4] = %<block.RTWdata.C5cur>;
 	outputModule%<block.RTWdata.moduleSlot>.currentMax[5] = %<block.RTWdata.C6cur>;
 
-	outputModule%<block.RTWdata.moduleSlot>.peakCurrent[0] = %<block.RTWdata.C1peakCurrent>;
-	outputModule%<block.RTWdata.moduleSlot>.peakCurrent[1] = %<block.RTWdata.C2peakCurrent>;
-	outputModule%<block.RTWdata.moduleSlot>.peakCurrent[2] = %<block.RTWdata.C3peakCurrent>;
-	outputModule%<block.RTWdata.moduleSlot>.peakCurrent[3] = %<block.RTWdata.C4peakCurrent>;
-	outputModule%<block.RTWdata.moduleSlot>.peakCurrent[4] = %<block.RTWdata.C5peakCurrent>;
-	outputModule%<block.RTWdata.moduleSlot>.peakCurrent[5] = %<block.RTWdata.C6peakCurrent>;
+	outputModule%<block.RTWdata.moduleSlot>.fastLoopModule[5] = %<block.RTWdata.C6flmod>;
+	outputModule%<block.RTWdata.moduleSlot>.fastLoopChannel[5] = %<block.RTWdata.C6flchan>;
 
-	outputModule%<block.RTWdata.moduleSlot>.peakTime[0] = %<block.RTWdata.C1peakTime>;
-	outputModule%<block.RTWdata.moduleSlot>.peakTime[1] = %<block.RTWdata.C2peakTime>;
-	outputModule%<block.RTWdata.moduleSlot>.peakTime[2] = %<block.RTWdata.C3peakTime>;
-	outputModule%<block.RTWdata.moduleSlot>.peakTime[3] = %<block.RTWdata.C4peakTime>;
-	outputModule%<block.RTWdata.moduleSlot>.peakTime[4] = %<block.RTWdata.C5peakTime>;
-	outputModule%<block.RTWdata.moduleSlot>.peakTime[5] = %<block.RTWdata.C6peakTime>;
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter1[0].peakCurrent = %<block.RTWdata.C1peakCurrent>;
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter2[0].peakTime = %<block.RTWdata.C1peakTime>;
+
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter1[1].peakCurrent = %<block.RTWdata.C2peakCurrent>;
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter2[1].peakTime = %<block.RTWdata.C2peakTime>;
+
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter1[2].peakCurrent = %<block.RTWdata.C3peakCurrent>;
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter2[2].peakTime = %<block.RTWdata.C3peakTime>;
+
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter1[3].peakCurrent = %<block.RTWdata.C4peakCurrent>;
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter2[3].peakTime = %<block.RTWdata.C4peakTime>;
+
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter1[4].peakCurrent = %<block.RTWdata.C5peakCurrent>;
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter2[4].peakTime = %<block.RTWdata.C5peakTime>;
+
+	%if(%<block.RTWdata.C6func> == 7)
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter1[5].peakCurrent = %<block.RTWdata.C6peakCurrent>;
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter2[5].peakTime = %<block.RTWdata.C6peakTime>;
+	%elseif(%<block.RTWdata.C6func> == 9)
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter1[5].fastLoopGain = %<block.RTWdata.C6flgain>;
+	outputModule%<block.RTWdata.moduleSlot>.channelParameter2[5].fastLoopBasicDuty = %<block.RTWdata.C6flbasicDuty>;
+	%endif
 
 	OutputModule_Configuration(&outputModule%<block.RTWdata.moduleSlot>);
   %%

@@ -103,6 +103,19 @@
 /****************************************************************************************
  * Data declarations
  ****************************************************************************************/
+
+union parameter1 {
+  uint16_t raw;
+  uint16_t peakCurrent;
+  uint16_t fastLoopGain;
+};
+
+union parameter2 {
+  uint16_t raw;
+  uint16_t peakTime;
+  uint16_t fastLoopBasicDuty;
+};
+
 typedef struct {
   uint8_t configuration[10];
   uint16_t value[10];
@@ -110,8 +123,10 @@ typedef struct {
   uint32_t syncCounter[6];
   int16_t current[6];
   uint16_t currentMax[6];
-  uint16_t peakCurrent[6];
-  uint16_t peakTime[6];
+  union parameter1 channelParameter1[6];
+  union parameter2 channelParameter2[6];
+  uint8_t fastLoopModule[6];
+  uint8_t fastLoopChannel[6];
   int16_t temperature;
   int16_t ground;
   uint16_t supply;
