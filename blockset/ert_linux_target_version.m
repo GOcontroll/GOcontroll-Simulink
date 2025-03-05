@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.4.0-rc11';
+version = 'GOcontroll V4.4.0-rc12';
 
 %% V4.4.0 Update -:
 % BREAKING Fixed mask errors in the 10 channel input, reset pulse counter and all the output blocks have been fixed this can reset certain parameters
