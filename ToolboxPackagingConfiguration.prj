@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="534940922" file="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b/ToolboxPackagingConfiguration.prj" location="/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b" name="ToolboxPackagingConfiguration" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="534940922" file="/home/maud/Documents/dev/git/GOcontroll/simulink/GOcontroll-Simulink-2023b/ToolboxPackagingConfiguration.prj" location="/home/maud/Documents/dev/git/GOcontroll/simulink/GOcontroll-Simulink-2023b" name="ToolboxPackagingConfiguration" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>GOcontroll-Simulink</param.appname>
     <param.authnamewatermark>GOcontroll</param.authnamewatermark>
     <param.email>info@gocontroll.com</param.email>
@@ -7,7 +7,7 @@
     <param.summary>A toolbox for working with the GOcontroll Moduline controllers</param.summary>
     <param.description>This toolbox contains everything necessery to get started developping for the GOcontroll Moduline controllers, it will install the proper compiler and contains various blocks made to interact with the controllers hardware.</param.description>
     <param.screenshot>${PROJECT_ROOT}/GOcontroll.png</param.screenshot>
-    <param.version>4.3.2.10</param.version>
+    <param.version>4.3.2.11</param.version>
     <param.output>${PROJECT_ROOT}/GOcontroll-Simulink.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -123,9 +123,6 @@ updating_project_template.md</param.exclude.filters>
       <item />
     </param.additional.sw.linux.url>
     <unset>
-      <param.authnamewatermark />
-      <param.email />
-      <param.company />
       <param.output />
       <param.platforms />
       <param.exclude.pcodedmfiles />
@@ -159,11 +156,11 @@ updating_project_template.md</param.exclude.filters>
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="GOcontroll-Simulink.mltbx" optional="false">/home/maud/Documents/GitHub/GOcontroll-Simulink-2023b/GOcontroll-Simulink.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="GOcontroll-Simulink.mltbx" optional="false">/home/maud/Documents/dev/git/GOcontroll/simulink/GOcontroll-Simulink-2023b/GOcontroll-Simulink.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>/home/maud/.local/share/MATLAB/R2023b</root>
+      <root>/home/maud/.local/MATLAB/R2023b</root>
       <toolboxes>
         <toolbox name="matlabcoder" />
         <toolbox name="embeddedcoder" />
@@ -188,7 +185,7 @@ updating_project_template.md</param.exclude.filters>
       <vista>false</vista>
       <linux>true</linux>
       <solaris>false</solaris>
-      <osver>5.15.0-131-generic</osver>
+      <osver>6.13.5-arch1-1</osver>
       <os32>false</os32>
       <os64>true</os64>
       <arch>glnxa64</arch>

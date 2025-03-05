@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.4.0-rc10';
+version = 'GOcontroll V4.4.0-rc11';
 
 %% V4.4.0 Update -:
 % BREAKING Fixed mask errors in the 10 channel input, reset pulse counter and all the output blocks have been fixed this can reset certain parameters
@@ -44,6 +44,7 @@ version = 'GOcontroll V4.4.0-rc10';
 % Added the 10 channel output monitor block to the library
 % Changed the CAN_MESSAGE datatype into CAN_MESSAGE_EXTENDED in can_receive_v2, this has no functional difference but makes building work better
 % Added initial version of fast loop control for the 6 channel output module
+% Added a parameter to ert_linux.tlc to remove a warning in 2025a
 
 %% V4.3.2 Update 8-8-2024:
 % The Execute shell command block now forks the process before calling system() to not block the main thread
