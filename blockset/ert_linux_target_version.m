@@ -30,9 +30,9 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.4.0-rc12';
+version = 'GOcontroll V4.4.0';
 
-%% V4.4.0 Update -:
+%% V4.4.0 Update 24-3-2025:
 % BREAKING Fixed mask errors in the 10 channel input, reset pulse counter and all the output blocks have been fixed this can reset certain parameters
 % In the case of the reset pulse counter block the library link has to be repaired, by changing 'Puls' to 'Pulse' in the link path
 % BREAKING Fixed output module groundshift datatype, it is now an int16
