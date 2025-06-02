@@ -1,78 +1,83 @@
-/************************************************************************************//**
-* \file         GOcontrollProcessorboard.c
-* \brief        Functions that handels the low level control of the GOcontroll hardware.
-* \internal
-*----------------------------------------------------------------------------------------
-*                          C O P Y R I G H T
-*----------------------------------------------------------------------------------------
-*  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com   All rights reserved
-*
-*----------------------------------------------------------------------------------------
-*                            L I C E N S E
-*----------------------------------------------------------------------------------------
-* Permission is hereby granted, free of charge, to any person obtaining a copy of this
-* software and associated documentation files (the "Software"), to deal in the Software
-* without restriction, including without limitation the rights to use, copy, modify, merge,
-* publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-* persons to whom the Software is furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in all copies or
-* substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-* INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-* PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
-* FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-* OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-* DEALINGS IN THE SOFTWARE.
-* \endinternal
-****************************************************************************************/
-
+/**************************************************************************************
+ * \file   GOcontrollProcessorboard.c
+ * \brief  Functions that handels the low level control of the GOcontroll
+ * hardware.
+ * \internal
+ *----------------------------------------------------------------------------------------
+ *                          C O P Y R I G H T
+ *----------------------------------------------------------------------------------------
+ * Copyright 2024 (c) by GOcontroll http://www.gocontroll.com All rights
+ * reserved
+ *
+ *----------------------------------------------------------------------------------------
+ *                            L I C E N S E
+ *----------------------------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * \endinternal
+ ****************************************************************************************/
 
 /****************************************************************************************
-* Include files
-****************************************************************************************/
+ * Include files
+ ****************************************************************************************/
+#include "GocontrollProcessorboard.h"
+
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <ctype.h>
-#include "oaes_lib.h"
+
+#include "XcpTargetSpecific.h"
 #include "oaes_base64.h"
 #include "oaes_common.h"
-#include <errno.h>
-
-#include "GocontrollProcessorboard.h"
-#include "XcpTargetSpecific.h"
+#include "oaes_lib.h"
 
 /****************************************************************************************
-* Macro definitions
-****************************************************************************************/
-#define LOW				0
-#define HIGH			1
+ * Macro definitions
+ ****************************************************************************************/
+#define LOW 0
+#define HIGH 1
 
-#define ARM32			0
-#define ARM64			1
+#define ARM32 0
+#define ARM64 1
+
+// #define DEBUG 1
 
 #ifndef __min
-  #define __min(a,b)  (((a) < (b)) ? (a) : (b))
-#endif // __min
+#define __min(a, b) (((a) < (b)) ? (a) : (b))
+#endif	// __min
 
 /* General includes */
+#include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <fcntl.h>
 #include <unistd.h>
 
 /* Used for CPU affinity*/
-//#define _GNU_SOURCE /*Added using CC flag. See makefile */
+// #define _GNU_SOURCE /* Added using CC flag. See makefile */
 #include <sched.h>
 
 /* SPI includes */
 #include <getopt.h>
-#include <sys/ioctl.h>
-#include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include <linux/types.h>
+#include <sys/ioctl.h>
 
 /* I2C include */
 #include <linux/i2c-dev.h>
@@ -81,193 +86,166 @@
 _hardwareConfig hardwareConfig;
 
 /****************************************************************************************
-* Data declarations (SPI mapping)
-****************************************************************************************/
-typedef struct{
+ * Data declarations (SPI mapping)
+ ****************************************************************************************/
+typedef struct {
 	char *channel;
-}_moduleSpi;
+} _moduleSpi;
 
-_moduleSpi moduleSpi[8] =
-{
-	{"/dev/spidev1.0"},
-	{"/dev/spidev1.1"},
-	{"/dev/spidev2.0"},
-	{"/dev/spidev2.1"},
-	{"/dev/spidev2.2"},
-	{"/dev/spidev2.3"},
-	{"/dev/spidev0.0"},
-	{"/dev/spidev0.1"},
+_moduleSpi moduleSpi[8] = {
+	{"/dev/spidev1.0"}, {"/dev/spidev1.1"}, {"/dev/spidev2.0"},
+	{"/dev/spidev2.1"}, {"/dev/spidev2.2"}, {"/dev/spidev2.3"},
+	{"/dev/spidev0.0"}, {"/dev/spidev0.1"},
 };
 
 /****************************************************************************************
-* Data declarations (SPI settings)
-****************************************************************************************/
-static uint8_t 	mode = 0;
-static uint8_t 	bits = 8;
+ * Data declarations (SPI settings)
+ ****************************************************************************************/
+static uint8_t mode = 0;
+static uint8_t bits = 8;
 static uint32_t speed = 2000000;
 
 /****************************************************************************************
-* Function prototypes
-****************************************************************************************/
+ * Function prototypes
+ ****************************************************************************************/
 
 /****************************************************************************************
 ** \brief     Get the modules out of their bootloader state
 ** \param     module the module slot (0-7)
-** \param 	  dataTx buffer for the transmit bytes
-** \param 	  dataRx buffer for the receive bytes
+** \param     dataTx buffer for the transmit bytes
+** \param     dataRx buffer for the receive bytes
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-static int 	GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,uint8_t* dataTx, uint8_t* dataRx);
-
-/****************************************************************************************
-** \brief     Send a dummy message to all modules over spi
-** \param     none.
-** \return    none
-****************************************************************************************/
-static void 	GocontrollProcessorboard_DummySpiSend(void);
+static int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,
+														 uint8_t *dataTx,
+														 uint8_t *dataRx);
 
 /**************************************************************************************
 ** \brief     Configures and provides the SPI busses
-** \param     moduleSlot the module slot for which it needs to provide an spi device (0-7)
+** \param     moduleSlot the module slot for which it needs to provide an spi
+*device (0-7)
 ** \return    an spi number
 ****************************************************************************************/
-static int 		GocontrollProcessorboard_SpiDevice(uint8_t moduleSlot);
+static int GocontrollProcessorboard_SpiDevice(uint8_t moduleSlot);
 
 /**************************************************************************************
 ** \brief     opens a sysfs file for the reset pin of a module
 ** \param     moduleSlot module number that needs to be accessed (0-7)
 ** \return    file descriptor if ok -1 if  failed
 ****************************************************************************************/
-static int 		GocontrollProcessorboard_ModuleReset(uint8_t moduleSlot);
+static int GocontrollProcessorboard_ModuleReset(uint8_t moduleSlot);
 
 /**************************************************************************************
 ** \brief     Function that sleeps for x miliseconds
 ** \param     times number of miliseconds to sleep
-** \return 	  none
+** \return     none
 ****************************************************************************************/
-static void 	GocontrollProcessorboard_Delay1ms(uint32_t times);
+static void GocontrollProcessorboard_Delay1ms(uint32_t times);
 
 /****************************************************************************************
 ** \brief     set the state of the reset pin of a module
 ** \param     module int holding the position of the module (0-7)
-** \param 	  state the state of the reset pin macros HIGH 1 or LOW 0
+** \param     state the state of the reset pin macros HIGH 1 or LOW 0
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-static int8_t 	GocontrollProcessorboard_ResetStateModule(uint8_t module, uint8_t state);
+static int8_t GocontrollProcessorboard_ResetStateModule(uint8_t module,
+														uint8_t state);
 
 /**************************************************************************************
 ** \brief     calculate the checksum of an spi message
 ** \param     array buffer filled with the spi message
-** \param 	  length length of the spi message
+** \param     length length of the spi message
 ** \return    the checksum
 ****************************************************************************************/
-static uint8_t 	GocontrollProcessorboard_CheckSumCalculator(uint8_t *array,uint8_t length);
+static uint8_t GocontrollProcessorboard_CheckSumCalculator(uint8_t *array,
+														   uint8_t length);
 
 /**************************************************************************************
-** \brief     Function that creates a local iio context with all iio devices on the controller
+** \brief     Function that creates a local iio context with all iio devices on
+*the controller
 ** \param     slot module slot (0-7)
-** \param	  rx the bootloader rx buffer
+** \param     rx the bootloader rx buffer
 ** \return    none
 ****************************************************************************************/
-void 			GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx);
+void GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx);
 
 /****************************************************************************************/
 
-void GocontrollProcessorboard_ModulesInitialize(void)
-{
-	int res = 0;
-
-	/*Start with modules in reset state so we can do other stuff during reset*/
-	for(uint8_t m = 0; m < hardwareConfig.moduleNumber; m++)
-	{
-		GocontrollProcessorboard_ResetStateModule(m,1);
+void GocontrollProcessorboard_ModuleInitialize(uint8_t moduleslot) {
+	int res;
+	printf("initializing module %d\n", moduleslot + 1);
+	if (moduleslot >= hardwareConfig.moduleNumber) {
+		fprintf(stderr, "Module slot %d does not exist in this controller\n",
+				moduleslot + 1);
+		return;
 	}
-
-	fprintf(stderr,"Modules initialize\n");
-
-	/*Send a dummy byte to initialize the SPI. Only neccessary for Linux*/
-	GocontrollProcessorboard_DummySpiSend();
-	/* Short timeout before getting the modules out of reset state */
-	GocontrollProcessorboard_Delay1ms(5);
-	/*Get the modules out of reset and give some time to startup */
-	for(uint8_t m = 0; m <hardwareConfig.moduleNumber; m++)
-	{
-		GocontrollProcessorboard_ResetStateModule(m,0);
-	}
-	/* Give modules short time to start bootloader */
-	GocontrollProcessorboard_Delay1ms(10);
-	/*Send command to exit the bootloader and start module application */
-	/*From within Simulink, the bootloader is not used for new firmware update */
-	uint8_t moduleState[8] = {0};
-	uint8_t dataTx[BOOTMESSAGELENGTHCHECK] = {0};
-	uint8_t dataRx[BOOTMESSAGELENGTHCHECK] = {0};
-
-	for(uint8_t module = 0; module < hardwareConfig.moduleNumber; module++)
-	{
-		dataRx[6] = 0;
-		res = GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
-		/* Check if the received data is coming from the bootloader */
-		/* Retrieve first part of module hardware code */
-		if( dataRx[0] == 9 && res == 0) /* bootloaders first byte == 9 */
-		{
-			/* If valid module data is received, dataRx[6] should be 20 */
-			moduleState[module] = dataRx[6];
-			GocontrollProcessorboard_RegisterModule(module, &dataRx[0]);
-		} else if ( dataRx[0] == 9) {
-			moduleState[module] = 20; // failed message from the bootloader must retry
+	for (uint8_t i = 0; i < 5; i++) {
+		GocontrollProcessorboard_ResetStateModule(moduleslot, 1);
+		GocontrollProcessorboard_Delay1ms(2);
+		GocontrollProcessorboard_ResetStateModule(moduleslot, 0);
+		GocontrollProcessorboard_Delay1ms(2);
+		uint8_t dataTxBoot[BOOTMESSAGELENGTHCHECK] = {0};
+		uint8_t dataRxBoot[BOOTMESSAGELENGTHCHECK] = {0};
+		res = GocontrollProcessorboard_EscapeFromBootloader(
+			moduleslot, dataTxBoot, dataRxBoot);
+#ifdef DEBUG
+		printf("bootloader:\n[");
+		for (uint8_t j = 0; j < BOOTMESSAGELENGTH; j++) {
+			printf("%d, ", dataRxBoot[j]);
 		}
-	}
-	/* Give some time to start application program on module */
-	GocontrollProcessorboard_Delay1ms(5);
-	/* Check if module application is started */
-	for(uint8_t module = 0; module < hardwareConfig.moduleNumber; module++)
-	{
-		/* At this point, a module is installed so proceed with the check */
-		/* Reset dataRx[6] to 0 to prevent old data corrupting this mechanism */
-		dataRx[6] = 0;
-		GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx); //this one will report software version 0.0.1 instead of the actual software
-		/* Retrieve first part of module hardware code. If it is provided, it means module application is running*/
-		if(dataRx[6] == 20)
-		{
+		printf("]\n");
+#endif
+		// checksum faulty, but a module seems to be there, retry
+		if (res &&
+			(dataRxBoot[0] == 9 || dataRxBoot[1] == BOOTMESSAGELENGTH - 1 ||
+			 dataRxBoot[2] == 9)) {
+#ifdef DEBUG
+			printf("checksum error\n");
+#endif
 			continue;
 		}
-		/* At this point, it seems the module is stuck. Check if during the first escape from bootloader
-		a valid module hardware code was received. If so, extra reset and reinitialisation */
-		else if (moduleState[module] == 20)
-		{
-			/* Set module in reset state */
-			GocontrollProcessorboard_ResetStateModule(module,1);
-			GocontrollProcessorboard_Delay1ms(5);
-			GocontrollProcessorboard_ResetStateModule(module,0);
-			/* Give modules short time to start bootloader */
-			GocontrollProcessorboard_Delay1ms(5);
-			dataRx[6] = 0;
-			/* Escape from bootloader */
-			res = GocontrollProcessorboard_EscapeFromBootloader(module,dataTx,dataRx);
-			if( dataRx[0] == 9 && res == 0) /* bootloaders first byte == 9 */
-			{
-				/* If valid module data is received, dataRx[6] should be 20 */
-				moduleState[module] = dataRx[6];
-				GocontrollProcessorboard_RegisterModule(module, &dataRx[0]);
-			} else if ( dataRx[0] == 9 ) {
-				moduleState[module] = 20; // failed message from the bootloader must retry
-			}
-			/* Give some time to start application program on module */
-			GocontrollProcessorboard_Delay1ms(5);
-			/* Check again if modules application is now running by re-execution of for loop*/
-			module--;
+		// checksum correct but message doesn't come from the bootloader
+		if (!res &&
+			(dataRxBoot[0] != 9 || dataRxBoot[1] != BOOTMESSAGELENGTH - 1 ||
+			 dataRxBoot[2] != 9)) {
+#ifdef DEBUG
+			printf("message incorrect\n");
+#endif
+			continue;
+		}
+		// no module present, don't loop multiple times.
+		if (dataRxBoot[0] == 255) {
+#ifdef DEBUG
+			printf("no module present\n");
+#endif
+			break;
+		}
+		uint8_t dataTxFirm[BOOTMESSAGELENGTHCHECK] = {0};
+		uint8_t dataRxFirm[BOOTMESSAGELENGTHCHECK] = {0};
+		GocontrollProcessorboard_Delay1ms(2);
+		res = GocontrollProcessorboard_EscapeFromBootloader(
+			moduleslot, dataTxFirm, dataRxFirm);
+#ifdef DEBUG
+		printf("firmware:\n[");
+		for (uint8_t j = 0; j <= dataRxFirm[1]; j++) {
+			printf("%d, ", dataRxFirm[j]);
+		}
+		printf("]\n");
+#endif
+		if (!res && dataRxFirm[0] != 9 && dataRxFirm[2] != 9 &&
+			dataRxFirm[1] != 0) {
+			GocontrollProcessorboard_RegisterModule(moduleslot, dataRxBoot);
+			GocontrollProcessorboard_Delay1ms(4);
+			return;
 		}
 	}
-
-	/* Give bootloader some time to start application program */
-	GocontrollProcessorboard_Delay1ms(5);
+	fprintf(stderr, "Could not register a module in slot %d\n", moduleslot + 1);
 }
 
 /****************************************************************************************/
 
-void GocontrollProcessorboard_SetCpuAffinity(void)
-{
-	cpu_set_t  mask;
+void GocontrollProcessorboard_SetCpuAffinity(void) {
+	cpu_set_t mask;
 	CPU_ZERO(&mask);
 	CPU_SET(3, &mask);
 	sched_setaffinity(0, sizeof(mask), &mask);
@@ -275,49 +253,36 @@ void GocontrollProcessorboard_SetCpuAffinity(void)
 
 /****************************************************************************************/
 
-static int8_t GocontrollProcessorboard_ResetStateModule(uint8_t module, uint8_t state)
-{
+static int8_t GocontrollProcessorboard_ResetStateModule(uint8_t module,
+														uint8_t state) {
 	static const char s_values_str[] = "01";
 
-	if (1 != write(GocontrollProcessorboard_ModuleReset(module), &s_values_str[LOW == state ? 0 : 1], 1)) {
-		fprintf(stderr, "Reset pin fail for module %d\n",module);
-		return(-1);
+	if (1 != write(GocontrollProcessorboard_ModuleReset(module),
+				   &s_values_str[LOW == state ? 0 : 1], 1)) {
+		fprintf(stderr, "Reset pin fail for module %d\n", module);
+		return (-1);
 	}
-	return(0);
+	return (0);
 }
 
 /****************************************************************************************/
 
-static void GocontrollProcessorboard_DummySpiSend(void)
-{
-	uint8_t dummyT[6] = {1,2,3,4,5,6};
-
-	for(uint8_t m = 0; m <=7; m++)
-	{
-		write(GocontrollProcessorboard_SpiDevice(m), &dummyT[0], 5);
-	}
-}
-
-/****************************************************************************************/
-
-int GocontrollProcessorboard_LedInitialize(void)
-{
-	if( hardwareConfig.ledControl == LED_RUKR)
-	{
+int GocontrollProcessorboard_LedInitialize(void) {
+	if (hardwareConfig.ledControl == LED_RUKR) {
 		const uint8_t addr = 0x14;
 		uint8_t dataTx[2];
 
 		static int i2cDevice = 0;
 
 		/* Open I2C device */
-		if ((i2cDevice = open("/dev/i2c-2",O_RDWR)) < 0) {
+		if ((i2cDevice = open("/dev/i2c-2", O_RDWR)) < 0) {
 			close(i2cDevice);
 			printf("Error I2C open for LED's.\n");
 			return -1;
 		}
 
 		/* Aquire bus acces */
-		if (ioctl(i2cDevice,I2C_SLAVE,addr) < 0) {
+		if (ioctl(i2cDevice, I2C_SLAVE, addr) < 0) {
 			close(i2cDevice);
 			printf("Error I2C require bus for LED's.\n");
 			return -1;
@@ -328,7 +293,7 @@ int GocontrollProcessorboard_LedInitialize(void)
 		dataTx[1] = 0xFF;
 
 		/* Send actual data */
-		if (write(i2cDevice,dataTx,2) != 2) {
+		if (write(i2cDevice, dataTx, 2) != 2) {
 			close(i2cDevice);
 			printf("Error I2C write to bus for LED's.\n");
 			return -1;
@@ -339,7 +304,7 @@ int GocontrollProcessorboard_LedInitialize(void)
 		dataTx[1] = 0x40;
 
 		/* Send actual data */
-		if (write(i2cDevice,dataTx,2) != 2) {
+		if (write(i2cDevice, dataTx, 2) != 2) {
 			close(i2cDevice);
 			printf("Error I2C write to bus for LED's.\n");
 			return -1;
@@ -353,71 +318,71 @@ int GocontrollProcessorboard_LedInitialize(void)
 
 /****************************************************************************************/
 
-int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t value)
-{
-	if(hardwareConfig.ledControl == LED_RUKR)
-	{
-	static uint8_t dataTx[3] 	= {0};
-	const int addr 				= 0x14;
+int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color,
+										uint8_t value) {
+	if (hardwareConfig.ledControl == LED_RUKR) {
+		static uint8_t dataTx[3] = {0};
+		const int addr = 0x14;
 
-	static int i2cDevice = 0;
+		static int i2cDevice = 0;
 
 		/* Select proper LED with color address */
-		if(led == 1)
+		if (led == 1)
 			dataTx[0] = 0x0A + color;
-		else if(led == 2)
+		else if (led == 2)
 			dataTx[0] = 0x0D + color;
-		else if(led == 3)
+		else if (led == 3)
 			dataTx[0] = 0x10 + color;
-		else if(led == 4)
+		else if (led == 4)
 			dataTx[0] = 0x13 + color;
 		else
 			return -1;
-		
+
 		/* Load data that needs to be send */
 		dataTx[1] = value;
 
 		/* Open I2C device */
-		if ((i2cDevice = open("/dev/i2c-2",O_RDWR)) < 0) {
-		close(i2cDevice);
-		printf("Error I2C open for LED's.\n");
-		return -1;
+		if ((i2cDevice = open("/dev/i2c-2", O_RDWR)) < 0) {
+			close(i2cDevice);
+			printf("Error I2C open for LED's.\n");
+			return -1;
 		}
 
 		/* Aquire bus acces */
-		if (ioctl(i2cDevice,I2C_SLAVE,addr) < 0) {
-		close(i2cDevice);
-		printf("Error I2C require bus for LED's.\n");
-		return -1;
+		if (ioctl(i2cDevice, I2C_SLAVE, addr) < 0) {
+			close(i2cDevice);
+			printf("Error I2C require bus for LED's.\n");
+			return -1;
 		}
 
 		/* Send actual data */
-		if (write(i2cDevice,dataTx,2) != 2) {
-		close(i2cDevice);
-		printf("Error I2C write to bus for LED's.\n");
-		return -1;
+		if (write(i2cDevice, dataTx, 2) != 2) {
+			close(i2cDevice);
+			printf("Error I2C write to bus for LED's.\n");
+			return -1;
 		}
 
-	/* Close I2C connection */
-	close(i2cDevice);
-	return 0;
-	}
-	else if(hardwareConfig.ledControl == LED_GPIO)
-	{
-	int ledControl;
-	char path[40];
+		/* Close I2C connection */
+		close(i2cDevice);
+		return 0;
+	} else if (hardwareConfig.ledControl == LED_GPIO) {
+		int ledControl;
+		char path[40];
 
 		/* Create path to the LED that needs to be controlled */
-		switch(color){
+		switch (color) {
 			case LED_COLOR_RED:
-			snprintf(path, 40, "/sys/class/leds/Status%d-r/brightness", led);
-			break;
+				snprintf(path, 40, "/sys/class/leds/Status%d-r/brightness",
+						 led);
+				break;
 			case LED_COLOR_GREEN:
-			snprintf(path, 40, "/sys/class/leds/Status%d-g/brightness", led);
-			break;
+				snprintf(path, 40, "/sys/class/leds/Status%d-g/brightness",
+						 led);
+				break;
 			case LED_COLOR_BLUE:
-			snprintf(path, 40, "/sys/class/leds/Status%d-b/brightness", led);
-			break;
+				snprintf(path, 40, "/sys/class/leds/Status%d-b/brightness",
+						 led);
+				break;
 		}
 
 		/* Construct the command for LED value control */
@@ -428,37 +393,37 @@ int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color, uint8_t va
 
 		/* Check if path is opened properly */
 		if (ledControl == -1) {
-			fprintf(stderr, "Error GPIO write led %d!\n",led);
+			fprintf(stderr, "Error GPIO write led %d!\n", led);
 			close(ledControl);
-			return(-1);
+			return (-1);
 		}
 
 		/* Write the actual value to the LED LL file system */
 		if (1 != write(ledControl, &s_values_str[LOW == value ? 0 : 1], 1)) {
 			fprintf(stderr, "Error GPIO write led %d!\n", led);
 			close(ledControl);
-			return(-1);
+			return (-1);
 		}
 
-	/* Close the ledcontrol instance */
-	close(ledControl);
-	}
-	else if(hardwareConfig.ledControl == NOT_INSTALLED)
-	{
+		/* Close the ledcontrol instance */
+		close(ledControl);
+	} else if (hardwareConfig.ledControl == NOT_INSTALLED) {
 		return 0;
 	}
-	return(0);
+	return (0);
 }
 
 /****************************************************************************************/
 
-static int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module, uint8_t* dataTx, uint8_t* dataRx)
-{
+static int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,
+														 uint8_t *dataTx,
+														 uint8_t *dataRx) {
 	dataTx[0] = 19;
-	dataTx[1] = BOOTMESSAGELENGTH-1;
-	*(uint16_t*) &dataTx[2] = 19;
+	dataTx[1] = BOOTMESSAGELENGTH - 1;
+	*(uint16_t *)&dataTx[2] = 19;
 
-	dataTx[BOOTMESSAGELENGTH-1] = GocontrollProcessorboard_CheckSumCalculator(&dataTx[0],BOOTMESSAGELENGTH-1);
+	dataTx[BOOTMESSAGELENGTH - 1] = GocontrollProcessorboard_CheckSumCalculator(
+		&dataTx[0], BOOTMESSAGELENGTH - 1);
 
 	struct spi_ioc_transfer tr = {
 		.tx_buf = (long int)&dataTx[0],
@@ -470,10 +435,11 @@ static int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module, uint8_t
 	};
 
 	ioctl(GocontrollProcessorboard_SpiDevice(module), SPI_IOC_MESSAGE(1), &tr);
-
-	if (GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],BOOTMESSAGELENGTH-1)==dataRx[BOOTMESSAGELENGTH-1])
-	{
-		return 0;
+	if (dataRx[1] < BOOTMESSAGELENGTHCHECK) {
+		if (GocontrollProcessorboard_CheckSumCalculator(
+				&dataRx[0], dataRx[1]) == dataRx[dataRx[1]]) {
+			return 0;
+		}
 	}
 
 	return -1;
@@ -481,41 +447,47 @@ static int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module, uint8_t
 
 /****************************************************************************************/
 
-int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,uint8_t id1,uint8_t id2,uint8_t id3,
-	uint8_t id4, uint8_t module, uint8_t* dataTx, uint32_t delay)
-{
+int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,
+									 uint8_t id1, uint8_t id2, uint8_t id3,
+									 uint8_t id4, uint8_t module,
+									 uint8_t *dataTx, uint32_t delay) {
 	dataTx[0] = command;
-	dataTx[1] = dataLength-1;
+	dataTx[1] = dataLength - 1;
 	dataTx[2] = id1;
 	dataTx[3] = id2;
 	dataTx[4] = id3;
 	dataTx[5] = id4;
 
-	dataTx[dataLength-1] = GocontrollProcessorboard_CheckSumCalculator(&dataTx[0],dataLength-1);
+	dataTx[dataLength - 1] =
+		GocontrollProcessorboard_CheckSumCalculator(&dataTx[0], dataLength - 1);
 
 	usleep((uint32_t)delay);
-	write(GocontrollProcessorboard_SpiDevice(module), &dataTx[0], dataLength+MESSAGEOVERLENGTH);
+	write(GocontrollProcessorboard_SpiDevice(module), &dataTx[0],
+		  dataLength + MESSAGEOVERLENGTH);
 
 	return 0;
 }
 
 /****************************************************************************************/
 
-int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength, uint8_t id1,uint8_t id2,uint8_t id3,
-	uint8_t id4, uint8_t module, uint8_t* dataTx, uint8_t* dataRx)
-{
+int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
+											uint8_t id1, uint8_t id2,
+											uint8_t id3, uint8_t id4,
+											uint8_t module, uint8_t *dataTx,
+											uint8_t *dataRx) {
 	dataTx[0] = command;
-	dataTx[1] = dataLength-1;
+	dataTx[1] = dataLength - 1;
 	dataTx[2] = id1;
 	dataTx[3] = id2;
 	dataTx[4] = id3;
 	dataTx[5] = id4;
 
-	dataTx[dataLength-1] = GocontrollProcessorboard_CheckSumCalculator(&dataTx[0],dataLength-1);
+	dataTx[dataLength - 1] =
+		GocontrollProcessorboard_CheckSumCalculator(&dataTx[0], dataLength - 1);
 
 	/* Reset some essential values to erase earlier messages */
 	dataRx[0] = 0;
-	dataRx[dataLength-1] = 0;
+	dataRx[dataLength - 1] = 0;
 
 	struct spi_ioc_transfer tr = {
 		.tx_buf = (long int)&dataTx[0],
@@ -528,8 +500,9 @@ int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
 
 	ioctl(GocontrollProcessorboard_SpiDevice(module), SPI_IOC_MESSAGE(1), &tr);
 
-	if (dataRx[1]==dataLength-1) {
-		if( GocontrollProcessorboard_CheckSumCalculator(&dataRx[0],dataLength-1)==dataRx[dataLength-1]){
+	if (dataRx[1] == dataLength - 1) {
+		if (GocontrollProcessorboard_CheckSumCalculator(
+				&dataRx[0], dataLength - 1) == dataRx[dataLength - 1]) {
 			return 0;
 		}
 	}
@@ -538,61 +511,55 @@ int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
 
 /****************************************************************************************/
 
-static int GocontrollProcessorboard_SpiDevice(uint8_t moduleSlot)
-{
-static int spiDevice[8] = {0};
+static int GocontrollProcessorboard_SpiDevice(uint8_t moduleSlot) {
+	static int spiDevice[8] = {0};
 
-	if(spiDevice[moduleSlot] == 0)
-	{
+	if (spiDevice[moduleSlot] == 0) {
 		spiDevice[moduleSlot] = open(moduleSpi[moduleSlot].channel, O_RDWR);
 
 		ioctl(spiDevice[moduleSlot], SPI_IOC_WR_MODE, &mode);
 		ioctl(spiDevice[moduleSlot], SPI_IOC_WR_BITS_PER_WORD, &bits);
 		ioctl(spiDevice[moduleSlot], SPI_IOC_WR_MAX_SPEED_HZ, &speed);
-		}
+	}
 
-return spiDevice[moduleSlot];
+	return spiDevice[moduleSlot];
 }
 
 /****************************************************************************************/
 
-static int GocontrollProcessorboard_ModuleReset(uint8_t moduleSlot)
-{
+static int GocontrollProcessorboard_ModuleReset(uint8_t moduleSlot) {
+	static int moduleReset[8] = {0};
 
-static int moduleReset[8] = {0};
-
-	if(moduleReset[moduleSlot] == 0)
-	{
+	if (moduleReset[moduleSlot] == 0) {
 		char path[40];
 
-		snprintf(path, 40, "/sys/class/leds/ResetM-%d/brightness", moduleSlot+1);
+		snprintf(path, 40, "/sys/class/leds/ResetM-%d/brightness",
+				 moduleSlot + 1);
 
 		moduleReset[moduleSlot] = open(path, O_WRONLY);
 
 		if (-1 == moduleReset[moduleSlot]) {
 			fprintf(stderr, "Error GPOI write module reset!\n");
-			return(-1);
+			return (-1);
 		}
 	}
 
-return moduleReset[moduleSlot];
+	return moduleReset[moduleSlot];
 }
 
 /****************************************************************************************/
 
-int GocontrollProcessorboard_ControllerActive(uint8_t state)
-{
-static int controllerActive = 0;
+int GocontrollProcessorboard_ControllerActive(uint8_t state) {
+	static int controllerActive = 0;
 
-	if(controllerActive == 0)
-	{
+	if (controllerActive == 0) {
 		char path[45];
 		snprintf(path, 41, "/sys/class/leds/power-active/brightness");
 		controllerActive = open(path, O_WRONLY);
 
 		if (-1 == controllerActive) {
-		fprintf(stderr, "Error GPIO write controller active!\n");
-		return(-1);
+			fprintf(stderr, "Error GPIO write controller active!\n");
+			return (-1);
 		}
 	}
 
@@ -600,19 +567,18 @@ static int controllerActive = 0;
 
 	if (1 != write(controllerActive, &s_values_str[LOW == state ? 0 : 1], 1)) {
 		fprintf(stderr, "Error GPIO write controller active!\n");
-		return(-1);
+		return (-1);
 	}
-	return(0);
+	return (0);
 }
 
 /****************************************************************************************/
 
-float GocontrollProcessorboard_ControllerTemperature(void)
-{
+float GocontrollProcessorboard_ControllerTemperature(void) {
 	int fileId = 0;
 
-	if((fileId = open("/sys/devices/virtual/thermal/thermal_zone0/temp", O_RDONLY | O_NONBLOCK)) <= 0)
-	{
+	if ((fileId = open("/sys/devices/virtual/thermal/thermal_zone0/temp",
+					   O_RDONLY | O_NONBLOCK)) <= 0) {
 		/* Here means the file is not opend properly */
 		/* To be sure it is closed, force a close */
 		close(fileId);
@@ -626,44 +592,39 @@ float GocontrollProcessorboard_ControllerTemperature(void)
 	/* Close the file descriptor */
 	close(fileId);
 	/* Write the content as a float and return*/
-	return (strtof(tempValue, NULL))/1000;
+	return (strtof(tempValue, NULL)) / 1000;
 }
 
 /****************************************************************************************/
 
-static uint8_t GocontrollProcessorboard_CheckSumCalculator(uint8_t *array,uint8_t length)
-{
+static uint8_t GocontrollProcessorboard_CheckSumCalculator(uint8_t *array,
+														   uint8_t length) {
 	uint8_t checkSum = 0;
-	for (uint8_t pointer = 0; pointer<length; pointer++)
-	{
+	for (uint8_t pointer = 0; pointer < length; pointer++) {
 		checkSum += array[pointer];
 	}
-return checkSum;
+	return checkSum;
 }
 
 /****************************************************************************************/
 
-static void GocontrollProcessorboard_Delay1ms(uint32_t times)
-{
-usleep(times *1000);
+static void GocontrollProcessorboard_Delay1ms(uint32_t times) {
+	usleep(times * 1000);
 }
 
 /****************************************************************************************/
 
-static void GocontrollProcessorboard_ProgramStop(int x, siginfo_t * y, void* z)
-{
+static void GocontrollProcessorboard_ProgramStop(int x, siginfo_t *y, void *z) {
 	printf("shutting down\n");
 	GocontrollProcessorboard_ExitProgram(NULL);
 }
 
 /****************************************************************************************/
 
-void GocontrollProcessorboard_ExitProgram(void* Terminate)
-{
+void GocontrollProcessorboard_ExitProgram(void *Terminate) {
 	static void (*TerminateFunction)(void);
 
-	if(Terminate != NULL)
-	{
+	if (Terminate != NULL) {
 		static struct sigaction _sigact;
 
 		memset(&_sigact, 0, sizeof(_sigact));
@@ -686,12 +647,12 @@ void GocontrollProcessorboard_ExitProgram(void* Terminate)
 
 /****************************************************************************************/
 
-void GocontrollProcessorboard_GetHardwareVersion(void)
-{
+void GocontrollProcessorboard_GetHardwareVersion(void) {
 	int fileId = 0;
+	memset(&hardwareConfig, 0, sizeof(_hardwareConfig));
 	/* Open the file that contains the hardware version of the controller */
-	if((fileId = open("/sys/firmware/devicetree/base/hardware", O_RDONLY | O_NONBLOCK)) <= 0)
-	{
+	if ((fileId = open("/sys/firmware/devicetree/base/hardware",
+					   O_RDONLY | O_NONBLOCK)) <= 0) {
 		/* Here means the file is not opend properly */
 		/* To be sure it is closed, force a close */
 		close(fileId);
@@ -713,17 +674,15 @@ void GocontrollProcessorboard_GetHardwareVersion(void)
 	printf("Detected hardware: ");
 
 	/*	Compare strings to see which hardware it is
-		Check production hardware first since those are the most likely */
-	if(strcmp (tempValue, "Moduline IV V3.06-D")==0)
-	{
+			Check production hardware first since those are the most likely */
+	if (strcmp(tempValue, "Moduline IV V3.06-D") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 8;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.11")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Mini V1.11") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 4;
 		hardwareConfig.ledControl = LED_RUKR;
@@ -732,40 +691,35 @@ void GocontrollProcessorboard_GetHardwareVersion(void)
 
 	/* Less common hardware versions */
 	/* Minis*/
-	else if(strcmp (tempValue, "Moduline Mini V1.03")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Mini V1.03") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 4;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_ADS1015;
-		}
+	}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.05")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Mini V1.05") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 4;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.06")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Mini V1.06") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 4;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.07")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Mini V1.07") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 4;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Mini V1.10")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Mini V1.10") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 4;
 		hardwareConfig.ledControl = LED_RUKR;
@@ -773,56 +727,49 @@ void GocontrollProcessorboard_GetHardwareVersion(void)
 	}
 
 	/* IVs*/
-	else if(strcmp (tempValue, "Moduline IV V3.00")==0)
-	{
+	else if (strcmp(tempValue, "Moduline IV V3.00") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 8;
 		hardwareConfig.ledControl = LED_GPIO;
 		hardwareConfig.adcControl = ADC_ADS1015;
 	}
 
-	else if(strcmp (tempValue, "Moduline IV V3.01")==0)
-	{
+	else if (strcmp(tempValue, "Moduline IV V3.01") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 8;
 		hardwareConfig.ledControl = LED_GPIO;
 		hardwareConfig.adcControl = ADC_ADS1015;
 	}
 
-	else if(strcmp (tempValue, "Moduline IV V3.02")==0)
-	{
+	else if (strcmp(tempValue, "Moduline IV V3.02") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 8;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_ADS1015;
 	}
 
-	else if(strcmp (tempValue, "Moduline IV V3.03")==0)
-	{
+	else if (strcmp(tempValue, "Moduline IV V3.03") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 8;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_ADS1015;
 	}
 
-	else if(strcmp (tempValue, "Moduline IV V3.04")==0)
-	{
+	else if (strcmp(tempValue, "Moduline IV V3.04") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 8;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_ADS1015;
 	}
 
-	else if(strcmp (tempValue, "Moduline IV V3.05")==0)
-	{
+	else if (strcmp(tempValue, "Moduline IV V3.05") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 8;
 		hardwareConfig.ledControl = LED_RUKR;
 		hardwareConfig.adcControl = ADC_ADS1015;
 	}
-	
-	else if(strcmp (tempValue, "Moduline IV V3.06")==0)
-	{
+
+	else if (strcmp(tempValue, "Moduline IV V3.06") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 8;
 		hardwareConfig.ledControl = LED_RUKR;
@@ -830,48 +777,42 @@ void GocontrollProcessorboard_GetHardwareVersion(void)
 	}
 
 	/* Displays */
-	else if(strcmp (tempValue, "Moduline Display V1.01")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Display V1.01") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 2;
 		hardwareConfig.ledControl = NOT_INSTALLED;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Display V1.02")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Display V1.02") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 2;
 		hardwareConfig.ledControl = NOT_INSTALLED;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Display V1.03")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Display V1.03") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 2;
 		hardwareConfig.ledControl = NOT_INSTALLED;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Display V1.04")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Display V1.04") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 2;
 		hardwareConfig.ledControl = NOT_INSTALLED;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Display V1.05")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Display V1.05") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 2;
 		hardwareConfig.ledControl = NOT_INSTALLED;
 		hardwareConfig.adcControl = ADC_MCP3004;
 	}
 
-	else if(strcmp (tempValue, "Moduline Display V1.06")==0)
-	{
+	else if (strcmp(tempValue, "Moduline Display V1.06") == 0) {
 		printf("%s", tempValue);
 		hardwareConfig.moduleNumber = 2;
 		hardwareConfig.ledControl = NOT_INSTALLED;
@@ -883,10 +824,11 @@ void GocontrollProcessorboard_GetHardwareVersion(void)
 
 /****************************************************************************************/
 
-void GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char *_file_in, char *_file_check, unsigned long keyLen) {
-
+void GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16],
+											char *_file_in, char *_file_check,
+											unsigned long keyLen) {
 	_do_block _b;
-    size_t _read_len = 4096;
+	size_t _read_len = 4096;
 	FILE *_f_in = NULL;
 	FILE *_f_check = NULL;
 	uint8_t _iv[OAES_BLOCK_SIZE] = "";
@@ -894,121 +836,121 @@ void GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char
 	uint8_t *_buf = NULL;
 	OAES_RET _rc = OAES_RET_SUCCESS;
 
-	//check if the entered key has a valid length
+	// check if the entered key has a valid length
 	if ((keyLen != 16UL) && (keyLen != 24UL) && (keyLen != 32UL)) {
-		fprintf(stderr, "A key of incorrect length was entered: %lu bytes\nKey length can only be 16, 24 or 32 bytes\n", keyLen);
+		fprintf(
+			stderr,
+			"A key of incorrect length was entered: %lu bytes\nKey length can "
+			"only be 16, 24 or 32 bytes\n",
+			keyLen);
 		exit(-1);
 	}
 
-	//initialize the OAES struct and allocate it some memory
+	// initialize the OAES struct and allocate it some memory
 	OAES_CTX *ctx = NULL;
-	ctx =  oaes_alloc();
-	if(NULL == ctx) {
+	ctx = oaes_alloc();
+	if (NULL == ctx) {
 		fprintf(stderr, "failed to initialize OAES, exiting.\n");
 		exit(-1);
 	}
 
-	//get the value that the decoded license should match
-	//get the file
+	// get the value that the decoded license should match
+	// get the file
 	_f_check = fopen(_file_check, "r");
-	if( NULL == _f_check ) {
+	if (NULL == _f_check) {
 		fprintf(stderr, "Error: Failed to open license check file.\n");
 		oaes_free(&ctx);
 		exit(-1);
 	}
-	//get the first line
-	char *_check_buf=NULL;
+	// get the first line
+	char *_check_buf = NULL;
 	size_t len = 0;
-	getline(&_check_buf, &len,_f_check);
-	//close the file and cut of the newline character at the end if it is present
+	getline(&_check_buf, &len, _f_check);
+	// close the file and cut of the newline character at the end if it is
+	// present
 	fclose(_f_check);
-	if( strchr(_check_buf,'\n') ) *strchr(_check_buf,'\n')=0;
+	if (strchr(_check_buf, '\n')) *strchr(_check_buf, '\n') = 0;
 
-	//decode the initialisation vector and set it in the oaes struct
-	oaes_base64_decode(_iv_ent, strlen(_iv_ent), NULL, &_buf_len );
+	// decode the initialisation vector and set it in the oaes struct
+	oaes_base64_decode(_iv_ent, strlen(_iv_ent), NULL, &_buf_len);
 	_buf = (uint8_t *)calloc(_buf_len, sizeof(uint8_t));
-	oaes_base64_decode(_iv_ent, strlen(_iv_ent), _buf, &_buf_len );
+	oaes_base64_decode(_iv_ent, strlen(_iv_ent), _buf, &_buf_len);
 	memcpy(_iv, _buf, __min(OAES_BLOCK_SIZE, _buf_len));
-	for( int _i = OAES_BLOCK_SIZE; _i < _buf_len; _i++ )
+	for (int _i = OAES_BLOCK_SIZE; _i < _buf_len; _i++)
 		_iv[_i % OAES_BLOCK_SIZE] ^= _buf[_i];
 	free(_buf);
 
-	if( OAES_RET_SUCCESS != oaes_set_option(ctx, OAES_OPTION_CBC, _iv) ){
-		fprintf(stderr, "Error: Failed to set OAES options, invalid initialisation vector?.\n");
+	if (OAES_RET_SUCCESS != oaes_set_option(ctx, OAES_OPTION_CBC, _iv)) {
+		fprintf(stderr,
+				"Error: Failed to set OAES options, invalid initialisation "
+				"vector?.\n");
 		oaes_free(&ctx);
 		exit(-1);
 	}
 
-	//import the secret bit key into oaes struct
+	// import the secret bit key into oaes struct
 	oaes_key_import_data(ctx, key, keyLen);
 
-	//open the license file
+	// open the license file
 	_f_in = fopen(_file_in, "rb");
-    if( NULL == _f_in )
-    {
-      	fprintf(stderr, "Error: Failed to open license file.\n");
-	  	oaes_free(&ctx);
-      	exit(-1);
-    }
+	if (NULL == _f_in) {
+		fprintf(stderr, "Error: Failed to open license file.\n");
+		oaes_free(&ctx);
+		exit(-1);
+	}
 
-	while( (_b.in_len = fread(_b.in, sizeof(uint8_t), _read_len, _f_in)) )
-  	{
-		if( _b.in_len < 4096 )
+	while ((_b.in_len = fread(_b.in, sizeof(uint8_t), _read_len, _f_in))) {
+		if (_b.in_len < 4096)
 			_b.pad = 1;
 		else
 			_b.pad = 0;
 		_b.out = NULL;
 		_b.out_len = 0;
-		//get the length of the decrypted license
-		_rc = oaes_decrypt( ctx,
-			_b.in, _b.in_len,
-			NULL, &(_b.out_len),
-			NULL, 0 );
-		if( OAES_RET_SUCCESS != _rc )
-		{
-			fprintf(stderr, "Error: Failed to decrypt1. return code: %d\n",_rc);
+		// get the length of the decrypted license
+		_rc = oaes_decrypt(ctx, _b.in, _b.in_len, NULL, &(_b.out_len), NULL, 0);
+		if (OAES_RET_SUCCESS != _rc) {
+			fprintf(stderr, "Error: Failed to decrypt1. return code: %d\n",
+					_rc);
 			oaes_free(&ctx);
 			exit(-1);
 		}
-		//allocate memory for the decrypted license
-		_b.out = (uint8_t *) calloc(_b.out_len, sizeof(uint8_t));
-		if( NULL == _b.out )
-		{
+		// allocate memory for the decrypted license
+		_b.out = (uint8_t *)calloc(_b.out_len, sizeof(uint8_t));
+		if (NULL == _b.out) {
 			fprintf(stderr, "Error: Failed to allocate memory.\n");
 			oaes_free(&ctx);
 			exit(-1);
 		}
-		//decrypt and store the license
-		_rc = oaes_decrypt( ctx,
-			_b.in, _b.in_len,
-			_b.out, &(_b.out_len),
-			_iv, _b.pad );
-		if( OAES_RET_SUCCESS != _rc )
-		{
-			fprintf(stderr, "Error: Failed to decrypt2. return code: %d\n",_rc);
+		// decrypt and store the license
+		_rc = oaes_decrypt(ctx, _b.in, _b.in_len, _b.out, &(_b.out_len), _iv,
+						   _b.pad);
+		if (OAES_RET_SUCCESS != _rc) {
+			fprintf(stderr, "Error: Failed to decrypt2. return code: %d\n",
+					_rc);
 			oaes_free(&ctx);
 			free(_b.out);
 			exit(-1);
 		}
-
 	}
-	//close license file
+	// close license file
 	fclose(_f_in);
-	//free the oaes struct memory
-	if( OAES_RET_SUCCESS !=  oaes_free(&ctx) )
+	// free the oaes struct memory
+	if (OAES_RET_SUCCESS != oaes_free(&ctx))
 		fprintf(stderr, "Error: Failed to uninitialize OAES.\n");
 
-	//strip newline at the end
-	if( strchr( (char *) _b.out,'\n') ) *strchr( (char *) _b.out,'\n')=0;
+	// strip newline at the end
+	if (strchr((char *)_b.out, '\n')) *strchr((char *)_b.out, '\n') = 0;
 
-	// printf("finished decrypting.\ndecrypted: %s\ncheck file: %s\n",_b.out,_check_buf);
-	//compare the decrypted license to the check file
-	if (strcmp( (char *) _b.out, _check_buf)){
-		fprintf(stderr, "decrypted license does not match the check file. exiting.\n");
+	// printf("finished decrypting.\ndecrypted: %s\ncheck file:
+	// %s\n",_b.out,_check_buf);
+	// compare the decrypted license to the check file
+	if (strcmp((char *)_b.out, _check_buf)) {
+		fprintf(stderr,
+				"decrypted license does not match the check file. exiting.\n");
 		free(_b.out);
 		exit(-1);
 	}
-	//success continue initialisation and the rest of the program
+	// success continue initialisation and the rest of the program
 	fprintf(stderr, "license verified!\n");
 	free(_b.out);
 	return;
@@ -1016,37 +958,38 @@ void GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16], char
 
 /****************************************************************************************/
 
-int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t call_type) {
+int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness,
+												 uint8_t call_type) {
 	uint8_t temp_brightness = brightness;
 	static int brightness_file = 0;
 	static uint8_t old_brightness = 0;
 	char buff[5] = {0};
-	switch (call_type)
-	{
-	case 0: //init
-		brightness_file = open("/sys/class/backlight/max25014/brightness", O_WRONLY);
-		if (brightness_file < 0) {
-			return brightness_file;
-		}
-		break;
-
-	case 1: //runtime
-		if (brightness_file > 0 && old_brightness != temp_brightness){
-			if (temp_brightness > 100) {
-				temp_brightness = 100;
+	switch (call_type) {
+		case 0:	 // init
+			brightness_file =
+				open("/sys/class/backlight/max25014/brightness", O_WRONLY);
+			if (brightness_file < 0) {
+				return brightness_file;
 			}
-			old_brightness = temp_brightness;
-			snprintf(buff, 5, "%d",temp_brightness);
-			write(brightness_file, buff, 3);
-		}
-		break;
+			break;
 
-	case 2: //terminate
-		close(brightness_file);
-		break;
+		case 1:	 // runtime
+			if (brightness_file > 0 && old_brightness != temp_brightness) {
+				if (temp_brightness > 100) {
+					temp_brightness = 100;
+				}
+				old_brightness = temp_brightness;
+				snprintf(buff, 5, "%d", temp_brightness);
+				write(brightness_file, buff, 3);
+			}
+			break;
 
-	default:
-		return -EINVAL;
+		case 2:	 // terminate
+			close(brightness_file);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 	return 0;
 }
@@ -1055,8 +998,8 @@ int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness, uint8_t cal
 
 void GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx) {
 	memcpy(hardwareConfig.moduleOccupancy[slot], &rx[6], 7);
-	printf("module %d registered, firmware: [ ", slot +1);
-	for (uint8_t i = 0; i < 7; i++){
+	printf("module %d registered, firmware: [ ", slot + 1);
+	for (uint8_t i = 0; i < 7; i++) {
 		printf("%d, ", hardwareConfig.moduleOccupancy[slot][i]);
 	}
 	printf("]\n");

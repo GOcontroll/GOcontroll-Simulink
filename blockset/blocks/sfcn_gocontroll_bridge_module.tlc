@@ -54,7 +54,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%<module_start()>
+	%<module_start(block, "bridge module", block.RTWdata.moduleSlot)>
 	%openfile tmpBuf
 	_bridgeModule bridgeModule%<block.RTWdata.moduleSlot>;
 	%closefile tmpBuf

@@ -53,7 +53,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%<module_start()>
+	%<module_start(block, "10 channel output module", block.RTWdata.moduleSlot)>
 
 	%openfile tmpBuf
 	_outputModule outputModule10ch%<block.RTWdata.moduleSlot>;

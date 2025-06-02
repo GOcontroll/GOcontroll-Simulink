@@ -53,7 +53,7 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%<module_start()>
+	%<module_start(block, "6 channel output module", block.RTWdata.moduleSlot)>
   %%
 
   	%% Mechanism to create a global declared structure for piping

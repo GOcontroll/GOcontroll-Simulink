@@ -30,7 +30,12 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.4.1';
+version = 'GOcontroll V4.4.2';
+
+%% V4.4.2 Update 2-6-2025:
+% Fixed a potential failed initialization of modules. This change affects the
+% module_start tlc function signature, so every other blockset that uses it must
+% match.
 
 %% V4.4.1 Update 14-4-2025:
 % Fixed weird code generation issue for the version block

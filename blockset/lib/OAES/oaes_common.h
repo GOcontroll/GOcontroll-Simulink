@@ -1,19 +1,19 @@
-/* 
+/*
  * ---------------------------------------------------------------------------
  * OpenAES License
  * ---------------------------------------------------------------------------
  * Copyright (c) 2013, Nabil S. Al Ramli, www.nalramli.com
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *   - Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
  *   - Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,49 +31,49 @@
 #ifndef _OAES_COMMON_H
 #define _OAES_COMMON_H
 
+#include <stddef.h>
 #include <stdint.h>
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifdef _WIN32
-#  ifdef OAES_SHARED
-#    ifdef oaes_lib_EXPORTS
-#      define OAES_API __declspec(dllexport)
-#    else
-#      define OAES_API __declspec(dllimport)
-#    endif
-#  else
-#    define OAES_API
-#  endif
+#ifdef OAES_SHARED
+#ifdef oaes_lib_EXPORTS
+#define OAES_API __declspec(dllexport)
 #else
-#  define OAES_API
-#endif // WIN32
+#define OAES_API __declspec(dllimport)
+#endif
+#else
+#define OAES_API
+#endif
+#else
+#define OAES_API
+#endif	// WIN32
 
 #define OAES_VERSION "0.10.0"
 
-typedef enum
-{
-  OAES_RET_FIRST = 0,
-  OAES_RET_SUCCESS = 0,
-  OAES_RET_ERROR,
-  OAES_RET_ARG1,
-  OAES_RET_ARG2,
-  OAES_RET_ARG3,
-  OAES_RET_ARG4,
-  OAES_RET_ARG5,
-  OAES_RET_ARG6,
-  OAES_RET_ARG7,
-  OAES_RET_NOKEY,
-  OAES_RET_MEM,
-  OAES_RET_BUF,
-  OAES_RET_HEADER,
-  OAES_RET_COUNT
+typedef enum {
+	OAES_RET_FIRST = 0,
+	OAES_RET_SUCCESS = 0,
+	OAES_RET_ERROR,
+	OAES_RET_ARG1,
+	OAES_RET_ARG2,
+	OAES_RET_ARG3,
+	OAES_RET_ARG4,
+	OAES_RET_ARG5,
+	OAES_RET_ARG6,
+	OAES_RET_ARG7,
+	OAES_RET_NOKEY,
+	OAES_RET_MEM,
+	OAES_RET_BUF,
+	OAES_RET_HEADER,
+	OAES_RET_COUNT
 } OAES_RET;
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 }
 #endif
 
-#endif // _OAES_COMMON_H
+#endif	// _OAES_COMMON_H
