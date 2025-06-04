@@ -5,6 +5,10 @@
 %function mem_diag_start() Output
 	%if EXISTS(::memory_diag_init) == 0
 		%assign ::memory_diag_init = 1
+		%openfile tmpBuf
 		MemoryDiagnostic_InitializeMemory();
+		%closefile tmpBuf
+
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
 	%endif
 %endfunction

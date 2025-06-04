@@ -13,7 +13,11 @@
 %function module_start(block, module_type, module_slot) Output
 	%if EXISTS(::processorboard_hw) == 0
 		%assign ::processorboard_hw = 1
+		%openfile tmpBuf
 		GocontrollProcessorboard_GetHardwareVersion();
+		%closefile tmpBuf
+
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
 	%endif
 	GocontrollProcessorboard_ModuleInitialize(%<module_slot> - 1);
 %endfunction
