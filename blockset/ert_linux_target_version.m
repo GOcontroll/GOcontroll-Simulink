@@ -30,7 +30,13 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.4.3';
+version = 'GOcontroll V4.5.0';
+
+%% V4.5.0 Update 18-6-2025:
+% Added new diagnostic helpers
+% Added new simulation helpers
+% Added new sensor signal handling helpers
+% Deprecated old blocks from the GOcontroll Generic library
 
 %% V4.4.3 Update 4-6-2025:
 % Fixed any block init function to actually move the functions to the start of
