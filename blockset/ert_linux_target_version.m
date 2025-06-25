@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.5.0-rc1';
+version = 'GOcontroll V4.5.0-rc2';
 
 %% V4.5.0 Update :
 % Added new diagnostic helpers
