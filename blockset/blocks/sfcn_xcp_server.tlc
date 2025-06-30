@@ -82,7 +82,11 @@
 %%      Code generation for signal output
 
 %function Outputs(block, system) Output
+	%openfile tmpBuf
 	XcpDataTransmission();
+	%closefile tmpBuf
+
+	%<LibSystemUpdateCustomCode(system, tmpBuf, "trailer")>
 %endfunction
 
 %% Function: Terminate ==========================================================

@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.5.0-rc2';
+version = 'GOcontroll V4.5.0-rc3';
 
 %% V4.5.0 Update :
 % Added new diagnostic helpers
@@ -38,6 +38,7 @@ version = 'GOcontroll V4.5.0-rc2';
 % Added new sensor signal handling helpers
 % Bump zig to 0.14.1
 % Deprecated old blocks from the GOcontroll Generic library
+% Moved the xcp data transmission to the end of the step function
 
 %% V4.4.3 Update 4-6-2025:
 % Fixed any block init function to actually move the functions to the start of
