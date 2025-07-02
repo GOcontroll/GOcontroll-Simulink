@@ -37,6 +37,7 @@
  ****************************************************************************************/
 #include "GocontrollProcessorboard.h"
 
+#include <dirent.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -967,20 +968,36 @@ void GocontrollProcessorboard_VerifyLicense(uint8_t *key, char _iv_ent[16],
 
 int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness,
 												 uint8_t call_type) {
+	DIR *d;
+	struct dirent *dir;
 	uint8_t temp_brightness = brightness;
 	static int brightness_file = 0;
 	static uint8_t old_brightness = 0;
-	char buff[5] = {0};
+	// if this is shorter it will give a warning about potential truncation
+	char buff[288];
 	switch (call_type) {
-		case 0:	 // init
-			brightness_file =
-				open("/sys/class/backlight/max25014/brightness", O_WRONLY);
-			if (brightness_file < 0) {
-				return brightness_file;
+		case 0:	 // initialize
+			d = opendir("/sys/class/backlight");
+			if (d) {
+				while ((dir = readdir(d)) != NULL) {
+					if (dir->d_type == DT_LNK) {
+						snprintf(buff, sizeof(buff),
+								 "/sys/class/backlight/%s/brightness",
+								 dir->d_name);
+#ifdef DEBUG
+						printf("opening: %s\n", buff);
+#endif
+						brightness_file = open(buff, O_WRONLY);
+						return 0;
+					}
+				}
+				closedir(d);
+			} else {
+				return -EIO;
 			}
-			break;
+			return -EIO;
 
-		case 1:	 // runtime
+		case 1:	 // output
 			if (brightness_file > 0 && old_brightness != temp_brightness) {
 				if (temp_brightness > 100) {
 					temp_brightness = 100;
@@ -992,7 +1009,9 @@ int GocontrollProcessorboard_SetScreenBrightness(uint8_t brightness,
 			break;
 
 		case 2:	 // terminate
-			close(brightness_file);
+			if (brightness_file > 0) {
+				close(brightness_file);
+			}
 			break;
 
 		default:
