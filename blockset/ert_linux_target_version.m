@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.5.0-rc4';
+version = 'GOcontroll V4.5.0-rc5';
 
 %% V4.5.0 Update :
 % Added new diagnostic helpers
@@ -41,6 +41,7 @@ version = 'GOcontroll V4.5.0-rc4';
 % Moved the xcp data transmission to the end of the step function
 % Add Moduline Display 1.07
 % Make the set brightness block backlight agnostic
+% Re add some arguments to the searchCANrecieve function in the ert hook
 
 %% V4.4.3 Update 4-6-2025:
 % Fixed any block init function to actually move the functions to the start of
