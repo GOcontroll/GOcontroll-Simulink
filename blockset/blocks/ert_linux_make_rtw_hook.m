@@ -293,7 +293,7 @@ end
 % SYS_config.h file with the number of blocks found %
 function nrOfCANreceiveBlocks = searchCANreceive(modelName)
 % build an array with all the blocks that have a Tag starting with HANcoder_TARGET_
-blockArray = find_system(modelName, 'RegExp', 'on', 'MaskType', 'CAN receive');
+blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUnderMasks', 'all', 'MaskType', 'CAN receive');
 % only perform check if at least 1 or more HANcoder Target blocks were used
 nrOfCANreceiveBlocks = length(blockArray);
 end
