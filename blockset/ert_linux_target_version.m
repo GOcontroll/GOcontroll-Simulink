@@ -30,9 +30,9 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.5.0-rc5';
+version = 'GOcontroll V4.5.0';
 
-%% V4.5.0 Update :
+%% V4.5.0 Update 7-7-2025:
 % Added new diagnostic helpers
 % Added new simulation helpers
 % Added new sensor signal handling helpers
