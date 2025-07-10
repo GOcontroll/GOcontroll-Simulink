@@ -68,47 +68,49 @@ enum params { PARAM_MODULE_ID, PARAM_TSAMP, PARAM_COUNT };
 enum outputs { OUT_FNC_CALL, OUT_MSG, OUT_COUNT };
 
 static void mdlInitializeSizes(SimStruct *S) {
-  CAN_Common_MdlInitSizes(S);
+	CAN_Common_MdlInitSizes(S);
 
-  if (!SetNumParams(S, PARAM_COUNT)) {
-    return;
-  }
-  if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
-    return;
-  }
+	if (!SetNumParams(S, PARAM_COUNT)) {
+		return;
+	}
+	if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
+		return;
+	}
 
-  if (!ssSetNumInputPorts(S, 0)) {
-    return;
-  }
+	if (!ssSetNumInputPorts(S, 0)) {
+		return;
+	}
 
-  if (!ssSetNumOutputPorts(S, OUT_COUNT)) {
-    return;
-  }
-  AddOutputPort(S, OUT_FNC_CALL, SS_FCN_CALL);
+	if (!ssSetNumOutputPorts(S, OUT_COUNT)) {
+		return;
+	}
+	AddOutputPort(S, OUT_FNC_CALL, SS_FCN_CALL);
 
-  AddOutputPort(S, OUT_MSG, ssGetDataTypeId(S, "CAN_MESSAGE_EXTENDED"));
+	AddOutputPort(S, OUT_MSG, ssGetDataTypeId(S, "CAN_MESSAGE_EXTENDED"));
 
-  /* Set standard options for this block */
-  SetStandardOptions(S);
+	/* Set standard options for this block */
+	SetStandardOptions(S);
 }
 
 static void mdlInitializeSampleTimes(SimStruct *S) {
-  ssSetNumSampleTimes(S, 1);
-  ssSetSampleTime(S, 0, mxGetPr(ssGetSFcnParam(S, PARAM_TSAMP))[0]);
-  ssSetOffsetTime(S, 0, 0);
+	const mxArray *tsamp = ssGetSFcnParam(S, PARAM_TSAMP);
+	if (mxIsEmpty(tsamp)) return;
+	ssSetNumSampleTimes(S, 1);
+	ssSetSampleTime(S, 0, mxGetPr(tsamp)[0]);
+	ssSetOffsetTime(S, 0, 0);
 
-  ssSetCallSystemOutput(S, 0); /* function call on first output */
+	ssSetCallSystemOutput(S, 0); /* function call on first output */
 }
 
 #ifdef MATLAB_MEX_FILE
 #define MDL_SET_WORK_WIDTHS
 static void mdlSetWorkWidths(SimStruct *S) {
-  if (!ssSetNumRunTimeParams(S, 1)) {
-    return;
-  }
+	if (!ssSetNumRunTimeParams(S, 1)) {
+		return;
+	}
 
-  ssRegDlgParamAsRunTimeParam(S, PARAM_MODULE_ID, PARAM_MODULE_ID,
-                              PARAM_NAME_MODULE_ID, SS_INT8);
+	ssRegDlgParamAsRunTimeParam(S, PARAM_MODULE_ID, PARAM_MODULE_ID,
+								PARAM_NAME_MODULE_ID, SS_INT8);
 }
 #endif
 

@@ -40,7 +40,11 @@
  *     trailer.c
  *
  * Compile with:
- *     mex(['-I' matlabroot '/toolbox/shared/can/src/scanutil'], ['-I' matlabroot '/toolbox/rtw/targets/common/can/datatypes'],  'sfunction_cantransmit.c', [matlabroot '/toolbox/rtw/targets/common/can/datatypes/sfun_can_util.c'], [matlabroot '/toolbox/rtw/targets/common/can/datatypes/can_msg.c'])
+ *     mex(['-I' matlabroot '/toolbox/shared/can/src/scanutil'], ['-I'
+ * matlabroot '/toolbox/rtw/targets/common/can/datatypes'],
+ * 'sfunction_cantransmit.c', [matlabroot
+ * '/toolbox/rtw/targets/common/can/datatypes/sfun_can_util.c'], [matlabroot
+ * '/toolbox/rtw/targets/common/can/datatypes/can_msg.c'])
  */
 
 /*
@@ -57,11 +61,13 @@ Inputs:
 Outputs:
 
 Parameters:
-  - { name: "Module",                   type: "Choice", range: "CAN1, CAN2, CAN3"   }
-  - { name: "Message ID type",          type: "Choice", range: "Standard, Extended" }
-  - { name: "Message ID",               type: "uint16"                              }
-  - { name: "Automatic mailbox number", type: "bool"                                }
-  - { name: "Mailbox number",           type: "int8"                              }
+  - { name: "Module",                   type: "Choice", range: "CAN1, CAN2,
+CAN3"   }
+  - { name: "Message ID type",          type: "Choice", range: "Standard,
+Extended" }
+  - { name: "Message ID",               type: "uint16" }
+  - { name: "Automatic mailbox number", type: "bool" }
+  - { name: "Mailbox number",           type: "int8" }
 
 # Description is in Markdown mark-up
 Description: |
@@ -81,77 +87,71 @@ Description: |
   CAN\_MESSAGE object is ignored and the ID from the parameter of this
   block is used instead.
 
-  The mailbox number can be assigned automatically or manually. Automatic mailbox
-  numbers are generated in ascending order from 0 to 31. Every mailbox must have a unique
-  number. It is possible to mix blocks with automatically and manually
-  assigned mailboxes. If the manually assigned mailbox number would
+  The mailbox number can be assigned automatically or manually. Automatic
+mailbox numbers are generated in ascending order from 0 to 31. Every mailbox
+must have a unique number. It is possible to mix blocks with automatically and
+manually assigned mailboxes. If the manually assigned mailbox number would
   collide with the automatic one then the automatically generated
   block will get assigned a next higher non-colliding ID.
   The mailbox numbers are shared between CAN Transmit and CAN Receive
   blocks with the same CAN port (module) parameter.
 
-  In order to use this block, there must be a `CAN Configure` block in the model.
+  In order to use this block, there must be a `CAN Configure` block in the
+model.
 
 Status:
   Tested:
-    - Transmission of the message with configured ID
-    - Automatic generation of mailboxes numbers in combination with
-      manual specification in other blocks. Colliding mailbox numbers
-      are correctly handled.
-    - Input message data type recognition
-    - When unsupported data type is connected to the Msg input port, Simulink generates a reasonable error message
-  Untested:
-    - Handling of error states on CAN bus
+	- Transmission of the message with configured ID
+	- Automatic generation of mailboxes numbers in combination with
+	  manual specification in other blocks. Colliding mailbox numbers
+	  are correctly handled.
+	- Input message data type recognition
+	- When unsupported data type is connected to the Msg input port, Simulink
+generates a reasonable error message Untested:
+	- Handling of error states on CAN bus
   Not working:
-    - External mode - throwing syntax error during compilation
+	- External mode - throwing syntax error during compilation
 
 RPP API functions used:
-    - rpp_can_write()
+	- rpp_can_write()
 
 Relevant demos:
-    - cantransmit
-    - can_demo
+	- cantransmit
+	- can_demo
 ...
 */
 
-/* Adopted for use by GOcontroll 2024		http://www.gocontroll.com		All rights reserved
-* \file			sfcn_can_send_v2.c
-* \brief		matlab sfunction for sending CAN messages on the Moduline Controllers
-*/
-
+/* Adopted for use by GOcontroll 2024		http://www.gocontroll.com		All
+ * rights reserved
+ * \file			sfcn_can_send_v2.c
+ * \brief		matlab sfunction for sending CAN messages on the Moduline
+ * Controllers
+ */
 
 #define S_FUNCTION_NAME sfcn_can_send_v2
-#include "header.c"
 #include <stdio.h>
+
+#include "header.c"
 #include "sfun_can_util.h"
 #include "simstruc.h"
 
-#define PARAM_NAME_MODULE_ID	"module_id" //CAN bus number starting at 1
+#define PARAM_NAME_MODULE_ID "module_id"  // CAN bus number starting at 1
 
 /** Identifier of the input */
-enum input {
-	IN_MSG,
-	IN_COUNT
-};
+enum input { IN_MSG, IN_COUNT };
 
 /** Identifiers of the block parameters */
-enum params{
-	PARAM_MODULE_ID,
-	PARAM_TSAMP,
-	PARAM_COUNT
-};
+enum params { PARAM_MODULE_ID, PARAM_TSAMP, PARAM_COUNT };
 
-static void mdlInitializeSizes(SimStruct *S)
-{
-
+static void mdlInitializeSizes(SimStruct *S) {
 	CAN_Common_MdlInitSizes(S);
 
 	if (!SetNumParams(S, PARAM_COUNT)) {
 		return;
 	}
 	if (ssGetNumSFcnParams(S) != ssGetSFcnParamsCount(S)) {
-        return;
-    }
+		return;
+	}
 
 	if (!ssSetNumInputPorts(S, IN_COUNT)) {
 		return;
@@ -169,26 +169,28 @@ static void mdlInitializeSizes(SimStruct *S)
 }
 
 static void mdlInitializeSampleTimes(SimStruct *S) {
-	ssSetNumSampleTimes(S,1);
-	ssSetSampleTime(S, 0, mxGetPr(ssGetSFcnParam(S, PARAM_TSAMP))[0]);
+	const mxArray *tsamp = ssGetSFcnParam(S, PARAM_TSAMP);
+	if (mxIsEmpty(tsamp)) return;
+	ssSetNumSampleTimes(S, 1);
+	ssSetSampleTime(S, 0, mxGetPr(tsamp)[0]);
 	ssSetOffsetTime(S, 0, 0);
 }
 
 #if defined(MATLAB_MEX_FILE)
 #define MDL_SET_INPUT_PORT_DATA_TYPE
-void mdlSetInputPortDataType(SimStruct *S, int_T port, DTypeId type)
-{
+void mdlSetInputPortDataType(SimStruct *S, int_T port, DTypeId type) {
 	if (port == IN_MSG) {
 		if (/* CAN pack seems to use this data type, but it is
-		     * not registered in sfun_can_util.c. Strange. */
-		    type == ssGetDataTypeId(S, "CAN_MESSAGE") ||
-		    type == ssGetDataTypeId(S, SL_CAN_STANDARD_FRAME_DTYPE_NAME) ||
-		    type == ssGetDataTypeId(S, SL_CAN_EXTENDED_FRAME_DTYPE_NAME))
+			 * not registered in sfun_can_util.c. Strange. */
+			type == ssGetDataTypeId(S, "CAN_MESSAGE") ||
+			type == ssGetDataTypeId(S, SL_CAN_STANDARD_FRAME_DTYPE_NAME) ||
+			type == ssGetDataTypeId(S, SL_CAN_EXTENDED_FRAME_DTYPE_NAME))
 			ssSetInputPortDataType(S, port, type);
 		else {
 			static char msg[300];
-			snprintf(msg, sizeof(msg), "Unsupported data type '%s' on Msg input port.",
-				 ssGetDataTypeName(S, type));
+			snprintf(msg, sizeof(msg),
+					 "Unsupported data type '%s' on Msg input port.",
+					 ssGetDataTypeName(S, type));
 			ssSetErrorStatus(S, msg);
 		}
 	}
@@ -197,13 +199,13 @@ void mdlSetInputPortDataType(SimStruct *S, int_T port, DTypeId type)
 
 #ifdef MATLAB_MEX_FILE
 #define MDL_SET_WORK_WIDTHS
-static void mdlSetWorkWidths(SimStruct *S){
-
+static void mdlSetWorkWidths(SimStruct *S) {
 	if (!ssSetNumRunTimeParams(S, 1)) {
 		return;
 	}
 
-	ssRegDlgParamAsRunTimeParam(S, PARAM_MODULE_ID,  PARAM_MODULE_ID, PARAM_NAME_MODULE_ID, SS_INT8); 
+	ssRegDlgParamAsRunTimeParam(S, PARAM_MODULE_ID, PARAM_MODULE_ID,
+								PARAM_NAME_MODULE_ID, SS_INT8);
 }
 #endif
 
