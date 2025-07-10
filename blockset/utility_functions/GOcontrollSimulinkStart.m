@@ -12,10 +12,18 @@ end
 
 %correct the compiler paths in the getInstallationLocation.mlx file for the computer opening this project
 
+%get the path of this script so we can compile the mexes using it.
+mfilePath = mfilename('fullpath');
+if contains(mfilePath,'LiveEditorEvaluationHelper')
+    mfilePath = matlab.desktop.editor.getActiveFilename;
+end
+%remove the filename from the end
+[path, ~, ~] = fileparts(mfilePath);
+root = fullfile(path, '..', '..');
 %'Rename' the function so it no longer takes precedence over the one that is in the toolbox
-movefile('+GOcontroll_Simulink_2023b_dev', 'temp');
+movefile(fullfile(root, '+GOcontroll_Simulink_2023b_dev'), fullfile(root, 'temp'));
 %Convert the getInstallationLocation file to .m so we can read/edit it
-matlab.internal.liveeditor.openAndConvert(fullfile(pwd, 'temp', 'getInstallationLocation.mlx'), fullfile(pwd, 'temp', 'temp.m'));
+matlab.internal.liveeditor.openAndConvert(fullfile(root, 'temp', 'getInstallationLocation.mlx'), fullfile(pwd, 'temp', 'temp.m'));
 %Get the toolbox compiler paths
 try
 	zig_x86 = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-x86');
@@ -33,24 +41,24 @@ catch
 	gnu = '';
 end
 %Move the function back on the path
-movefile('temp','+GOcontroll_Simulink_2023b_dev');
+movefile(fullfile(root, 'temp'), fullfile(root, '+GOcontroll_Simulink_2023b_dev'));
 %Create the new table
 new = sprintf("'aarch64-none-linux-gnu-gcc', '%s';'Zig-aarch64', '%s';'Zig-x86','%s'", gnu, zig_aarch64, zig_x86);
 %Read the previously created .m file
-file = fileread(fullfile(pwd, '+GOcontroll_Simulink_2023b_dev', 'temp.m'));
+file = fileread(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'));
 %Replace the table with the new one
 new_file = replaceBetween(file, '{', '}', new);
 %Open the .m file for writing, write the new contents and close it
-file = fopen(fullfile(pwd, '+GOcontroll_Simulink_2023b_dev', 'temp.m'), 'w');
+file = fopen(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'), 'w');
 fwrite(file, new_file);
 fclose(file);
 %Convert the .m file back to a .mlx so it works with the toolbox
-matlab.internal.liveeditor.openAndSave(fullfile(pwd, '+GOcontroll_Simulink_2023b_dev', 'temp.m'), fullfile(pwd, '+GOcontroll_Simulink_2023b_dev', 'getInstallationLocation.mlx'));
+matlab.internal.liveeditor.openAndSave(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'), fullfile(pwd, '+GOcontroll_Simulink_2023b_dev', 'getInstallationLocation.mlx'));
 %Delete the temporary .m file
-delete(fullfile(pwd, '+GOcontroll_Simulink_2023b_dev', 'temp.m'));
+delete(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'));
 
 %disable the toolbox so the project environment is used instead
 
 matlab.addons.disableAddon("GOcontroll-Simulink");
 %cleanup
-clear file gnu new new_file zig_aarch64 zig_x86
+clear file gnu new new_file zig_aarch64 zig_x86 root path mfilePath
