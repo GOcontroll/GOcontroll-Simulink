@@ -19,11 +19,11 @@ if contains(mfilePath,'LiveEditorEvaluationHelper')
 end
 %remove the filename from the end
 [path, ~, ~] = fileparts(mfilePath);
-root = fullfile(path, '..', '..');
+root = fullfile(path, '..', '..')
 %'Rename' the function so it no longer takes precedence over the one that is in the toolbox
 movefile(fullfile(root, '+GOcontroll_Simulink_2023b_dev'), fullfile(root, 'temp'));
 %Convert the getInstallationLocation file to .m so we can read/edit it
-matlab.internal.liveeditor.openAndConvert(fullfile(root, 'temp', 'getInstallationLocation.mlx'), fullfile(pwd, 'temp', 'temp.m'));
+matlab.internal.liveeditor.openAndConvert(fullfile(root, 'temp', 'getInstallationLocation.mlx'), fullfile(root, 'temp', 'temp.m'));
 %Get the toolbox compiler paths
 try
 	zig_x86 = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-x86');
@@ -53,7 +53,7 @@ file = fopen(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'), 'w');
 fwrite(file, new_file);
 fclose(file);
 %Convert the .m file back to a .mlx so it works with the toolbox
-matlab.internal.liveeditor.openAndSave(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'), fullfile(pwd, '+GOcontroll_Simulink_2023b_dev', 'getInstallationLocation.mlx'));
+matlab.internal.liveeditor.openAndSave(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'), fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'getInstallationLocation.mlx'));
 %Delete the temporary .m file
 delete(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'));
 
