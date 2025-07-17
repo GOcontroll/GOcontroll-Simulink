@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.5.1-rc1';
+version = 'GOcontroll V4.5.1-rc2';
 
 %% V4.5.1 Update -:
 % Fix several potential segfaults in cmex functions

@@ -19,7 +19,7 @@ if contains(mfilePath,'LiveEditorEvaluationHelper')
 end
 %remove the filename from the end
 [path, ~, ~] = fileparts(mfilePath);
-root = fullfile(path, '..', '..')
+root = fullfile(path, '..', '..');
 %'Rename' the function so it no longer takes precedence over the one that is in the toolbox
 movefile(fullfile(root, '+GOcontroll_Simulink_2023b_dev'), fullfile(root, 'temp'));
 %Convert the getInstallationLocation file to .m so we can read/edit it
