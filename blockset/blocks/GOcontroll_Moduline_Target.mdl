@@ -5447,7 +5447,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_3212.xml
 
 port_label(&apos;output&apos;, 1, &apos;function call&apos;);
 port_label(&apos;output&apos;, 2, &apos;message&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>&lt;p&gt;Receive a messages from the CAN bus.&lt;/p&gt;
 &lt;p&gt;The output is a CAN_MESSAGE object. CAN Unpack block can be used to unpack the data from CAN_MESSAGE object.&lt;/p&gt;
 &lt;p&gt;A Function-call subsystem is triggered every time when a new message has been received.&lt;/p&gt;
@@ -5526,7 +5526,7 @@ end</Callback>
       <Display IconUnits="pixels">fprintf(&apos;Send on\nCAN%x&apos;, module_id);
 port_label(&apos;input&apos;, 1, &apos;Msg&apos;);
 
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>&lt;p&gt;Send a CAN message.&lt;/p&gt;
 &lt;p&gt;Expects a CAN_MESSAGE object as an input. Use CAN Pack to create the CAN_MESSAGE object.&lt;/p&gt;</Description>
       <MaskParameter Name="ContrType" Type="popup" Tunable="off">
@@ -5607,7 +5607,7 @@ end</Callback>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Receive on\nCAN %x&apos;, canBus);
 port_label(&apos;output&apos;, 1, &apos;new&apos;)
 port_label(&apos;input&apos;, 1, &apos;ID&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>!! Legacy block, use the CAN receive instead of CAN receive1 in future projects !!
 !! These will not work together, either use the legacy blocks or the new ones !!
 
@@ -5772,7 +5772,7 @@ port_label(&apos;input&apos;, 1, &apos;ID&apos;);
 if RTR
     fprintf(&apos;\n\n\n\nRTR&apos;);
 end
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>!! Legacy block, use the CAN send instead of CAN send1 in future projects !!
 !! These will not work together, either use the legacy blocks or the new ones !!
 
@@ -5993,7 +5993,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_3975.xml
     <Mask>
       <Type>Enclosure LED&apos;s</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Status LED %d\nColor: %s&apos;,led,colorInfoStr);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>The Moduline controller is equipped with 4 RGB status LED&apos;s. To control them, simply configure the mask ( LED and color) and control them using uint8 values. 
 
 Note: Moduline IV HW &gt;= 3.02 has duty cycle controlled LED&apos;s. The intensity can be set from 0 (0%) to 255 (100%). 
@@ -6073,7 +6073,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_3980.xml
     <Mask>
       <Type>Controller Active</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Controller Active&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>The GOcontroll Moduline IV is able to keep itself alive. As long the K30 power is applied (connector C pin 5-7) and the input of the Controller Active function block is high, the controller will stay on even if the K15 pins (connector C pin 2,3 or 4) are low. 
 If the controller is switched off by software, a restart is only possible when the device is activated by one of the K15 pins of connector C.
 
@@ -6110,7 +6110,7 @@ To detect an external shutdown (K15 pins goes low), simply drag in the K15 Volta
     <Mask SelfModifiable="on">
       <Type>Contact Voltage</Type>
       <Display IconUnits="pixels">fprintf(&apos;ADC voltage\n%s&apos;,get_param(gcb, &apos;k15pin&apos;));
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>The K15 voltage provides the K15 voltage in mV that is applied on the K15 pins of the controller. A positive voltage on one of these pins will start-up the controller. These function blocks can be used to read out which K15 input pin triggered the startup.</Description>
       <Initialization>    %update RTWdata to run WriteRTW again
     modelRTWFields = struct(&apos;k15pin&apos;, int2str(k15pin));
@@ -6189,7 +6189,7 @@ elseif ContrType == 2
 elseif ContrType == 3
     fprintf(&apos;K30 Voltage\nConnector A pin 9&apos;);
 end
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>The K30 voltage provides the power supply in mV that is applied on the K30 pins.</Description>
       <MaskParameter Name="ContrType" Type="popup" Tunable="off">
         <Prompt>Controller type</Prompt>
@@ -6286,7 +6286,7 @@ port_label(&apos;output&apos;, 7, pin7Id);
 port_label(&apos;output&apos;, 8, pin8Id);
 port_label(&apos;output&apos;, 9, pin9Id);
 port_label(&apos;output&apos;, 10, pin10Id);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>With this block, you can configure each channel of the 10 channel input module (201002xx). The configuration of the module is set once at initialization. During runtime, the block outputs the measured values from each channel. 
 
 Module location:
@@ -6988,7 +6988,7 @@ port_label(&apos;output&apos;, 3, pin3Id);
 port_label(&apos;output&apos;, 4, pin4Id);
 port_label(&apos;output&apos;, 5, pin5Id);
 port_label(&apos;output&apos;, 6, pin6Id);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>With this function block, you can configure each channel of the 6 channel input module (201001xx). The configuration of the module is set once at initialization. During runtime, the block outputs the measured values from each channel.
 
 Module location:
@@ -7684,7 +7684,7 @@ port_label(&apos;output&apos;, 8, pin7Id);
 port_label(&apos;output&apos;, 9, pin8Id);
 port_label(&apos;output&apos;, 10, pin9Id);
 port_label(&apos;output&apos;, 11, pin10Id);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Controller type:
 Selects the controller that is to be programmed. Pinning on the mask will be adopted accordingly.
 
@@ -7920,7 +7920,7 @@ end</Callback>
     <Mask SelfModifiable="on">
       <Type>Reset pulse counter</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Reset Pulse Counter\n%s\n%s&apos;, moduleSlotInfoStr, inputChannelInfoStr);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This block resets the pulsecounter from a specified input channel of the input module that is configured as a pulsecounter. A trigger on input pin 1 wil set the pulsecounter to the value applied on pin 2 </Description>
       <Initialization>% array with module slot infos
 moduleSlotInfoStrings = {&apos;Module Slot 1&apos;,  ...\
@@ -8058,7 +8058,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_3990.xml
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Bridge Module\n%s\n\n Controller Connector: %s&apos;, moduleSlotInfoStr,connectorId);
 port_label(&apos;input&apos;, 1, pin1Id);
 port_label(&apos;input&apos;, 2, pin2Id);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>With this function block, you can configure each output of the bridge module (202001xx). During initialization of the controller, the corresponding outputs of the module are set according the settings. During runtime, the value pushed into the block will control the outputs.
 
 Module slot:
@@ -8275,7 +8275,7 @@ port_label(&apos;output&apos;, 1, &apos;Temperature&apos;);
 port_label(&apos;output&apos;, 2, &apos;Groundshift&apos;);
 port_label(&apos;output&apos;, 3, pin1Id);
 port_label(&apos;output&apos;, 4, pin2Id);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>With this function block, you can read parameters from the specified bridge module (202001xx). The block will provide some information about the module such as:
 
 Module temperature:
@@ -8429,7 +8429,7 @@ port_label(&apos;input&apos;, 7, pin7Id);
 port_label(&apos;input&apos;, 8, pin8Id);
 port_label(&apos;input&apos;, 9, pin9Id);
 port_label(&apos;input&apos;, 10, pin10Id);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>With this function block, you can configure each output of the 10 channel output module (202003xx). During initialization of the controller, the corresponding outputs of the module are set according the settings. During runtime, the value pushed into the block will control the outputs.
 
 Sample time:
@@ -8843,7 +8843,7 @@ port_label(&apos;input&apos;, 3, pin3Id);
 port_label(&apos;input&apos;, 4, pin4Id);
 port_label(&apos;input&apos;, 5, pin5Id);
 port_label(&apos;input&apos;, 6, pin6Id);
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 </Display>
       <Description>With this block, you can configure each output of the 6 channel output module (202002xx). During initialization of the controller, the corresponding outputs of the module are set according the settings. During runtime, the value pushed into the block will control the outputs.
 
@@ -9521,7 +9521,7 @@ port_label(&apos;output&apos;, 4, &apos;Status&apos;);
 port_label(&apos;output&apos;, 5, &quot;Current&quot;);
 
 
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>With this function block, you can read parameters from the specified 10 channel output module (202003xx). The block will provide some information about the module such as:
 
 Module temperature:
@@ -9695,7 +9695,7 @@ if C6duty == 1
     pinIdx = pinIdx + 1;
 end
 
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>With this function block, you can read parameters from the specified 6 channel output module (202002xx). The block will provide some information about the module such as:
 
 Module temperature:
@@ -9946,7 +9946,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4017.xml
     <Mask>
       <Type>Get CPU temperature</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Get CPU temperature&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Block to retrieve the CPU temperature of the i.MX core</Description>
       <MaskParameter Name="tsamp" Type="edit" Tunable="off">
         <Prompt>Sample time</Prompt>
@@ -9979,7 +9979,7 @@ text(2, 6, ert_linux_target_version());</Display>
     <Mask>
       <Type>Execute shell command</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&quot;Execute command:\n%s&quot;,command);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Execute a Linux Shell command when the input is true.
 
 Accepts a Boolean input, use a triggered subsystem to call the function only once on a state change instead of every sample.</Description>
@@ -10029,7 +10029,7 @@ Accepts a Boolean input, use a triggered subsystem to call the function only onc
     <Mask SelfModifiable="on">
       <Type>Check software license key</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Check software license&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Function block to check the controller for a license key upon executing the software.
 
 example lines are literal to what should be in the field
@@ -10156,7 +10156,7 @@ port_label(&apos;output&apos;, 1, &apos;X&apos;);
 port_label(&apos;output&apos;, 2, &apos;Y&apos;);
 port_label(&apos;output&apos;, 3, &apos;Z&apos;);
 
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This block reads out the accelerometer that is present on the moduline mini, other controllers will not work with this block.
 
 It outputs the acceleration in all 3 spatial dimensons in m/s^2.
@@ -10256,7 +10256,7 @@ set_param(gcb, &apos;RTWdata&apos;, modelRTWFields);
 port_label(&apos;output&apos;, 1, &apos;SwMajor&apos;);
 port_label(&apos;output&apos;, 2, &apos;SwFeature&apos;);
 port_label(&apos;output&apos;, 3, &apos;SwFix&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This block helps with keeping track of the model version.
 
 The values entered will be written to /usr/mem-sim/[MODEL_MAJOR,MODEL_FEATURE,MODEL_FIX].
@@ -10344,7 +10344,7 @@ They are also available to use in the model with a From block, consider making t
     <Mask SelfModifiable="on">
       <Type>XCP Server</Type>
       <Display IconUnits="pixels">fprintf(&apos;XCP Server\n%s&apos;, get_param(gcb,&apos;server_type&apos;));
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Having one block of this type in your model enables the XCP server to use with HANtune</Description>
       <Initialization>    %update RTWdata here so the WriteRTW callback gets run again
     modelRTWFields = struct(&apos;server_type&apos;, int2str(server_type));
@@ -10398,7 +10398,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4032.xml
     <Mask>
       <Type>Read value from memory</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Read from memory\nKey: %s&apos;,key);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block reads a value from memory by the specified key. To store a value to memory, use the store to memory function block.</Description>
       <Initialization>    % update RTWdata so WriteRTW gets called when building the model
     modelRTWFields = 	struct( &apos;memRead&apos;, int2str(memRead), &apos;memType&apos;, int2str(memType),&apos;key&apos;, key, &apos;init&apos;, int2str(init));
@@ -10480,7 +10480,7 @@ text(2, 6, ert_linux_target_version());</Display>
     <Mask>
       <Type>Store data to memory</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Store in memory\nKey: %s&apos;,key);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block stores a value to the memory with a specified key. To get the stored value from memory, use the read from memory function block and retrieve the value by key</Description>
       <Initialization>    %update RTWdata so WriteRTW param gets called again
     modelRTWFields = struct(&apos;key&apos;, key,  &apos;memType&apos;, int2str(memType));
@@ -10545,7 +10545,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4035.xml
     <Mask SelfModifiable="on">
       <Type>Delete diagnostic codes from memory</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Delete all DTCs&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block deletes all stored codes.</Description>
       <MaskParameter Name="TriggerType" Type="promote" Evaluate="off" Tunable="off">
         <Prompt>Simulink:blkprm_prompts:TrigPortTrigType</Prompt>
@@ -10581,7 +10581,7 @@ text(2, 6, ert_linux_target_version());</Display>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Delete single DTC from memory&apos;);
 port_label(&apos;input&apos;, 1, &apos;SPN&apos;);
 port_label(&apos;input&apos;, 2, &apos;FMI&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block deletes one DTC from memory:
 
 SPN number:
@@ -10636,7 +10636,7 @@ How the part has failed</Description>
     <Mask SelfModifiable="on">
       <Type>Read number of stored codes</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Get number of stored DTCs&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block reads the number of stored codes.
 
 Sample time:
@@ -10670,7 +10670,7 @@ You might want to put this block in a triggered subsystem or a function call sub
     <Mask SelfModifiable="on">
       <Type>Store diagnostic code to memory</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Store DTC to memory\n SPN: %d\n FMI: %d&apos;,spn, fmi);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block stores a diagnostic code to memory.
 
 SPN number:
@@ -10747,7 +10747,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4051.xml
     <Mask SelfModifiable="on">
       <Type>LIN Master</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Master LIN\nmessage\nID: 0x%x&apos;,id);
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 if direction == 1
     port_label(&apos;output&apos;, 1, &apos;byte 1&apos;);
     port_label(&apos;output&apos;, 2, &apos;byte 2&apos;);
@@ -10964,7 +10964,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4065.xml
     <Mask SelfModifiable="on">
       <Type>UDP Configure</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Configure UDP socket\n IP: %s\nPort: %d\n%s&apos;,ip,port,broadcastStr);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Block to configure a UDP connection
 
 The socket ID should be a unique identifier to link the send and receive blocks to.
@@ -11065,7 +11065,7 @@ Allowing broadcasting enables you to send messages to a full range of ip address
     <Mask SelfModifiable="on">
       <Type>UDP Receive</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;UDP Receive&apos;);
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 port_label(&apos;output&apos;, 1, &apos;function call&apos;);
 port_label(&apos;output&apos;, 2, &apos;message&apos;);
 port_label(&apos;output&apos;, 3, &apos;message length&apos;);</Display>
@@ -11151,7 +11151,7 @@ mask.getParameter(&apos;socket_id&apos;).TypeOptions = options;</Callback>
       <Type>UDP Send</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;UDP Send\nIP: %s\nPort: %d&apos;,ip,port);
 port_label(&apos;input&apos;, 1, &apos;message&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Send a UDP message to the designated address.
 
 The Message input should be a uint8 vector, if you end up with a [1xn] or [nx1] matrix, use the reshape block to turn it into a vector.
@@ -11245,7 +11245,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4089.xml
     <Mask>
       <Type>Set display brightness</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&quot;Set display brightness&quot;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Set the brightness of a display (only works with the max25014 driver currently)
 Keeps the original brightness untill the first non zero value is received</Description>
       <MaskParameter Name="tsamp" Type="edit" Tunable="off">
@@ -11337,7 +11337,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4136.xml
 
 port_label(&apos;output&apos;, 1, &apos;function call&apos;);
 port_label(&apos;output&apos;, 2, &apos;message&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>&lt;p&gt;Receive a messages from the CAN bus.&lt;/p&gt;
 &lt;p&gt;The output is a CAN_MESSAGE object. CAN Unpack block can be used to unpack the data from CAN_MESSAGE object.&lt;/p&gt;
 &lt;p&gt;A Function-call subsystem is triggered every time when a new message has been received.&lt;/p&gt;
@@ -11416,7 +11416,7 @@ end</Callback>
       <Display IconUnits="pixels">fprintf(&apos;Send on\nCAN%x&apos;, module_id);
 port_label(&apos;input&apos;, 1, &apos;Msg&apos;);
 
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>&lt;p&gt;Send a CAN message.&lt;/p&gt;
 &lt;p&gt;Expects a CAN_MESSAGE object as an input. Use CAN Pack to create the CAN_MESSAGE object.&lt;/p&gt;</Description>
       <MaskParameter Name="ContrType" Type="popup" Tunable="off">
@@ -11493,7 +11493,7 @@ end</Callback>
       <Display IconUnits="pixels">fprintf(&apos;Send on\nCAN%x&apos;, module_id);
 port_label(&apos;input&apos;, 1, &apos;Msg&apos;);
 
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>&lt;p&gt;Send a CAN message.&lt;/p&gt;
 &lt;p&gt;Expects a CAN_MESSAGE object as an input. Use CAN Pack to create the CAN_MESSAGE object.&lt;/p&gt;</Description>
       <MaskParameter Name="ContrType" Type="popup" Tunable="off">
@@ -12162,7 +12162,7 @@ text(0.50, 0.12, &apos;Byte Pack&apos;, ...
     <Mask SelfModifiable="on">
       <Type>UDP Configure</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Configure UDP socket\n IP: %s\nPort: %d\n%s&apos;,ip,port,broadcastStr);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Block to configure a UDP connection
 
 Setting the ip to 0.0.0.0 makes the controller accept messages on all interfaces.
@@ -12255,7 +12255,7 @@ Allowing broadcasting enables you to send messages to a full range of ip address
     <Mask SelfModifiable="on">
       <Type>UDP Receive</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;UDP Receive&apos;);
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 port_label(&apos;output&apos;, 1, &apos;function call&apos;);
 port_label(&apos;output&apos;, 2, &apos;message&apos;);
 port_label(&apos;output&apos;, 3, &apos;message length&apos;);</Display>
@@ -12343,7 +12343,7 @@ mask.getParameter(&apos;socket_id&apos;).TypeOptions = options;</Callback>
       <Type>UDP Send</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;UDP Send\nIP: %s\nPort: %d&apos;,ip,port);
 port_label(&apos;input&apos;, 1, &apos;message&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Send a UDP message to the designated address.
 
 The Message input should be a uint8 vector, if you end up with a [1xn] or [nx1] matrix, use the reshape block to turn it into a vector.
@@ -12707,7 +12707,7 @@ text(0.50, 0.12, &apos;Byte Unpack&apos;, ...
     <Mask>
       <Type>Enclosure LED&apos;s</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Status LED %d\nColor: %s&apos;,led,colorInfoStr);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>The Moduline controller is equipped with 4 RGB status LED&apos;s. To control them, simply configure the mask ( LED and color) and control them using uint8 values. 
 
 Note: Moduline IV HW &gt;= 3.02 has duty cycle controlled LED&apos;s. The intensity can be set from 0 (0%) to 255 (100%). 
@@ -12787,7 +12787,7 @@ Color: Select the color the LED needs to illuminate.</Description>
     <Mask>
       <Type>Enclosure LED&apos;s</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Status LED %d\nColor: %s&apos;,led,colorInfoStr);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>The Moduline controller is equipped with 4 RGB status LED&apos;s. To control them, simply configure the mask ( LED and color) and control them using uint8 values. 
 
 Note: Moduline IV HW &gt;= 3.02 has duty cycle controlled LED&apos;s. The intensity can be set from 0 (0%) to 255 (100%). 
@@ -12867,7 +12867,7 @@ Color: Select the color the LED needs to illuminate.</Description>
     <Mask>
       <Type>Enclosure LED&apos;s</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Status LED %d\nColor: %s&apos;,led,colorInfoStr);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>The Moduline controller is equipped with 4 RGB status LED&apos;s. To control them, simply configure the mask ( LED and color) and control them using uint8 values. 
 
 Note: Moduline IV HW &gt;= 3.02 has duty cycle controlled LED&apos;s. The intensity can be set from 0 (0%) to 255 (100%). 
@@ -12947,7 +12947,7 @@ Color: Select the color the LED needs to illuminate.</Description>
     <Mask>
       <Type>Enclosure LED&apos;s</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Status LED %d\nColor: %s&apos;,led,colorInfoStr);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>The Moduline controller is equipped with 4 RGB status LED&apos;s. To control them, simply configure the mask ( LED and color) and control them using uint8 values. 
 
 Note: Moduline IV HW &gt;= 3.02 has duty cycle controlled LED&apos;s. The intensity can be set from 0 (0%) to 255 (100%). 
@@ -13202,7 +13202,7 @@ else
 end
 port_label(&apos;output&apos;, 1, &apos;connected&apos;);
 port_label(&apos;input&apos;, 1, &apos;disconnect&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Block to configure a TCP socket
 
 The socket ID should be a unique identifier to link the send and receive blocks to.
@@ -13348,7 +13348,7 @@ end</Callback>
     <Mask SelfModifiable="on">
       <Type>TCP Receive</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;TCP Receive\nSocket: %s&apos;, socket_id);
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 port_label(&apos;output&apos;, 1, &apos;function call&apos;);
 port_label(&apos;output&apos;, 2, &apos;message&apos;);
 port_label(&apos;output&apos;, 3, &apos;message length&apos;);</Display>
@@ -13448,7 +13448,7 @@ end</Callback>
       <Type>TCP Send</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;TCP Send\nSocket: %s&apos;,socket_id);
 port_label(&apos;input&apos;, 1, &apos;message&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>Send a TCP message to the chosen sockets connection, whether it be client or server.
 
 The Message input should be a uint8 vector, if you end up with a [1xn] or [nx1] matrix, use the reshape block to turn it into a vector.</Description>
@@ -13930,7 +13930,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4294.xml
     <Mask SelfModifiable="on">
       <Type>Delete diagnostic codes from memory</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Delete all DTCs from memory&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block deletes all stored codes.
 
 Sample time:
@@ -13991,7 +13991,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4295.xml
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Delete single DTC from memory&apos;);
 port_label(&apos;input&apos;, 1, &apos;SPN&apos;);
 port_label(&apos;input&apos;, 2, &apos;FMI&apos;);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block stores a diagnostic code to memory.
 
 Diagnostic code type:
@@ -14053,7 +14053,7 @@ __MWOPC_PART_BEGIN__ /simulink/systems/system_4298.xml
     <Mask SelfModifiable="on">
       <Type>Store diagnostic code to memory</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;Store DTC in memory\n SPN: %s\nFMI: %s&apos;,spn,fmi);
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This function block stores a diagnostic code to memory.
 
 SPN number:
@@ -14241,7 +14241,7 @@ port_label(&apos;input&apos;, 1, &apos;Reset&apos;);
 port_label(&apos;input&apos;, 2, &apos;Duty cycle [0-1000]&apos;);
 port_label(&apos;input&apos;, 3, &apos;Measured current [mA]&apos;);
 
-text(2, 6, ert_linux_target_version());</Display>
+text(2, 6, GOcontroll_Simulink_version());</Display>
       <Description>This block executes diagnostics on an actuator that goes into the block. The current during control is checked.
 
 It must be enabled via the enable input at the top to function, this can be a easy way to toggle diagnostics on or off.
@@ -14349,7 +14349,7 @@ end</Callback>
       <Type>Diagnostic simulation</Type>
       <Display RunInitForIconRedraw="on" IconUnits="pixels">fprintf(&apos;%s&apos;, signalName);
 
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 </Display>
       <Description>This block works together with the &quot;Signal adaptation&quot; and &quot;Signal diagnostic&quot; blocks to provide an easy way to test the setting of diagnostic codes for analogue inputs.
 
@@ -14431,7 +14431,7 @@ port_label(&apos;input&apos;, 2, &apos;Trigger&apos;);
 port_label(&apos;output&apos;, 1, &apos;Persistant flag&apos;);
 port_label(&apos;output&apos;, 2, &apos;Volatile flag&apos;);
 
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 </Display>
       <Description>A simple diagnostic helper, diagnostics start after &quot;Start delay&quot; and then if trigger == 1 for &quot;Fault duration&quot; it will write the fault code to memory.
 
@@ -14539,7 +14539,7 @@ port_label(&apos;input&apos;, 1, &apos;Reset&apos;);
 port_label(&apos;input&apos;, 2, &apos;RAW signal&apos;);
 port_label(&apos;input&apos;, 3, &apos;Physical signal&apos;);
 
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 </Display>
       <Description>This block executes diagnostics on a signal that goes into the block. Both sensor voltage and signal thersholds are checked.
 

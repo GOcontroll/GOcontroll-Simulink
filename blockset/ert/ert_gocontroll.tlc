@@ -1,5 +1,5 @@
-%% SYSTLC: Linux Embedded Coder TMF: ert_linux_target.tmf MAKE: make_rtw \
-%%    EXTMODE: no_ext_comm
+%% SYSTLC: GOcontroll Embedded Coder \
+%%    MAKE: make_rtw EXTMODE: no_ext_comm
 %%
 %% Copyright 1994-2011 The MathWorks, Inc.
 %% Adapted by Jason van Kolfschoten, 2017
@@ -43,7 +43,7 @@
 %%----------------------------
 %% (OPTIONAL) Generate Files for Build Process
 %%----------------------------
-%%include "ert_linux_genfiles.tlc"
+%%include "ert_iot_genfiles.tlc"
 
 %%----------------------------
 %% RTW_OPTIONS Section
@@ -98,7 +98,7 @@
   rtwoptions(7).prompt        = 'Target';
   rtwoptions(7).type          = 'Popup';
   rtwoptions(7).default       = 'i.MX8';
-  rtwoptions(7).popupstrings  = 'i.MX6|i.MX8|Raspberry Pi';
+  rtwoptions(7).popupstrings  = 'i.MX8|IOT';
   rtwoptions(7).tlcvariable   = 'tlcLinuxTarget';
   rtwoptions(7).tooltip       = ['Select the Target you want to build the project for'];
 
@@ -121,14 +121,24 @@
   %----------------------------------------%
   if(strcmp(get_param(model,'tlcLinuxTarget'), 'i.MX8'))
   set_param(model, 'TemplateMakefile', 'ert_linux_target_64.tmf');
-  elseif(strcmp(get_param(model,'tlcLinuxTarget'), 'i.MX6'))
-  set_param(model, 'TemplateMakefile', 'ert_linux_target_32.tmf');
+  set_param(model, 'ERTCustomFileTemplate', 'ert_linux_file_process.tlc');
+  %% Callback for when the active configuration changes in Configuration Parameters
+  %rtwgensettings.SelectCallback = 'ert_linux_select_callback_handler(hDlg, hSrc)';
+  elseif(strcmp(get_param(model,'tlcLinuxTarget'), 'IOT'))
+  set_param(model, 'TemplateMakefile', 'ert_iot_target.tmf');
+  set_param(model, 'ERTCustomFileTemplate', 'ert_iot_file_process.tlc');
+  %% Callback for when the active configuration changes in Configuration Parameters
+
+  else
+  set_param(model, 'TemplateMakefile', 'ert_linux_target_64.tmf');
+  set_param(model, 'ERTCustomFileTemplate', 'ert_linux_file_process.tlc');
+  %% Callback for when the active configuration changes in Configuration Parameters
+  %rtwgensettings.SelectCallback = 'ert_linux_select_callback_handler(hDlg, hSrc)';
   end
 
-  %% Callback for when the active configuration changes in Configuration Parameters
-  rtwgensettings.SelectCallback = 'ert_linux_select_callback_handler(hDlg, hSrc)';
+  rtwgensettings.SelectCallback = 'ert_iot_select_callback_handler(hDlg, hSrc)';
   %% Callback for after user presses apply in Configuration Parameters
-  rtwgensettings.PostApplyCallback = 'ert_linux_postapply_callback_handler(hDlg,hSrc)';
+  rtwgensettings.PostApplyCallback = 'ert_gocontroll_postapply_callback_handler(hDlg,hSrc)';
 
   %%----------------------------
   %% rtwgensettings Structure

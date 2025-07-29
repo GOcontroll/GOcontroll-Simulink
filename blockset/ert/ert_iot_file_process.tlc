@@ -29,10 +29,8 @@
 %%assign ::numSampleTimes = CompiledModel.NumSynchronousSampleTimes
 %%assign ::extMode = CompiledModel.ConfigSet.ExtMode
 
-
-
 %% Generate ert_main.c
-%include "ert_linux_main.tlc"
+%include "ert_iot_main.tlc"
 
 %openfile buff
 %<generateDeclarations()>

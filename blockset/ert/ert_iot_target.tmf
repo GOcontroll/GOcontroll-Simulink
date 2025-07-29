@@ -1,6 +1,6 @@
 #|***************************************************************************************
 #|  Description: Makefile Template for Linaro toolchain and Lely GCB
-#|    File Name: ert_linux_target_32.tmf
+#|    File Name: ert_linux_target_64.tmf
 #|
 #|---------------------------------------------------------------------------------------
 #|                          C O P Y R I G H T
@@ -21,7 +21,7 @@
 #|***************************************************************************************
 #|
 #| This file has been modified by GOcontroll to support the GOcontroll blockset and
-#| controllers which use the i.MX6 processor.
+#| controllers which use the i.MX8 processor and to support Linux host machines.
 #|
 #|***************************************************************************************
 
@@ -31,19 +31,32 @@
 #|---------------------------------------------------------------------------------------
 # The following macros are read by the Real-Time Workshop build procedure:
 #
-#  MAKECMD         - This is the command used to invoke the make utility
 #  HOST            - What platform this template makefile is targeted for
 #                    (i.e. PC or UNIX)
+#  MAKECMD         - This is the command used to invoke the make utility
 #  BUILD           - Invoke make from the Real-Time Workshop build procedure
 #                    (yes/no)?
 #  SYS_TARGET_FILE - Name of system target file.
-MAKECMD         = "%MATLAB%\bin\|>ARCH<|\gmake"
-HOST            = PC
-BUILD           = yes
-SYS_TARGET_FILE = ert_linux.tlc
-SHELL =
-COMPILER_TOOL_CHAIN = default
+HOST                            = ANY
+COMPUTER =|>COMPUTER<|
 
+ifeq ($(COMPUTER), GLNXA64) # Linux
+MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
+SHELL                           = /bin/bash
+ECHO =
+else ifeq ($(COMPUTER), PCWIN64) # Windows
+MAKECMD                         = "%MATLAB%\bin\|>ARCH<|\gmake"
+COMPILER_TOOL_CHAIN             = default
+SHELL =
+ECHO 							= @echo
+else # Mac
+MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
+SHELL                           = /bin/zsh
+ECHO =
+endif
+
+SYS_TARGET_FILE                 = ert_gocontroll.tlc
+BUILD                           = yes
 
 #|---------------------------------------------------------------------------------------
 #| Tokens expanded by make_rtw
@@ -79,7 +92,6 @@ MATLAB_ROOT          = |>MATLAB_ROOT<|
 ALT_MATLAB_ROOT      = |>ALT_MATLAB_ROOT<|
 MATLAB_BIN           = |>MATLAB_BIN<|
 ALT_MATLAB_BIN       = |>ALT_MATLAB_BIN<|
-S_FUNCTIONS          = |>S_FUNCTIONS<|
 S_FUNCTIONS_LIB      = |>S_FUNCTIONS_LIB<|
 NUMST                = |>NUMST<|
 NCSTATES             = |>NCSTATES<|
@@ -97,14 +109,13 @@ EXTMODE_TRANSPORT    = |>EXTMODE_TRANSPORT<|
 EXTMODE_STATIC       = |>EXTMODE_STATIC_ALLOC<|
 EXTMODE_STATIC_SIZE  = |>EXTMODE_STATIC_ALLOC_SIZE<|
 MULTI_INSTANCE_CODE  = |>MULTI_INSTANCE_CODE<|
-MODELREFS               = |>MODELREFS<|
-SHARED_SRC              = |>SHARED_SRC<|
-SHARED_SRC_DIR          = |>SHARED_SRC_DIR<|
-SHARED_BIN_DIR          = |>SHARED_BIN_DIR<|
-SHARED_LIB              = |>SHARED_LIB<|
-GEN_SAMPLE_MAIN         = |>GEN_SAMPLE_MAIN<|
-TARGET_LANG_EXT         = |>TARGET_LANG_EXT<|
-MEX_OPT_FILE            = |>MEX_OPT_FILE<|
+MODELREFS            = |>MODELREFS<|
+GEN_SAMPLE_MAIN      = |>GEN_SAMPLE_MAIN<|
+TARGET_LANG_EXT      = |>TARGET_LANG_EXT<|
+OTHER                = |>DEFINES_OTHER<|
+OTHER_FLAGS          = |>COMPILE_FLAGS_OTHER<|
+ADD_FLAGS            = |>ADDITIONAL_LDFLAGS<|
+START_DIR            = |>START_DIR<|
 
 
 #|---------------------------------------------------------------------------------------
@@ -112,7 +123,6 @@ MEX_OPT_FILE            = |>MEX_OPT_FILE<|
 #|---------------------------------------------------------------------------------------
 MODELLIB                  = |>MODELLIB<|
 MODELREF_LINK_LIBS        = |>MODELREF_LINK_LIBS<|
-MODELREF_INC_PATH         = |>START_MDLREFINC_EXPAND_INCLUDES<|-I|>MODELREF_INC_PATH<| |>END_MDLREFINC_EXPAND_INCLUDES<|
 RELATIVE_PATH_TO_ANCHOR   = |>RELATIVE_PATH_TO_ANCHOR<|
 MODELREF_TARGET_TYPE      = |>MODELREF_TARGET_TYPE<|
 
@@ -133,58 +143,26 @@ MODEL_NAME = $(MODEL)
 
 # Set some commonly used paths
 BIN_PATH     = $(RELATIVE_PATH_TO_ANCHOR)
-SRC_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\code
-XCP_PATH	 = $(RELATIVE_PATH_TO_ANCHOR)\blockset\code\XCP
 
 #|---------------------------------------------------------------------------------------|
 #| Compiler binaries                                                                     |
 #|---------------------------------------------------------------------------------------|
-# ARMv8_64 e.g. i.MX8
-# CC = aarch64-none-linux-gnu-gcc
-# AS = aarch64-none-linux-gnu-as
-# AR = aarch64-none-linux-gnu-ar
-# LD = aarch64-none-linux-gnu-gcc
-# OC = aarch64-none-linux-gnu-objcopy
-# OD = aarch64-none-linux-gnu-objdump
-# SZ = aarch64-none-linux-gnu-size
-
-# ARMv8_32
-# CC = armv8l-linux-gnueabihf-gcc
-# AS = armv8l-linux-gnueabihf-as
-# AR = armv8l-linux-gnueabihf-ar
-# LD = armv8l-linux-gnueabihf-gcc
-# OC = armv8l-linux-gnueabihf-objcopy
-# OD = armv8l-linux-gnueabihf-objdump
-# SZ = armv8l-linux-gnueabihf-size
-
-# ARMv7_32 e.g. i.MX6
-CC = arm-linux-gnueabihf-gcc
-AS = arm-linux-gnueabihf-as
-AR = arm-linux-gnueabihf-ar
-LD = arm-linux-gnueabihf-gcc
-OC = arm-linux-gnueabihf-objcopy
-OD = arm-linux-gnueabihf-objdump
-SZ = arm-linux-gnueabihf-size
+# ARMv8_64
+CC = |>CC<|
+AS = |>AS<|
+AR = |>AR<|
+LD = |>LD<|
+OC = |>OC<|
+OD = |>OD<|
+SZ = |>SZ<|
 
 #|---------------------------------------------------------------------------------------
 #| Tool Specifications
 #|---------------------------------------------------------------------------------------
 
-
 #|---------------------------------------------------------------------------------------
 #| Include Path
 #|---------------------------------------------------------------------------------------
-MATLAB_INCLUDES = \
-	-I"$(MATLAB_ROOT)\simulink\include" \
-	-I"$(MATLAB_ROOT)\extern\include" \
-	-I"$(MATLAB_ROOT)\rtw\c\src"
-
-COMPILER_INCLUDES =
-
-# HANcoder Target includes
-HANcoder_INCLUDES = \
-	-I"$(BIN_PATH)\blockset\code\XCP" \
-	-I"$(BIN_PATH)\blockset\code"
 
 # Additional includes
 ADD_INCLUDES = \
@@ -197,15 +175,8 @@ ifneq ($(SHARED_SRC_DIR),)
 SHARED_INCLUDES = -I$(SHARED_SRC_DIR)
 endif
 
-CC_INCLUDES += -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(MATLAB_INCLUDES) $(ADD_INCLUDES) \
-	$(COMPILER_INCLUDES) $(USER_INCLUDES) $(MODELREF_INC_PATH) \
-	$(SHARED_INCLUDES) $(HANcoder_INCLUDES)
-
-CC_INCLUDES += -I"$(MATLAB_ROOT)\rtw\c\ert"
-
-AC_INCLUDES =
-
-
+CC_INCLUDES = -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(ADD_INCLUDES) \
+	$(USER_INCLUDES) $(SHARED_INCLUDES)
 
 #|---------------------------------------------------------------------------------------
 #| Tool flags
@@ -218,17 +189,17 @@ AC_INCLUDES =
 		  -DONESTEPFCN=$(ONESTEPFCN) -DTERMFCN=$(TERMFCN) \
 		  -DHAVESTDIO -DMULTI_INSTANCE_CODE=$(MULTI_INSTANCE_CODE)
 # additional compiler flags
-CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES)
-CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wa,-adhlns="$@.lst" -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
-CC_FLAGS        += -mcpu=cortex-a9 -marm -Wno-unused-but-set-variable -Wno-maybe-uninitialized
-
+CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES) $(OTHER) $(OTHER_FLAGS)
+CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
+CC_FLAGS        += -Wno-unused-but-set-variable -D_GNU_SOURCE
 
 # additional assembler flags
 AS_FLAGS        +=
-# additional librarian flags
-AR_FLAGS        +=
+# additional librarian flags (-c do not warn if the library had to be created -r replace \
+existing or insert new file(s) into the archive
+AR_FLAGS        += -cr
 # additional linker flags
-LINKER_FLAGS     += -lpthread -Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map -lm -lrt
+LINKER_FLAGS     += -lpthread -lm -lrt $(ADD_FLAGS)
 # additional object copy flags
 OC_FLAGS         = -O srec
 OC_FLAGS_BIN     = -O binary
@@ -239,8 +210,6 @@ OD_FLAGS         = -D -t -z
 #|---------------------------------------------------------------------------------------
 #| Additional libraries
 #|---------------------------------------------------------------------------------------
-# HANcoder target specific libraries
-# LIBS += $(LIB_PATH)/HANcoder_LINUX_RTL.a
 
 # Other libraries (specified from Simulink)
 |>START_PRECOMP_LIBRARIES<|
@@ -255,12 +224,8 @@ LIBS += $(EXT_LIB) $(S_FUNCTIONS_LIB)
 #|---------------------------------------------------------------------------------------
 #| Source files
 #|---------------------------------------------------------------------------------------
-HANcoder_LIB_SRCS =
 
-ADD_SRCS = \
-	XcpStack.c XcpTargetSpecific.c CANdriver.c ert_main.c GocontrollProcessorboard.c \
-	GocontrollInputModule.c GocontrollOutputModule.c GocontrollBridgeModule.c MemoryEmulation.c \
-	MemoryDiagnostic.c
+ADD_SRCS = ert_main.c 
 
 SRCS  = $(MODULES) $(ADD_SRCS) $(S_FUNCTIONS)
 
@@ -277,58 +242,55 @@ SRCS_OBJS = $(addsuffix .obj, $(basename $(SRCS)))
 OBJS      = $(SRCS_OBJS) $(USER_OBJS)
 LINK_OBJS = $(SRCS_OBJS) $(LOCAL_USER_OBJS)
 
-SHARED_OBJS := $(addsuffix .obj, $(basename $(wildcard $(SHARED_SRC))))
+#SHARED_OBJS := $(addsuffix .obj, $(basename $(wildcard $(SHARED_SRC))))
 FMT_SHARED_OBJS = $(subst /,\,$(SHARED_OBJS))
 
+# Slashes are substituted and the extension is changed to .obj
+SHARED_SRCS = $(wildcard $(subst \,/,$(SHARED_SRC)))
+SHARED_OBJS = $(addsuffix .obj, $(basename $(SHARED_SRCS)))
 
 #|---------------------------------------------------------------------------------------
 #| Build rules
 #|---------------------------------------------------------------------------------------
 $(PRODUCT): $(BIN_PATH)/$(MODEL_NAME).elf
 	@$(OD) $(OD_FLAGS) $< > $(BIN_PATH)/$(MODEL_NAME).map
-	@echo ### Created Map file: $(MODEL_NAME).map
+	$(ECHO) ### Created Map file: $(MODEL_NAME).map
 	@$(OC) $(OC_FLAGS_BIN) $< $(BIN_PATH)/$(MODEL_NAME).bin
-	@echo ### Created Binary file: $(MODEL_NAME).bin
+	$(ECHO) ### Created Binary file: $(MODEL_NAME).bin
 	@$(OC) $(OC_FLAGS) $< $@
-	@echo ### Created $(BUILD_PRODUCT_TYPE): $(notdir $@)
-	@echo ### Displaying program size info
+	$(ECHO) ### Created $(BUILD_PRODUCT_TYPE): $(notdir $@)
+	$(ECHO) ### Displaying program size info
 	@$(SZ) --format=berkeley $<
 
 $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
-	@echo ### Linking $(notdir $@)
-	@$(LD) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group\
-        -o $@ $(LINKER_FLAGS)
-	@echo ### Created $(MODEL_NAME).elf
+	$(ECHO) ### Linking $(notdir $@)
+	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group\
+		-o $@ $(LINKER_FLAGS)
+	$(ECHO) ### Created $(MODEL_NAME).elf
 
 %.obj : %.c
-	@echo ### Compiling $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
-
-%.obj : $(XCP_PATH)/%.c
-	@echo ### Compiling xcp path $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
-
-%.obj : $(LIB_PATH)/%.c
-	@echo ### Compiling lib path $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
-
-%.obj : $(SRC_PATH)/%.c
-	@echo ### Compiling source path $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 %.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.c
-	@echo ### Compiling relative path to anchor $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling relative path to anchor $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 
 ifeq ($(GEN_SAMPLE_MAIN),0)
 %.obj : $(MATLAB_ROOT)/rtw/c/ert/%.c
-	@echo ### Compiling $(notdir $<) -o $(notdir $@)
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 endif
 
+#Compile C files
+|>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.c
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
+	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
+|>END_EXPAND_RULES<|
 
-|>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|\%.c
-	@echo ### Compiling $(notdir $<) -o $(notdir $@)
+#Compile Zig files
+|>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.zig
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 |>END_EXPAND_RULES<|
 
@@ -336,27 +298,29 @@ endif
 #|---------------------------------------------------------------------------------------
 #| Dependencies
 #|---------------------------------------------------------------------------------------
-$(OBJS) : $(MAKEFILE) rtw_proj.tmw
-
-$(SHARED_OBJS) : $(SHARED_SRC_DIR)/%.c
-	@echo ### Compiling $(notdir $<) -o $(notdir $@)
-	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
+$(SHARED_OBJS) : $(SHARED_SRC_DIR)/%.obj : $(SHARED_SRC_DIR)/%.c
+	$(ECHO) ### Creating shared object: $(notdir $@) from: $(addsuffix .c, $(basename $@))
+	@$(CC) -c -o $@ $(addsuffix .c, $(basename $@)) $(CC_FLAGS) $(CC_INCLUDES)
 
 $(SHARED_LIB) : $(SHARED_OBJS)
-	@echo ### Creating $(notdir $@)
-	@if exist $@ del $@
-	$(LIBCMD) /out:$@ $(FMT_SHARED_OBJS)
-	@echo ### $(notdir $@) Created
-
+	$(ECHO) ### Creating $@ from $(SHARED_OBJS)
+	@$(AR) $(AR_FLAGS) $@ $(SHARED_OBJS)
+	$(ECHO) ### Created $@
 
 #|---------------------------------------------------------------------------------------
 #| Project cleanup
 #|---------------------------------------------------------------------------------------
+ifeq ($(COMPUTER), PCWIN64) # Windows
 .PHONY: clean
 clean :
-	@echo ### Cleaning the object and lst files
-	@del *.obj
-	@del *.lst
-
-
+	$(ECHO) ### Cleaning the object and lst files
+	del *.obj
+	del *.lst
+else ifeq ($(COMPUTER), GLNXA64) # Linux
+.PHONY: clean
+clean :
+else # apple doesn't like cleanup
+.PHONY: clean
+clean :
+endif
 #|----------------------------- end of ert_linux_target.tmf --------------------------

@@ -17,7 +17,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 	mxArray *result, *version_actual;
 	char *version_local_str = stringify(VERSION);
 	char *version_actual_str;
-	mexCallMATLAB(1, &version_actual, 0, NULL, "ert_linux_target_version");
+	mexCallMATLAB(1, &version_actual, 0, NULL, "GOcontroll_Simulink_version");
 
 	version_actual_str = mxArrayToString(version_actual);
 	if (strcmp(version_actual_str, version_local_str) == 0) {
