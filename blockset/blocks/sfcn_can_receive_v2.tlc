@@ -52,86 +52,97 @@
 
 %% Function: BlockTypeSetup ====================================================
 %function BlockTypeSetup(block, system) void
-	%<CANCommonBlockTypeSetup()>
+	%assign platform = %<get_platform()>
+	%if ISEQUAL(platform, "i.MX8")
+		%<CANCommonBlockTypeSetup()>
+	%endif
 %endfunction
 
 %% Function: BlockInstanceSetup ================================================
 %function BlockInstanceSetup(block, system) void
+	%assign platform = %<get_platform()>
+	%if ISEQUAL(platform, "i.MX8")
+		%assign module_id_par = LibBlockParameterValue(module_id, 0)
+		%% There can only be one receive block per socket, check, error if one already exists
+		%assign can_recv_socket = "::can_%<module_id_par>_recv"
+		%if EXISTS(%<can_recv_socket>) == 1
+			%assign error = "2 or more CAN receive blocks are listening on CAN%<module_id_par>, this is not allowed"
+			%<LibBlockReportError(block, error)>
+		%else
+			%% No existing receive block found for this socket, so register it as occupied so the next one can fail
+			%assign %<can_recv_socket> = 1
+		%endif
 
-	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-	%% There can only be one receive block per socket, check, error if one already exists
-	%assign can_recv_socket = "::can_%<module_id_par>_recv"
-	%if EXISTS(%<can_recv_socket>) == 1
-		%assign error = "2 or more CAN receive blocks are listening on CAN%<module_id_par>, this is not allowed"
-		%<LibBlockReportError(block, error)>
-	%else
-		%% No existing receive block found for this socket, so register it as occupied so the next one can fail
-		%assign %<can_recv_socket> = 1
+		%% Check if the socket for this bus is already there, if not create it
+		%<CreateCanSocket(module_id_par)>
 	%endif
-
-	%% Check if the socket for this bus is already there, if not create it
-	%<CreateCanSocket(module_id_par)>
 %endfunction
 
 %% Function: Start =============================================================
 %function Start(block, system) Output
-	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-	%% Initialize the socket if it hasn't already been done
-	%<InitCanSocket(module_id_par)>
+	%assign platform = %<get_platform()>
+	%if ISEQUAL(platform, "i.MX8")
+		%assign module_id_par = LibBlockParameterValue(module_id, 0)
+		%% Initialize the socket if it hasn't already been done
+		%<InitCanSocket(module_id_par)>
+	%endif
 %endfunction
 
 %% Function: Outputs ===========================================================
 %function Outputs(block, system) Output
+	%assign platform = %<get_platform()>
+	%if ISEQUAL(platform, "i.MX8")
+		%if !SLibCodeGenForSim()
+			%assign module_id_par = LibBlockParameterValue(module_id, 0)
+			%% message will be of the type CAN_MESSAGE, run this command in the matlab console to find the definition: 
+			%% edit(fullfile(matlabroot, 'toolbox','shared','can','src','scanutil','can_message.h'));
+			%assign message = LibBlockOutputSignal(1, "", "", 1)
 
-	%if !SLibCodeGenForSim()
-		%assign module_id_par = LibBlockParameterValue(module_id, 0)
-		%% message will be of the type CAN_MESSAGE, run this command in the matlab console to find the definition: 
-		%% edit(fullfile(matlabroot, 'toolbox','shared','can','src','scanutil','can_message.h'));
-		%assign message = LibBlockOutputSignal(1, "", "", 1)
+			{
+				struct can_frame sc_frame;
+				int ret;
+				int dlc;
+				%% Drain the sockets buffer and decode these messages
+				while ((ret = recv(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0)) > 0) {
+					%% Invalid message received
+					if (ret < sizeof(sc_frame)) {
+						continue;
+					}
 
-		{
-			struct can_frame sc_frame;
-			int ret;
-			int dlc;
-			%% Drain the sockets buffer and decode these messages
-			while ((ret = recv(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0)) > 0) {
-				%% Invalid message received
-				if (ret < sizeof(sc_frame)) {
-					continue;
+					dlc = sc_frame.can_dlc;
+					%% dlc cant be larger than 8
+					if (dlc > 8)
+						dlc = 8;
+
+					%% Receive CAN_MESSAGE
+					%<message>.Length = dlc;
+					%<message>.ID = sc_frame.can_id & CAN_EFF_MASK;
+					%% Check message flags
+					%<message>.Extended = sc_frame.can_id & CAN_EFF_FLAG ? 1 : 0;
+					%<message>.Remote = sc_frame.can_id & CAN_RTR_FLAG ? 1 : 0;
+
+					%%Write all bytes in one go
+					*(uint64_t *)&%<message>.Data[0]= *(uint64_t *)&sc_frame.data[0];
+
+					%% Do a function call for every received message
+					%foreach callIdx = NumSFcnSysOutputCalls
+						%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+							%continue
+						%endif
+						%% call the downstream system
+						%<LibBlockExecuteFcnCall(block, callIdx)>\
+					%endforeach
+					
 				}
-
-				dlc = sc_frame.can_dlc;
-				%% dlc cant be larger than 8
-				if (dlc > 8)
-					dlc = 8;
-
-				%% Receive CAN_MESSAGE
-				%<message>.Length = dlc;
-				%<message>.ID = sc_frame.can_id & CAN_EFF_MASK;
-				%% Check message flags
-				%<message>.Extended = sc_frame.can_id & CAN_EFF_FLAG ? 1 : 0;
-				%<message>.Remote = sc_frame.can_id & CAN_RTR_FLAG ? 1 : 0;
-
-				%%Write all bytes in one go
-				*(uint64_t *)&%<message>.Data[0]= *(uint64_t *)&sc_frame.data[0];
-
-				%% Do a function call for every received message
-				%foreach callIdx = NumSFcnSysOutputCalls
-					%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
-						%continue
-					%endif
-					%% call the downstream system
-					%<LibBlockExecuteFcnCall(block, callIdx)>\
-				%endforeach
-				
 			}
-		}
+		%endif
 	%endif
 %endfunction
 
 %function Terminate(block, system) Output
-	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-	%<CloseCanSocket(module_id_par)>
+	%assign platform = %<get_platform()>
+	%if ISEQUAL(platform, "i.MX8")
+		%assign module_id_par = LibBlockParameterValue(module_id, 0)
+		%<CloseCanSocket(module_id_par)>
+	%endif
 %endfunction
-
-%% [EOF]

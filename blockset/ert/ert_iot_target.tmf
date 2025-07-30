@@ -182,12 +182,6 @@ CC_INCLUDES = -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(ADD_INCLUDES) \
 #| Tool flags
 #|---------------------------------------------------------------------------------------
 # MATLAB settings flags
-# CPP_REQ_DEFINES = -DMODEL=$(MODEL) -DNUMST=$(NUMST) -DNCSTATES=$(NCSTATES) \
-		  -DMT=$(MULTITASKING) -DMODEL_INITIALIZE=$(MODEL)_initialize \
-		  -DMODEL_TERMINATE=$(MODEL)_terminate -DMODEL_STEP=$(MODEL)_step \
-		  -DMAT_FILE=$(MAT_FILE) -DINTEGER_CODE=$(INTEGER_CODE) \
-		  -DONESTEPFCN=$(ONESTEPFCN) -DTERMFCN=$(TERMFCN) \
-		  -DHAVESTDIO -DMULTI_INSTANCE_CODE=$(MULTI_INSTANCE_CODE)
 # additional compiler flags
 CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES) $(OTHER) $(OTHER_FLAGS)
 CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
@@ -199,7 +193,7 @@ AS_FLAGS        +=
 existing or insert new file(s) into the archive
 AR_FLAGS        += -cr
 # additional linker flags
-LINKER_FLAGS     += -lpthread -lm -lrt $(ADD_FLAGS)
+LINKER_FLAGS     += $(ADD_FLAGS)
 # additional object copy flags
 OC_FLAGS         = -O srec
 OC_FLAGS_BIN     = -O binary
@@ -264,7 +258,7 @@ $(PRODUCT): $(BIN_PATH)/$(MODEL_NAME).elf
 
 $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
 	$(ECHO) ### Linking $(notdir $@)
-	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group\
+	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS)  -Wl,--end-group\
 		-o $@ $(LINKER_FLAGS)
 	$(ECHO) ### Created $(MODEL_NAME).elf
 
@@ -284,6 +278,12 @@ endif
 
 #Compile C files
 |>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.c
+	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
+	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
+|>END_EXPAND_RULES<|
+
+#assemble assembly files
+|>START_EXPAND_RULES<|%.obj : |>EXPAND_DIR_NAME<|/%.s
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)
 	@$(CC) -c -o $@ $< $(CC_FLAGS) $(CC_INCLUDES)
 |>END_EXPAND_RULES<|

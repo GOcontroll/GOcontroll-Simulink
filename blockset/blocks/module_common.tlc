@@ -19,7 +19,12 @@
 
 		%<LibMdlStartCustomCode(tmpBuf, "execution")>
 	%endif
-	GocontrollProcessorboard_ModuleInitialize(%<module_slot> - 1);
+	{
+	printf("initializing module %d\n", %<module_slot>);
+	if (GocontrollProcessorboard_ModuleInitialize(%<module_slot> - 1))
+		fprintf(stderr, "Could not register a module in slot %d\n", %<module_slot>);
+	
+	}
 %endfunction
 
 %function module_monitor_start(block, module_type, module_slot) void

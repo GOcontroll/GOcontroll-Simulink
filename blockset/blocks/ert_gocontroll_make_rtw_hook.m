@@ -184,48 +184,104 @@ switch hookMethod
 		[path, ~, ~] = fileparts(mfilePath);
 		
 		%set the compiler path in the tmf
-		if (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'GCC'))
-			gccpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('aarch64-none-linux-gnu-gcc');
-			gccpath = fullfile(gccpath, 'bin');
-			addTMFTokens(buildInfo, '|>CC<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-gcc') '"'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>AS<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-as') '"'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>AR<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-ar') '"'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>LD<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-gcc') '"'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>OC<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-objcopy') '"'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>OD<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-objdump') '"'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>SZ<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-size') '"'],'LINK_INFO');
-			addCompileFlags(buildInfo, '-mcpu=cortex-a53 -Wa,-adhlns="$@.lst" -Wno-maybe-uninitialized -gdwarf');
-			addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map')
-		elseif (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'Zig'))
-			if (~strcmp(computer(), "MACA64")) %if not apple silicon it is x86
-				zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-x86');
-			else %is apple silicon, use aarch64 possibly in the future also windows and linux
-				zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-aarch64');
+		target = get_param(modelName, 'tlcLinuxTarget');
+		if (strcmp(target, 'i.MX8'))
+			if (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'GCC'))
+				gccpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('aarch64-none-linux-gnu-gcc');
+				gccpath = fullfile(gccpath, 'bin');
+				addTMFTokens(buildInfo, '|>CC<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-gcc') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>AS<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-as') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>AR<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-ar') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>LD<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-gcc') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>OC<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-objcopy') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>OD<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-objdump') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>SZ<|', ['"' fullfile(gccpath,'aarch64-none-linux-gnu-size') '"'],'LINK_INFO');
+				addCompileFlags(buildInfo, '-mcpu=cortex-a53 -Wa,-adhlns="$@.lst" -Wno-maybe-uninitialized -gdwarf');
+				addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map')
+			elseif (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'Zig'))
+				if (~strcmp(computer(), "MACA64")) %if not apple silicon it is x86
+					zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-x86');
+				else %is apple silicon, use aarch64 possibly in the future also windows and linux
+					zigpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('Zig-aarch64');
+				end
+				zigpath = ['"' fullfile(zigpath, 'zig') '"'];
+				addTMFTokens(buildInfo, '|>CC<|', [zigpath ' cc -target aarch64-linux-gnu.2.31'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>AS<|', '','LINK_INFO');
+				addTMFTokens(buildInfo, '|>AR<|', [zigpath ' ar'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>LD<|', [zigpath ' cc -target aarch64-linux-gnu.2.31'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>OC<|', [zigpath ' oc'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>OD<|', '','LINK_INFO');
+				addTMFTokens(buildInfo, '|>SZ<|', '','LINK_INFO');
+				addCompileFlags(buildInfo, '-mcpu=cortex_a53 -gdwarf64');
+			else
+				error("No valid compiler selected");
 			end
-			zigpath = ['"' fullfile(zigpath, 'zig') '"'];
-			addTMFTokens(buildInfo, '|>CC<|', [zigpath ' cc -target aarch64-linux-gnu.2.31'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>AS<|', '','LINK_INFO');
-			addTMFTokens(buildInfo, '|>AR<|', [zigpath ' ar'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>LD<|', [zigpath ' cc -target aarch64-linux-gnu.2.31'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>OC<|', [zigpath ' oc'],'LINK_INFO');
-			addTMFTokens(buildInfo, '|>OD<|', '','LINK_INFO');
-			addTMFTokens(buildInfo, '|>SZ<|', '','LINK_INFO');
-			addCompileFlags(buildInfo, '-mcpu=cortex_a53 -gdwarf64');
+			
+			%add the source code/libraries to the tmf
+			codepath = fullfile(path, '..', 'code');
+			linuxpath = fullfile(codepath, 'linux');
+			oaespath = fullfile(path, '..', 'lib', 'OAES');
+			iiopath = fullfile(path, '..', 'lib', 'IIO');
+			addIncludePaths(buildInfo, {codepath, oaespath, iiopath, linuxpath});
+			addSourceFiles(buildInfo, '*.c', codepath);
+			addSourceFiles(buildInfo, '*.c', linuxpath);
+			addLinkObjects(buildInfo, fullfile(oaespath, 'liboaes_lib.a'), '', 1000,true, true);
+			addLinkObjects(buildInfo, fullfile(iiopath, 'libiio.so.0'), '', 1000,true, true);
+
+
+		elseif (strcmp(target, 'IOT'))
+			if (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'GCC'))
+				gccpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('arm-none-eabi-gcc');
+				gccpath = fullfile(gccpath, 'bin');
+				addTMFTokens(buildInfo, '|>CC<|', ['"' fullfile(gccpath,'arm-none-eabi-gcc') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>AS<|', ['"' fullfile(gccpath,'arm-none-eabi-as') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>AR<|', ['"' fullfile(gccpath,'arm-none-eabi-ar') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>LD<|', ['"' fullfile(gccpath,'arm-none-eabi--gcc') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>OC<|', ['"' fullfile(gccpath,'arm-none-eabi-objcopy') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>OD<|', ['"' fullfile(gccpath,'arm-none-eabi-objdump') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>SZ<|', ['"' fullfile(gccpath,'arm-none-eabi-size') '"'],'LINK_INFO');
+				addCompileFlags(buildInfo, '-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wall -Wno-maybe-uninitialized -g');
+				addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map -Wl,--gc-sections -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb')
+			elseif (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'Zig'))
+				error("not implemented (yet?) switch to gcc compiler");
+			else
+				error("No valid compiler selected");
+			end
+			
+			%add the source code/libraries to the tmf
+			codepath = fullfile(path, '..', 'code');
+			iotpath = fullfile(codepath, 'iot');
+			corepath = fullfile(iotpath, 'Core');
+			driverspath = fullfile(iotpath, 'Drivers');
+			rtospath = fullfile(iotpath, 'Middlewares', 'Third_Party', 'FreeRTOS', 'Source');
+			addIncludePaths(buildInfo, {
+				% codepath,
+				iotpath,
+				fullfile(corepath, 'Inc'),
+				fullfile(driverspath, 'CMSIS', 'Include'),
+				fullfile(driverspath, 'CMSIS', 'Device', 'ST', 'STM32F4xx', 'Include'),
+				fullfile(driverspath, 'STM32F4xx_HAL_Driver', 'Inc'),
+				fullfile(driverspath, 'STM32F4xx_HAL_Driver', 'Inc','Legacy'),
+				fullfile(rtospath, 'CMSIS_RTOS_V2'),
+				fullfile(rtospath, 'include'),
+				fullfile(rtospath, 'portable', 'MemMang'),
+				fullfile(rtospath, 'portable', 'GCC', 'ARM_CM4F'),
+			});
+			% addSourceFiles(buildInfo, '*.c', codepath);
+			addSourceFiles(buildInfo, '*.c', iotpath);
+			addSourceFiles(buildInfo, '*.c', fullfile(corepath, 'Src'));
+			removeSourceFiles(buildInfo, 'main.c');
+			addSourceFiles(buildInfo, '*.c', fullfile(driverspath, 'STM32F4xx_HAL_Driver', 'Src'));
+			addSourceFiles(buildInfo, '*.c', rtospath);
+			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'CMSIS_RTOS_V2'));
+			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'MemMang'));
+			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'GCC', 'ARM_CM4F'));
+			addSourceFiles(buildInfo, '*.s', iotpath);
+			addLinkFlags(buildInfo, ['-T' fullfile(iotpath, 'STM32F437XX_FLASH.ld')])
+
 		else
-			error("No valid compiler selected");
+			error("No valid target selected");
 		end
-		
-		%add the source code/libraries to the tmf
-		codepath = fullfile(path, '..', 'code');
-		xcppath = fullfile(codepath, 'XCP');
-		oaespath = fullfile(path, '..', 'lib', 'OAES');
-		iiopath = fullfile(path, '..', 'lib', 'IIO');
-		addIncludePaths(buildInfo, {codepath,xcppath, oaespath, iiopath});
-		addSourceFiles(buildInfo, '*.c', codepath);
-		addSourceFiles(buildInfo, '*.zig', codepath);
-		addSourceFiles(buildInfo, '*.c', xcppath);
-		addLinkObjects(buildInfo, fullfile(oaespath, 'liboaes_lib.a'), '', 1000,true, true);
-		addLinkObjects(buildInfo, fullfile(iiopath, 'libiio.so.0'), '', 1000,true, true);
 		
 	case 'after_make'
 		% Called after make process is complete. All arguments are valid at

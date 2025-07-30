@@ -36,14 +36,19 @@ catch
 	zig_aarch64 = '';
 end
 try
-	gnu = GOcontroll_Simulink_2023b_dev.getInstallationLocation('aarch64-none-linux-gnu-gcc');
+	gnu_linux = GOcontroll_Simulink_2023b_dev.getInstallationLocation('aarch64-none-linux-gnu-gcc');
 catch
-	gnu = '';
+	gnu_linux = '';
+end
+try
+	gnu_none = GOcontroll_Simulink_2023b_dev.getInstallationLocation('arm-none-eabi-gcc');
+catch
+	gnu_none = '';
 end
 %Move the function back on the path
 movefile(fullfile(root, 'temp'), fullfile(root, '+GOcontroll_Simulink_2023b_dev'));
 %Create the new table
-new = sprintf("'aarch64-none-linux-gnu-gcc', '%s';'Zig-aarch64', '%s';'Zig-x86','%s'", gnu, zig_aarch64, zig_x86);
+new = sprintf("'aarch64-none-linux-gnu-gcc', '%s';'Zig-aarch64', '%s';'Zig-x86','%s';'arm-none-eabi-gcc','%s'", gnu_linux, zig_aarch64, zig_x86, gnu_none);
 %Read the previously created .m file
 file = fileread(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'));
 %Replace the table with the new one
@@ -61,4 +66,4 @@ delete(fullfile(root, '+GOcontroll_Simulink_2023b_dev', 'temp.m'));
 
 matlab.addons.disableAddon("GOcontroll-Simulink");
 %cleanup
-clear file gnu new new_file zig_aarch64 zig_x86 root path mfilePath
+clear file gnu_linux gnu_none new new_file zig_aarch64 zig_x86 root path mfilePath

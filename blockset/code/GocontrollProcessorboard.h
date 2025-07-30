@@ -67,8 +67,10 @@
 #define NOT_INSTALLED 0
 #define ADC_MCP3004 1
 #define ADC_ADS1015 2
-#define LED_GPIO 3
-#define LED_RUKR 4
+#define ADC_INTEGRATED 3
+
+#define LED_GPIO 1
+#define LED_RUKR 2
 
 #define MODULESLOT1 0
 #define MODULESLOT2 1
@@ -113,12 +115,7 @@ typedef struct {
  * Function prototypes
  ****************************************************************************************/
 
-/****************************************************************************************
-** \brief     Initialize processorboard peripherals
-** \param     moduleslot 0-7
-** \return    none
-****************************************************************************************/
-void GocontrollProcessorboard_ModuleInitialize(uint8_t moduleslot);
+/* external interface to be implemented by board specific files */
 
 /****************************************************************************************
 ** \brief     Control the GOcontroll enclosure LEDs
@@ -184,15 +181,6 @@ int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
 											uint8_t *dataRx);
 
 /**************************************************************************************
-** \brief     Function that registers the SIGTERM command listener to close the
-*program.\
-** \brief     Call with Null to terminate the program
-** \param     Pointer to Simulink terminate function
-** \return    none
-****************************************************************************************/
-void GocontrollProcessorboard_ExitProgram(void *Terminate);
-
-/**************************************************************************************
 ** \brief     Function that verifies the application license key \
 ** \brief     check OpenAES: https://github.com/jhjin/OpenAES
 ** \param     key 16/24/32 byte encryption key
@@ -232,13 +220,57 @@ void GocontrollProcessorboard_GetHardwareVersion(void);
 int GocontrollProcessorboard_LedInitialize(void);
 
 /****************************************************************************************
-** \brief     Claim cpu number 3 for this process
-** \param     none.
+** \brief     set the state of the reset pin of a module
+** \param     module int holding the position of the module (0-7)
+** \param     state the state of the reset pin macros HIGH 1 or LOW 0
+** \return    0 if ok -1 if  failed
+****************************************************************************************/
+int8_t GocontrollProcessorboard_ResetStateModule(uint8_t module, uint8_t state);
+
+/**************************************************************************************
+** \brief     Function that sleeps for x miliseconds
+** \param     times number of miliseconds to sleep
+** \return     none
+****************************************************************************************/
+void GocontrollProcessorboard_Delay1ms(uint32_t times);
+
+/****************************************************************************************
+** \brief     Get the modules out of their bootloader state
+** \param     module the module slot (0-7)
+** \param     dataTx buffer for the transmit bytes
+** \param     dataRx buffer for the receive bytes
+** \return    0 if ok -1 if  failed
+****************************************************************************************/
+int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,
+												  uint8_t *dataTx,
+												  uint8_t *dataRx);
+
+/* shared interface */
+
+/**************************************************************************************
+** \brief     calculate the checksum of an spi message
+** \param     array buffer filled with the spi message
+** \param     length length of the spi message
+** \return    the checksum
+****************************************************************************************/
+uint8_t GocontrollProcessorboard_CheckSumCalculator(uint8_t *array,
+													uint8_t length);
+
+/**************************************************************************************
+** \brief     initialize a module in a specific slot
+** \param     moduleslot (0 based index)
+** \return    0 on success errno on failure
+****************************************************************************************/
+int GocontrollProcessorboard_ModuleInitialize(uint8_t moduleslot);
+
+/**************************************************************************************
+** \brief     register a module in a specific slot
+** \param     slot module slot (0-7)
+** \param     rx the bootloader rx buffer
 ** \return    none
 ****************************************************************************************/
-void GocontrollProcessorboard_SetCpuAffinity(void);
+void GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx);
 
 #endif	// _GOCONTROLL_PROCESSORBOARD_H
 
-/************************************ end of GocontrollProcessorboard.h
- * ******************************/
+/* end of GocontrollProcessorboard.h */

@@ -36,6 +36,7 @@
   #include <errno.h>									/* For errno						*/
   #include <CANdriver.h>
   #include "GocontrollProcessorboard.h"
+  #include "LinuxProcessorboard.h"
 
   #ifndef TRUE
   #define TRUE true

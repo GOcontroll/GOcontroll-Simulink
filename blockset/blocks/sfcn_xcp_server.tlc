@@ -32,12 +32,17 @@
 
 %implements sfcn_xcp_server "C"
 
+%include "go_platform.tlc"
+
 %% Function: BlockTypeSetup ==========================================================
 %%
 %% Runs once for the block type, no matter how many blocks are present in the model
 
 %function BlockTypeSetup(block, system) void
-	%<LibAddToCommonIncludes("pthread.h")>
+	%assign platform = %<get_platform()>
+	%if ISEQUAL(platform, "i.MX8")
+		%<LibAddToCommonIncludes("pthread.h")>
+	%endif
 	%<LibAddToCommonIncludes("XcpStack.h")>
 	%<LibAddToCommonIncludes("XcpTargetSpecific.h")>
 %endfunction
@@ -47,11 +52,14 @@
 %% Runs once for every instance of the block in the model
 
 %function BlockInstanceSetup(block, system) void
+	%assign platform = %<get_platform()>
 	%if EXISTS(::xcp_socket) == 0
-		%openfile tmpBufDecls
-			pthread_t xcp_thread;
-		%closefile tmpBufDecls
-		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+		%if ISEQUAL(platform, "i.MX8")
+			%openfile tmpBufDecls
+				pthread_t xcp_thread;
+			%closefile tmpBufDecls
+			%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+		%endif
 		%assign ::xcp_socket = 1
 	%else
 		%<LibBlockReportError(block, "Multiple xcp server blocks exist in the model, this is not allowed")>
@@ -64,12 +72,17 @@
 %%      initialize the reconnect_state struct
 
 %function Start(block, system) Output
+	%assign platform = %<get_platform()>
 	%switch (%<block.RTWdata.server_type>)
 		%case 1
-			pthread_create(&xcp_thread, NULL, &XcpInitialize_tcp, NULL);
+			%if ISEQUAL(platform, "i.MX8")
+				pthread_create(&xcp_thread, NULL, &XcpInitialize_tcp, NULL);
+			%endif
 			%break
 		%case 2
-			pthread_create(&xcp_thread, NULL, &XcpInitialize_udp, NULL);
+			%if ISEQUAL(platform, "i.MX8")
+				pthread_create(&xcp_thread, NULL, &XcpInitialize_udp, NULL);
+			%endif
 			%break
 		%default
 			%<LibBlockReportError(block, "Invalid XCP server type selected")>
@@ -95,7 +108,10 @@
 %%      Code generation for signal output
 
 %function Terminate (block, system) Output
-	pthread_cancel(xcp_thread);
-	pthread_join(xcp_thread, NULL);
+	%assign platform = %<get_platform()>
+	%if ISEQUAL(platform, "i.MX8")
+		pthread_cancel(xcp_thread);
+		pthread_join(xcp_thread, NULL);
+	%endif
 	XcpStopConnection();
 %endfunction

@@ -17,40 +17,35 @@
 %%  This function generates main function declarations.
 %%
 %function generateDeclarations() Output
+	#include "adc.h"
+	#include "can.h"
+	#include "cmsis_os.h"
+	#include "FreeRTOS.h"
+	#include "gpio.h"
+	#include "i2c.h"
+	#include "main.h"
+	#include "rtc.h"
+	#include "rtwtypes.h"
+	#include "spi.h"
+	#include "task.h"
+	#include "tim.h"
+	#include "usart.h"
+	#include "usb_otg.h"
 
-  /* Multirate - Multitasking case main file */
-  #define _DEFAULT_SOURCE		         /* For usleep() */
-%%#define _GNU_SOURCE					 /* For CPU_ZERO() & CPU_SET() */
-  #include <stdio.h>                     /* This ert_main.c example uses printf/fflush */
-  #include <pthread.h>                   /* Thread library header file */
-  #include <sched.h>                     /* OS scheduler header file */
-  #include <semaphore.h>                 /* Semaphores library header file */
-  #include <time.h>
-  #include <stdlib.h>
-  #include <stdbool.h>
-  #include <unistd.h>
-  #include <sys/mman.h>                  /* For mlockall() */
-  #include "%<modelName>.h"              /* Model's header file '*/
-  #include "rtwtypes.h"                  /* MathWorks types */
-  #include <string.h>									/* Needed to display errno			*/
-  #include <errno.h>									/* For errno						*/
-  #include <CANdriver.h>
-  #include "GocontrollProcessorboard.h"
+	#include "%<modelName>.h"
 
-  #ifndef TRUE
-  #define TRUE true
-  #define FALSE false
-  #endif
+	osThreadId_t model_step_thread;
+	const osThreadAttr_t model_step_thread_attributes = {
+	.name = "model_step_thread",
+	.stack_size = 128 * 4,
+	.priority = (osPriority_t) osPriorityNormal,
+	};
 
-  /* includes for threading and timer */
-#include <signal.h>
-#include <sys/time.h>
+	#define MODEL %<modelName>
+	#define DEBUG 0
 
- /* declarations for threading and timer */
-pthread_t model_step_thread;
-
-#define MODEL %<modelName>
-#define DEBUG 0
+	void SystemClock_Config(void);
+	void MX_FREERTOS_Init(void);
 %endfunction
 
 
@@ -64,56 +59,22 @@ pthread_t model_step_thread;
 /* CompiledModel information: %<CompiledModel.SampleTime> */
 
 /****************************************************************************************
-** \brief     Model stop function, gets called to clean up the model
-** \return    void
-****************************************************************************************/
-
-void killModel(void) {
-	printf("Killing the model\n");
-	//shut down threads before terminating, otherwise there might be a race condition that enables the outputs just before the model exits
-	pthread_cancel(model_step_thread);
-	pthread_join(model_step_thread, NULL);
-	//run block terminate functions
-	%<modelName>_terminate();
-	exit(0);
-}
-
-/****************************************************************************************
 ** \brief     Model step thread function, here the thread for model execution starts
 ** \param     arg a pointer to a argument
 ** \return    pointer to the return argument
 **
 ****************************************************************************************/
-static void * model_step(void *arg)
+static void model_step(void *arg)
 {
-	sigset_t *set = arg;
-	struct timespec timeout;
-	int result;
-	struct sched_param sp; /* Structure to hold priority for thread */
-	
-	sp.sched_priority = 40;/* Set priority high (99 is top prio)*/
-	if(pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)){
-		fprintf(stderr,"WARNING, failed to set priority of model_step thread\n");
+	for (;;) {
+	//serveCANconnection();
+	/* Run model code */
+	%<modelName>_step();
+	#if(DEBUG == 1)
+		fprintf(stderr,"Model step\n");
+	#endif
+	osDelay(1); //sampletime?
 	}
-
-	/* Setting a timeout so the program doesn't wait endlessly */
-	timeout.tv_sec = 5; /* Set sigtimedwait() timeout to 5 seconds */
-	timeout.tv_nsec = 0;
-
-	for(;;)
-	{
-		result = sigtimedwait(set, NULL, &timeout);
-		if(result==-1)
-			fprintf(stderr,"Error with sigwait:%s\n",strerror(errno));
-		serveCANconnection();
-		/* Run model code */
-		%<modelName>_step();
-		#if(DEBUG == 1)
-			fprintf(stderr,"Model step\n");
-		#endif
-	}
-
-	return NULL;
 }
 
 /****************************************************************************************
@@ -123,54 +84,123 @@ static void * model_step(void *arg)
 ** \return    int
 **
 ****************************************************************************************/
-int_T main(int_T argc, const char_T *argv[]){
-	sigset_t set;	/* Signal set to hold signal mask */
-	int result;		/* General variable to check function returns */
+int_T main(void){
+	HAL_Init();
 
-	/* Lock memory to prevent swapping pages */
-	if(mlockall(MCL_FUTURE|MCL_CURRENT))
-		fprintf(stderr,"WARNING: failed to lock memory%s\n",strerror(errno));
+	/* Configure the system clock */
+	SystemClock_Config();
 
-	/* Register the terminate function so it can be called during a SIGTERM command */
-	GocontrollProcessorboard_ExitProgram(killModel);
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_CAN1_Init();
+	MX_CAN2_Init();
+	MX_RTC_Init();
+	MX_SPI1_Init();
+	MX_USART3_UART_Init();
+	MX_ADC1_Init();
+	MX_I2C1_SMBUS_Init();
+	MX_I2C2_Init();
+	MX_I2C3_Init();
+	MX_SPI3_Init();
+	MX_SPI4_Init();
+	MX_USB_OTG_FS_HCD_Init();
+	MX_USB_OTG_HS_HCD_Init();
+	MX_USART1_UART_Init();
+	MX_TIM2_Init();
 
-	/* use cpu 3 */
-	GocontrollProcessorboard_SetCpuAffinity();
-
-	/* Block signal SIGALRM used to time the modelStep() in all threads created by main thread */
-	sigemptyset(&set);
-	sigaddset(&set, SIGALRM);
-	result = pthread_sigmask(SIG_BLOCK, &set, NULL);
-	if(result != 0)
-		fprintf(stderr, "WARNING, unable to block signal SIG_ALRM%s\n",strerror(errno));
-
-	/* Initialize model */
+	/* Init scheduler */
+	osKernelInitialize();
 	%<modelName>_initialize();
-
-	/* Make a struct for the timer setup */
-	struct itimerval timer_setup = { .it_interval = {0, %<CompiledModel.SampleTime[0].ClockTickStepSize * 1000000> },	/* Automatically updated from the base sample time of the model */
-	                                    .it_value = {0, 1000 } };		/* Start in 1 millisecond to give time for other functions to finish */
-
-	/* Start timer */
-	if (setitimer(ITIMER_REAL, &timer_setup, NULL)) /* set kind of timer, set new_value, no need to store old value */
-		fprintf(stderr, "WARNING, Failed to set timer");
-
-	/* Create model step thread */
-	pthread_create(&model_step_thread, NULL, &model_step, (void *) &set);
-
-	/* suspend current thread until model_step_thread returns */
-	pthread_join(model_step_thread, NULL);
-
-	/* suspend current thread until xcp_thread returns */
-
-	/* Terminate function for the model */
-	/* This function is called by the SIGTERM detection */
-	killModel();
-
-	/* Get outta here */
-	return 0;
+	model_step_thread = osThreadNew(model_step, NULL, &model_step_thread_attributes);
+	osKernelStart();
+	/* should never get here */
 }
 
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Configure the main internal regulator output voltage
+  */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 12;
+  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM14 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == TIM14)
+  {
+    HAL_IncTick();
+  }
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  __disable_irq();
+  while (1)
+  {
+  }
+}
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+}
+#endif /* USE_FULL_ASSERT */
 
 
 %endfunction

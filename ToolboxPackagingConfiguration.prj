@@ -101,26 +101,31 @@ slprj
       <item>aarch64-none-linux-gnu-gcc</item>
       <item>Zig-x86</item>
       <item>Zig-aarch64</item>
+      <item>arm-none-eabi-gcc</item>
     </param.additional.sw.names>
     <param.additional.sw.licenses>
       <item>https://developer.arm.com/GetEula?Id=46b4985b-3267-433c-be90-bbfe1921a602</item>
       <item>https://github.com/ziglang/zig/blob/master/LICENSE</item>
       <item>https://github.com/ziglang/zig/blob/master/LICENSE</item>
+      <item>https://developer.arm.com/GetEula?Id=15d9660a-2059-4985-85e9-c01cdd4b1ba0</item>
     </param.additional.sw.licenses>
     <param.additional.sw.win.url>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/gcc-arm-9.2-2019.12-mingw-w64-i686-aarch64-none-linux-gnu.zip</item>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.4.3/zig-x86_64-windows-0.14.1.zip</item>
       <item />
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.5.0/arm-gnu-toolchain-14.3.rel1-mingw-w64-x86_64-arm-none-eabi.zip</item>
     </param.additional.sw.win.url>
     <param.additional.sw.mac.url>
       <item />
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.4.3/zig-x86_64-macos-0.14.1.zip</item>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.4.3/zig-aarch64-macos-0.14.1.zip</item>
+      <item />
     </param.additional.sw.mac.url>
     <param.additional.sw.linux.url>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.0.0/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.zip</item>
       <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.4.3/zig-x86_64-linux-0.14.1.zip</item>
       <item />
+      <item>https://github.com/GOcontroll/GOcontroll-Simulink/releases/download/V4.5.0/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi.zip</item>
     </param.additional.sw.linux.url>
     <unset>
       <param.authnamewatermark />
@@ -150,6 +155,7 @@ slprj
     <fileset.rootfiles>
       <file>${PROJECT_ROOT}/+GOcontroll_Simulink_2023b_dev</file>
       <file>${PROJECT_ROOT}/GOcontroll.png</file>
+      <file>${PROJECT_ROOT}/GOcontroll_Simulink_version.m</file>
       <file>${PROJECT_ROOT}/LICENSE</file>
       <file>${PROJECT_ROOT}/README.md</file>
       <file>${PROJECT_ROOT}/blockset</file>

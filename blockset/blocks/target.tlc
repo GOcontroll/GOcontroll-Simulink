@@ -1,8 +1,0 @@
-%function target()
-	%if EXISTS(::gocontroll_platform)
-		%return ::gocontroll_platform
-	%else
-		%assign modelname = CompiledModel.Name
-		%assing ::gocontroll_platform = FEVAL("get_param", modelname , "tlcLinuxTarget")
-		%return ::gocontroll_platform
-%endfunction
