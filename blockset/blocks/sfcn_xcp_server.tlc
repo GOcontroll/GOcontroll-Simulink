@@ -39,7 +39,7 @@
 %% Runs once for the block type, no matter how many blocks are present in the model
 
 %function BlockTypeSetup(block, system) void
-	%assign platform = %<get_platform()>
+	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
 		%<LibAddToCommonIncludes("pthread.h")>
 	%endif
@@ -52,11 +52,18 @@
 %% Runs once for every instance of the block in the model
 
 %function BlockInstanceSetup(block, system) void
-	%assign platform = %<get_platform()>
+	%assign platform = get_platform()
 	%if EXISTS(::xcp_socket) == 0
 		%if ISEQUAL(platform, "i.MX8")
 			%openfile tmpBufDecls
 				pthread_t xcp_thread;
+				%if ISEQUAL(%<block.RTWdata.server_type>, 3)
+					_XCP_CAN_Args xcp_args = {
+						"can%<block.RTWdata.can_if>",
+						%<block.RTWdata.send_id>,
+						%<block.RTWdata.receive_id>,
+					};
+				%endif
 			%closefile tmpBufDecls
 			%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
 		%endif
@@ -72,7 +79,7 @@
 %%      initialize the reconnect_state struct
 
 %function Start(block, system) Output
-	%assign platform = %<get_platform()>
+	%assign platform = get_platform()
 	%switch (%<block.RTWdata.server_type>)
 		%case 1
 			%if ISEQUAL(platform, "i.MX8")
@@ -82,6 +89,11 @@
 		%case 2
 			%if ISEQUAL(platform, "i.MX8")
 				pthread_create(&xcp_thread, NULL, &XcpInitialize_udp, NULL);
+			%endif
+			%break
+		%case 3
+			%if ISEQUAL(platform, "i.MX8")
+				pthread_create(&xcp_thread, NULL, &XcpInitialize_can, &xcp_args);
 			%endif
 			%break
 		%default
@@ -108,7 +120,7 @@
 %%      Code generation for signal output
 
 %function Terminate (block, system) Output
-	%assign platform = %<get_platform()>
+	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
 		pthread_cancel(xcp_thread);
 		pthread_join(xcp_thread, NULL);

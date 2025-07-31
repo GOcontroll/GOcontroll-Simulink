@@ -3,6 +3,7 @@
 		%return ::gocontroll_platform
 	%else
 		%assign modelname = CompiledModel.Name
-		%assing ::gocontroll_platform = FEVAL("get_param", modelname , "tlcLinuxTarget")
+		%assign ::gocontroll_platform = FEVAL("get_param", modelname , "tlcLinuxTarget")
 		%return ::gocontroll_platform
+	%endif
 %endfunction
