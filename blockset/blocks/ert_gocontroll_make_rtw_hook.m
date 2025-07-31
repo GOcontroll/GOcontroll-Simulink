@@ -303,23 +303,27 @@ switch hookMethod
 			LinuxTarget = get_param(modelName,'tlcLinuxTarget');
 			
 			xcp_server = find_system(modelName, 'RegExp', 'on', 'MaskType', 'XCP Server');
-			
+	
 			if (isscalar(xcp_server)) %check if there is only one, more than one will never reach this point
 				medium = get_param(xcp_server{1}, 'server_type');
+				can_send_id = eval(get_param(xcp_server{1}, 'send_id'));
+				can_receive_id = eval(get_param(xcp_server{1}, 'receive_id'));
 			else
 				medium = 'TCP'; % no XCP server present, just generate an a2l for TCP
+				can_send_id = hex2dec('666');
+				can_receive_id = hex2dec('665');
 			end
-			
+
 			if isfile(fullfile(pwd, '..', [modelName '.map']))
 				MAPfile = fullfile(pwd, '..', [modelName '.map']);
-				create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile, medium);
-				
+				create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, MAPfile, medium, can_send_id, can_receive_id);
+			
 				% Moving the map file away
 				movefile(['..' filesep modelName '.map'],[modelName '.map']);
 			else
-				create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '', medium);
+				create_asap2(modelName,XCPport, XCPaddress, stationID, LinuxTarget, '', medium, can_send_id, can_receive_id);
 			end
-			
+		
 			%new versions of matlab sometimes put 2 spaces after /begin, this messes up HANtune (for now?)
 			%fix the a2l so characteristics get properly loaded
 			a2lfile_str = fileread([modelName '.a2l']);
@@ -327,14 +331,13 @@ switch hookMethod
 			a2lfile = fopen([modelName '.a2l'], 'w');
 			fwrite(a2lfile, a2lfile_str);
 			fclose(a2lfile);
-			
+		
 			movefile([modelName '.a2l'],[model_path filesep modelName '.a2l']);
 			try
 				movefile(['..' filesep modelName '.elf'],[model_path filesep modelName '.elf']);
 			catch err
 				if (~strcmp(err.identifier, 'MATLAB:MOVEFILE:SourceAndDestinationSame'))
 					rethrow(err)
-				end
 			end
 		end
 
