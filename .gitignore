@@ -9,6 +9,7 @@
 *.slx.autosave
 /*.mdl
 /*.m
+!GOcontroll_Simulink_version.m
 *.zip
 crank_files/
 *.slxc
