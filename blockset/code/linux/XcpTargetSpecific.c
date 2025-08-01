@@ -609,7 +609,7 @@ uint8_t XcpEthSend(uint8_t *data) {
 	/* Update the counter value for each new packet */
 	CTR++;
 	/* Copy data to packet */
-	memcpy(dtoPacket.s.data, data + 1, dtoPacket.s.len);
+	memcpy(dtoPacket.s.data, data + 1, data[0]);
 
 	addr_HT.sin_port =
 		htons(50000);  // TODO port now hardcoded: should be setting in Simulink
