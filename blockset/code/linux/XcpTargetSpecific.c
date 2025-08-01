@@ -454,13 +454,12 @@ void *XcpInitialize_can(void *aArgument) {
 int ServeEthXcpConnection(void) {
 	tMacNetXcpCtoPacket ctoPacket;
 	ssize_t readCnt;
-	uint8_t buf[32]; /* Buffer to hold XCP message */
 
 	/* Try to read bytes from buffer and keep reading until empty */
 	do {
 		/* Check for received messages */
 		readCnt = recvfrom(
-			XcpConnection_fd, (void *)buf, 4, MSG_PEEK,
+			XcpConnection_fd, (void *)&ctoPacket, 4, MSG_PEEK,
 			(struct sockaddr *restrict)&addr_HT,
 			(socklen_t *restrict)&slen); /* Receive first 4 bytes to be able to
 											read the XCP counter and length*/
@@ -482,7 +481,6 @@ int ServeEthXcpConnection(void) {
 			/* Copy the first 4 bytes into the CTO packet buffer, which is the
 			 * XCP header with the length of the counter.
 			 */
-			memcpy(ctoPacket.raw, (void *)buf, 4);
 
 			/* Now we have the length we can read the rest of the message */
 			readCnt = recvfrom(
