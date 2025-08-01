@@ -1305,7 +1305,8 @@ static _entry *XcpGetOdtEntry(uint16_t daqList, uint8_t odtValue,
 ** \return    none.
 ****************************************************************************************/
 void XcpDataTransmission(void) {
-	uint8_t data[2048];
+	// one byte extra for length,
+	uint8_t data[1 + XCPMAXDTOLENGTH];
 
 	if (xcpCommunication.status == 0x40) {
 		xcpCommunication.active = 1;
