@@ -603,12 +603,12 @@ uint8_t XcpEthSend(uint8_t *data) {
 	ssize_t res;
 
 	/* Set counter and length in DTO packet */
-	dtoPacket.s.len = (uint16_t)*data;	// First byte holds the data length
+	dtoPacket.s.len = (uint16_t)data[0];  // First byte holds the data length
 	dtoPacket.s.counter = CTR;
 	/* Update the counter value for each new packet */
 	CTR++;
 	/* Copy data to packet */
-	memcpy(dtoPacket.s.data, data + 1, data[0]);
+	memcpy(dtoPacket.s.data, data + 1, dtoPacket.s.len);
 
 	addr_HT.sin_port =
 		htons(50000);  // TODO port now hardcoded: should be setting in Simulink
