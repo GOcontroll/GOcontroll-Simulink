@@ -394,7 +394,6 @@ void *XcpInitialize_can(void *aArgument) {
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 	int result;
-	timeout_active = true;
 
 #if defined(XCP_ENABLE_DAQ_TIMESTAMP)
 	/* reset the timestamp */
