@@ -98,9 +98,6 @@
 /****************************************************************************************
  * Macro definitions
  ****************************************************************************************/
-#define XCPUSB 1
-#define XCPETH 2
-#define XCPCAN 3
 
 #define XCPMAXDTOLENGTH 255
 #define XCPMAXCTOLENGTH 255
@@ -546,7 +543,7 @@ int ServeEthXcpConnection(void) {
 int ServeCANXcpConnection(void) {
 	struct can_frame sc_frame;
 	int ret;
-	int dlc;
+
 	while ((ret = recv(XcpConnection_fd, &sc_frame, sizeof(sc_frame), 0)) > 0) {
 		if (ret < sizeof(sc_frame)) {
 			continue;
@@ -560,7 +557,6 @@ int ServeCANXcpConnection(void) {
 		printf("]\n");
 #endif
 
-		dlc = sc_frame.can_dlc;
 		XcpCommunicationHandling(sc_frame.data, sc_frame.can_dlc, dataToSend);
 	}
 #if DEBUG == 1

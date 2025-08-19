@@ -43,7 +43,10 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%<mem_diag_start()>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<mem_diag_start()>
+	%endif
 %endfunction
 
 %% Function: Output ==========================================================
@@ -52,12 +55,15 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	MemoryDiagnostic_WriteToMemory(%<block.RTWdata.diagType> ,%<LibBlockInputSignal(0, "", "", 0)>,"",0,DIAGNOSTICSTART);
-	%foreach count = %<block.ParamSettings.num_signals>
-		%assign signal = block.ParamSettings.signal%<count>
-		MemoryDiagnostic_WriteToMemory(0,0,"%<signal>",%<LibBlockInputSignal(1, "", "", 0)>,DIAGNOSTICFREEZE);
-	%endforeach
-	MemoryDiagnostic_WriteToMemory(0,0,"",0,DIAGNOSTICSTOP);
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		MemoryDiagnostic_WriteToMemory(%<block.RTWdata.diagType> ,%<LibBlockInputSignal(0, "", "", 0)>,"",0,DIAGNOSTICSTART);
+		%foreach count = %<block.ParamSettings.num_signals>
+			%assign signal = block.ParamSettings.signal%<count>
+			MemoryDiagnostic_WriteToMemory(0,0,"%<signal>",%<LibBlockInputSignal(1, "", "", 0)>,DIAGNOSTICFREEZE);
+		%endforeach
+		MemoryDiagnostic_WriteToMemory(0,0,"",0,DIAGNOSTICSTOP);
+	%endif
 %endfunction
 
 

@@ -29,12 +29,8 @@
 %% endinternal
 %%
 %%***************************************************************************************
+
 %implements  sfcn_license_key "C"
-
-
-%% add required include files
-%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
-
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -42,6 +38,10 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
+	%endif
 %endfunction
 
 
@@ -51,19 +51,22 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%assign keylen = %<block.ParamSettings.key_len>
-	%assign key = ParamSettings.key[0]
-	%assign keyOut = "{"
-	%foreach k = keylen - 1
-		%assign tmp = key[k]
-		%assign keyOut = keyOut + "%<tmp>,"
-	%endforeach
-	%assign tmp = key[keylen -1]
-	%assign keyOut = keyOut + "%<tmp>}"
-	{
-		uint8_t key[] = %<keyOut>;
-		GocontrollProcessorboard_VerifyLicense(key, %<block.ParamSettings.iv>, %<block.ParamSettings.license>, %<block.ParamSettings.check_file>, sizeof(key)); /* Verify license key */
-	}
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%assign keylen = %<block.ParamSettings.key_len>
+		%assign key = ParamSettings.key[0]
+		%assign keyOut = "{"
+		%foreach k = keylen - 1
+			%assign tmp = key[k]
+			%assign keyOut = keyOut + "%<tmp>,"
+		%endforeach
+		%assign tmp = key[keylen -1]
+		%assign keyOut = keyOut + "%<tmp>}"
+		{
+			uint8_t key[] = %<keyOut>;
+			GocontrollProcessorboard_VerifyLicense(key, %<block.ParamSettings.iv>, %<block.ParamSettings.license>, %<block.ParamSettings.check_file>, sizeof(key)); /* Verify license key */
+		}
+	%endif
 %endfunction
 
 %%******************************* end of sfcn_license_key.tlc ******************************

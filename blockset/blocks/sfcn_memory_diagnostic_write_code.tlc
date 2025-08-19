@@ -34,7 +34,10 @@
 
 %% add required include files
 %function BlockTypeSetup(block, system) void
-	%<mem_diag_type_setup()>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<mem_diag_type_setup()>
+	%endif
 %endfunction
 
 %% Function: Start ==========================================================
@@ -43,7 +46,10 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%<mem_diag_start()>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<mem_diag_start()>
+	%endif
 %endfunction
 
 %% Function: Output ==========================================================
@@ -52,10 +58,11 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-  %%
-	MemoryDiagnostic_WriteToMemory(%<block.RTWdata.spn>,%<block.RTWdata.fmi>,1,"",0,DIAGNOSTICSTART);
-	MemoryDiagnostic_WriteToMemory(0,0,0,"",0,DIAGNOSTICSTOP);
-  %%
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		MemoryDiagnostic_WriteToMemory(%<block.RTWdata.spn>,%<block.RTWdata.fmi>,1,"",0,DIAGNOSTICSTART);
+		MemoryDiagnostic_WriteToMemory(0,0,0,"",0,DIAGNOSTICSTOP);
+	%endif
 %endfunction
 
 

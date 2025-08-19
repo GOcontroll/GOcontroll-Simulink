@@ -64,17 +64,20 @@
 ** \return    pointer to the return argument
 **
 ****************************************************************************************/
-static void model_step(void *arg)
+void model_step(void *arg)
 {
+	uint32_t tick = osKernelGetTickCount();
 	for (;;) {
-	//serveCANconnection();
-	/* Run model code */
-	%<modelName>_step();
-	#if(DEBUG == 1)
-		fprintf(stderr,"Model step\n");
-	#endif
-	osDelay(1); //sampletime?
+		tick += 1000; //sampletime?
+		//serveCANconnection();
+		/* Run model code */
+		%<modelName>_step();
+		#if(DEBUG == 1)
+			fprintf(stderr,"Model step\n");
+		#endif
+		osDelayUntil(tick);
 	}
+	osThreadExit();
 }
 
 /****************************************************************************************
@@ -84,7 +87,7 @@ static void model_step(void *arg)
 ** \return    int
 **
 ****************************************************************************************/
-int_T main(void){
+void main(void){
 	HAL_Init();
 
 	/* Configure the system clock */
@@ -92,8 +95,6 @@ int_T main(void){
 
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
-	MX_CAN1_Init();
-	MX_CAN2_Init();
 	MX_RTC_Init();
 	MX_SPI1_Init();
 	MX_USART3_UART_Init();

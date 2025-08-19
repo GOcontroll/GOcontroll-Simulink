@@ -33,6 +33,7 @@
 %implements sfcn_xcp_server "C"
 
 %include "go_platform.tlc"
+%include "sfcn_xcp_server_linux.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -41,7 +42,7 @@
 %function BlockTypeSetup(block, system) void
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
-		%<LibAddToCommonIncludes("pthread.h")>
+		XcpBlockTypeSetup_linux(block, system)
 	%endif
 	%<LibAddToCommonIncludes("XcpStack.h")>
 	%<LibAddToCommonIncludes("XcpTargetSpecific.h")>
@@ -53,24 +54,10 @@
 
 %function BlockInstanceSetup(block, system) void
 	%assign platform = get_platform()
-	%if EXISTS(::xcp_socket) == 0
-		%if ISEQUAL(platform, "i.MX8")
-			%openfile tmpBufDecls
-				pthread_t xcp_thread;
-				%if ISEQUAL(%<block.RTWdata.server_type>, 3)
-					_XCP_CAN_Args xcp_args = {
-						"can%<block.RTWdata.can_if>",
-						%<block.RTWdata.send_id>,
-						%<block.RTWdata.receive_id>,
-					};
-				%endif
-			%closefile tmpBufDecls
-			%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
-		%endif
-		%assign ::xcp_socket = 1
-	%else
-		%<LibBlockReportError(block, "Multiple xcp server blocks exist in the model, this is not allowed")>
+	%if ISEQUAL(platform, "i.MX8")
+		XcpBlockInstanceSetup_linux(block, system)
 	%endif
+
 %endfunction
 
 %% Function: Start ==========================================================
@@ -80,25 +67,10 @@
 
 %function Start(block, system) Output
 	%assign platform = get_platform()
-	%switch (%<block.RTWdata.server_type>)
-		%case 1
-			%if ISEQUAL(platform, "i.MX8")
-				pthread_create(&xcp_thread, NULL, &XcpInitialize_tcp, NULL);
-			%endif
-			%break
-		%case 2
-			%if ISEQUAL(platform, "i.MX8")
-				pthread_create(&xcp_thread, NULL, &XcpInitialize_udp, NULL);
-			%endif
-			%break
-		%case 3
-			%if ISEQUAL(platform, "i.MX8")
-				pthread_create(&xcp_thread, NULL, &XcpInitialize_can, &xcp_args);
-			%endif
-			%break
-		%default
-			%<LibBlockReportError(block, "Invalid XCP server type selected")>
-	%endswitch
+	%if ISEQUAL(platform, "i.MX8")
+		XcpStart_linux(block, system)
+	%endif
+
 %endfunction
 
 %% Function: Output ==========================================================
@@ -122,8 +94,6 @@
 %function Terminate (block, system) Output
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
-		pthread_cancel(xcp_thread);
-		pthread_join(xcp_thread, NULL);
+		XcpTerminate_linux
 	%endif
-	XcpStopConnection();
 %endfunction

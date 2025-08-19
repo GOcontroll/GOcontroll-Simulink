@@ -30,11 +30,14 @@
 %%***************************************************************************************
 %implements  sfcn_memory_emulation_read "C"
 
-%include "mem_emu_common.tlc"
+%include "sfcn_memory_emulation_read_linux.tlc"
 
 %% add required include files
 %function BlockTypeSetup(block, system) void
-	%<mem_emu_type_setup()>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<MemEmuReadBlockTypeSetup_linux(block, system)>
+	%endif
 %endfunction
 
 %% Function: Start ==========================================================
@@ -43,34 +46,10 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%<mem_emu_start()>
-	%% Mechanism to create a global declared float which hold value from memory
-
-	%openfile tmpBuf
-	float memorySimulation_%<block.RTWdata.key>;
-	%closefile tmpBuf
-
-	%assign srcFile = LibGetModelDotCFile()
-	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
-
-  	%if %<block.RTWdata.memType> == 1 %% index 1 means eMMC memory 
-		MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
-		/* Ensure the value is loaded before step starts */
-		MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-	%elseif %<block.RTWdata.memType> == 2
-		MemoryEmulation_WriteToMemory("/dev/shm/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
-		/* Ensure the value is loaded before step starts */
-		MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-	%elseif %<block.RTWdata.memType> == 3
-		%% only init the key if the config doesn't exist yet
-		MemoryEmulation_WriteToMemory("/etc/go-simulink/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
-		/* Ensure the value is loaded before step starts */
-		MemoryEmulation_ReadFromMemory("/etc/go-simulink/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-	%else
-		%assign error = "Memory type did not match any valid value: %<block.RTWdata.memType> is not in [1,2,3]"
-		%<LibBlockReportError(block,error)>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<MemEmuReadStart_linux(block, system)>
 	%endif
-	%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
 %endfunction
 
 %% Function: Output ==========================================================
@@ -79,21 +58,9 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	/* Write memory value to output of the block */
-	%if %<block.RTWdata.memRead> == 2
-		%if %<block.RTWdata.memType> == 1 %% index 1 means eMMC memory 
-			MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-		%elseif %<block.RTWdata.memType> == 2
-			MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-		%elseif %<block.RTWdata.memType> == 3
-			MemoryEmulation_ReadFromMemory("/etc/go-simulink/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
-		%else
-			%assign error = "Memory type did not match any valid value: %<block.RTWdata.memType> is not in [1,2,3]"
-			%<LibBlockReportError(block,error)>
-		%endif
-		%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
-	%else
-		%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<MemEmuReadOutputs_linux(block, system)>
 	%endif
 %endfunction
 

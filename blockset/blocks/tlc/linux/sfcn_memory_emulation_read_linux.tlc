@@ -1,0 +1,99 @@
+%%***************************************************************************************
+%% file         sfcn_memory_emulation_read.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%%
+%%***************************************************************************************
+
+%include "mem_emu_common.tlc"
+
+%% add required include files
+%function MemEmuReadBlockTypeSetup_linux(block, system) void
+	%<mem_emu_type_setup()>
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization
+%%
+%function MemEmuReadStart_linux(block, system) Output
+	%<mem_emu_start()>
+	%% Mechanism to create a global declared float which hold value from memory
+
+	%openfile tmpBuf
+	float memorySimulation_%<block.RTWdata.key>;
+	%closefile tmpBuf
+
+	%assign srcFile = LibGetModelDotCFile()
+	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
+
+  	%if %<block.RTWdata.memType> == 1 %% index 1 means eMMC memory 
+		MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
+		/* Ensure the value is loaded before step starts */
+		MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+	%elseif %<block.RTWdata.memType> == 2
+		MemoryEmulation_WriteToMemory("/dev/shm/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
+		/* Ensure the value is loaded before step starts */
+		MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+	%elseif %<block.RTWdata.memType> == 3
+		%% only init the key if the config doesn't exist yet
+		MemoryEmulation_WriteToMemory("/etc/go-simulink/%<block.RTWdata.key>",%<block.RTWdata.init>, NULL);
+		/* Ensure the value is loaded before step starts */
+		MemoryEmulation_ReadFromMemory("/etc/go-simulink/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+	%else
+		%assign error = "Memory type did not match any valid value: %<block.RTWdata.memType> is not in [1,2,3]"
+		%<LibBlockReportError(block,error)>
+	%endif
+	%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
+%endfunction
+
+%% Function: Output ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function MemEmuReadOutputs_linux(block, system) Output
+	/* Write memory value to output of the block */
+	%if %<block.RTWdata.memRead> == 2
+		%if %<block.RTWdata.memType> == 1 %% index 1 means eMMC memory 
+			MemoryEmulation_ReadFromMemory("/usr/mem-sim/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+		%elseif %<block.RTWdata.memType> == 2
+			MemoryEmulation_ReadFromMemory("/dev/shm/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+		%elseif %<block.RTWdata.memType> == 3
+			MemoryEmulation_ReadFromMemory("/etc/go-simulink/%<block.RTWdata.key>", &memorySimulation_%<block.RTWdata.key>);
+		%else
+			%assign error = "Memory type did not match any valid value: %<block.RTWdata.memType> is not in [1,2,3]"
+			%<LibBlockReportError(block,error)>
+		%endif
+		%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
+	%else
+		%<LibBlockOutputSignal(0, "", "", 0)> = memorySimulation_%<block.RTWdata.key>;
+	%endif
+%endfunction
+
+%%******************************* end of sfcn_memory_emulation_read.tlc ***************************

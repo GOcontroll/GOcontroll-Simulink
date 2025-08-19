@@ -30,15 +30,21 @@
 %%***************************************************************************************
 %implements  sfcn_memory_emulation_write "C"
 
-%include "mem_emu_common.tlc"
+%include "sfcn_memory_emulation_write_linux.tlc"
 
 %% add required include files
 %function BlockTypeSetup(block, system) void
-	%<mem_emu_type_setup()>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<MemEmuWriteBlockTypeSetup_linux(block, system)>
+	%endif
 %endfunction
 
 %function Start(block, system) Output
-	%<mem_emu_start()>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<MemEmuWriteStart_linux(block, system)>
+	%endif
 %endfunction
 
 %% Function: Output ==========================================================
@@ -47,14 +53,10 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	{
-		static float oldValue%<block.RTWdata.key> = (float) 0xffffffff;
-		%if %<block.RTWdata.memType> == 1  %% index 1 means eMMC memory
-			MemoryEmulation_WriteToMemory("/usr/mem-sim/%<block.RTWdata.key>",%<LibBlockInputSignal(0, "", "", 0)>, &oldValue%<block.RTWdata.key>);
-		%else
-			MemoryEmulation_WriteToMemory("/dev/shm/%<block.RTWdata.key>",%<LibBlockInputSignal(0, "", "", 0)>, &oldValue%<block.RTWdata.key>);
-		%endif
-	}
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<MemEmuWriteOutputs_linux(block, system)>
+	%endif
 %endfunction
 
 %%******************************* end of sfcn_memory_emulation_write.tlc ***************************

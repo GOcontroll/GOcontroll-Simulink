@@ -39,15 +39,21 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-	%<TcpCommonBlockTypeSetup()>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<TcpCommonBlockTypeSetup()>
+	%endif
 %endfunction
 
 %function Start(block, system) Output
-%assign socket_id = block.RTWdata.socket_id
-	%assign socket = "::tcp_%<socket_id>"	
-	%if EXISTS(%<socket>) == 0
-		%assign error = "No TCP Configuration block present with the socket ID %<socket_id>"
-		%<LibBlockReportError(block, error)>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%assign socket_id = block.RTWdata.socket_id
+		%assign socket = "::tcp_%<socket_id>"	
+		%if EXISTS(%<socket>) == 0
+			%assign error = "No TCP Configuration block present with the socket ID %<socket_id>"
+			%<LibBlockReportError(block, error)>
+		%endif
 	%endif
 %endfunction
 
@@ -58,25 +64,28 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	%assign send_buffer = LibBlockInputSignalAddr(0, "", "", 0)
-	%assign send_buffer_size = LibBlockInputSignalWidth(0)
-	%assign socket_mode = block.RTWdata.socket_mode
-	%assign socket_id = block.RTWdata.socket_id
-	%if %<socket_mode> == 1
-		%assign socket = "tcp_socket_%<socket_id>_remote"
-	%else
-		%assign socket = "tcp_socket_%<socket_id>"
-	%endif
-	%assign socket_state = "tcp_socket_%<socket_id>_state"
-	{
-		if (%<socket_state> == connected){
-			int res;
-			res = send(%<socket>, %<send_buffer>, %<send_buffer_size>, MSG_DONTWAIT | MSG_NOSIGNAL);
-			if (res < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) { %%unexpected error, close socket
-				%<socket_state> = not_connected;
-				fprintf(stderr, "send error: %s\n", strerror(errno));
-				close(%<socket>);
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%assign send_buffer = LibBlockInputSignalAddr(0, "", "", 0)
+		%assign send_buffer_size = LibBlockInputSignalWidth(0)
+		%assign socket_mode = block.RTWdata.socket_mode
+		%assign socket_id = block.RTWdata.socket_id
+		%if %<socket_mode> == 1
+			%assign socket = "tcp_socket_%<socket_id>_remote"
+		%else
+			%assign socket = "tcp_socket_%<socket_id>"
+		%endif
+		%assign socket_state = "tcp_socket_%<socket_id>_state"
+		{
+			if (%<socket_state> == connected){
+				int res;
+				res = send(%<socket>, %<send_buffer>, %<send_buffer_size>, MSG_DONTWAIT | MSG_NOSIGNAL);
+				if (res < 0 && !(errno == EAGAIN || errno == EWOULDBLOCK)) { %%unexpected error, close socket
+					%<socket_state> = not_connected;
+					fprintf(stderr, "send error: %s\n", strerror(errno));
+					close(%<socket>);
+				}
 			}
 		}
-	}
+	%endif
 %endfunction

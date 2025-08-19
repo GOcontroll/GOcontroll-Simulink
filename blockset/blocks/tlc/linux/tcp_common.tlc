@@ -1,0 +1,13 @@
+%function TcpCommonBlockTypeSetup() void
+	%<LibAddToCommonIncludes("sys/types.h")>
+	%<LibAddToCommonIncludes("sys/socket.h")>
+	%<LibAddToCommonIncludes("sys/select.h")>
+	%<LibAddToCommonIncludes("sys/time.h")>
+	%<LibAddToCommonIncludes("stdio.h")>
+	%<LibAddToCommonIncludes("errno.h")>
+	%<LibAddToCommonIncludes("string.h")>
+	%<LibAddToCommonIncludes("netinet/tcp.h")>
+	%<LibAddToCommonIncludes("netinet/in.h")>
+	%<LibAddToCommonIncludes("unistd.h")>
+	%<LibAddToCommonIncludes("arpa/inet.h")>
+%endfunction

@@ -29,10 +29,8 @@
 %% endinternal
 %%
 %%***************************************************************************************
-%implements  sfcn_gocontroll_status_led "C"
 
-%% add required include files
-%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
+%implements  sfcn_gocontroll_status_led "C"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -40,7 +38,10 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
+	%endif
 %endfunction
 
 %% Function: Start ==========================================================
@@ -49,21 +50,24 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%if EXISTS(::processorboard_hw) == 0
-		%assign ::processorboard_hw = 1
-		%openfile tmpBuf
-		GocontrollProcessorboard_GetHardwareVersion();
-		%closefile tmpBuf
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%if EXISTS(::processorboard_hw) == 0
+			%assign ::processorboard_hw = 1
+			%openfile tmpBuf
+			GocontrollProcessorboard_GetHardwareVersion();
+			%closefile tmpBuf
 
-		%<LibMdlStartCustomCode(tmpBuf, "execution")>
-	%endif
-	%if EXISTS(::led_init) == 0
-		%assign ::led_init = 1
-		%openfile tmpBuf
-		GocontrollProcessorboard_LedInitialize();
-		%closefile tmpBuf
+			%<LibMdlStartCustomCode(tmpBuf, "execution")>
+		%endif
+		%if EXISTS(::led_init) == 0
+			%assign ::led_init = 1
+			%openfile tmpBuf
+			GocontrollProcessorboard_LedInitialize();
+			%closefile tmpBuf
 
-		%<LibMdlStartCustomCode(tmpBuf, "execution")>
+			%<LibMdlStartCustomCode(tmpBuf, "execution")>
+		%endif
 	%endif
 %endfunction
 
@@ -73,10 +77,10 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-  %%
-  /* Control LED according to the given settings */
-  GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
-  %%
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
+	%endif
 %endfunction
 
 
@@ -86,10 +90,10 @@
 %%      Code generation for signal output
 %%
 %function Terminate (block, system) Output
-  %%
-  /* If program receives the SIGTERM command, the leds will be switched off */
-  GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, 0);
-  %%
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, 0);
+	%endif
 %endfunction
 
 %%******************************* end of sfcn_gocontroll_status_led.tlc ********************
