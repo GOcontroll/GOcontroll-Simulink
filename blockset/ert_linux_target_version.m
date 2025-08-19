@@ -30,12 +30,15 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.5.1-rc2';
+version = 'GOcontroll V4.6.0-rc3';
 
-%% V4.5.1 Update -:
+%% V4.6.0 Update -:
 % Fix several potential segfaults in cmex functions
 % Add force option to the compile_gocontroll_mex function
 % Make the GOcontrollSimulinkStart function path independent
+% Start supporting referenced models
+% Remove the immutable project template, the new recommended way
+% will be to use git submodules/project references
 
 %% V4.5.0 Update 7-7-2025:
 % Added new diagnostic helpers
