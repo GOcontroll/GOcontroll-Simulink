@@ -51,12 +51,8 @@ This makes sure there will never be a sudden breaking change that has to be deal
 
 ### Locked version
 1. The add-on must be installed through the addon store to install the compilers and such
-2. In the 'HOME' tab of Matlab, from the 'New' dropdown menu, select 'Project -> From Simulink Template'
-3. Create the project from the ' GOcontroll-Simulink-Project' template where you want it
-4. In the 'HOME' tab of Matlab, from the 'New' dropdown menu, select 'Simulink Model'
-5. Make a new Simulink model with the 'GOcontroll Linux' template
-6. Save the model in the root of the project folder from before and make sure this folder is also opened in matlab.
-7. Build
+2. If you are using git as your version control, init your git project and add this repo as a submodule, you can then check out any version of the blockset with git/update it at will.
+3. Create a Matlab project for your project then in the project tab use the 'References' menu to add a reference to 'GOcontrollSimulink2023b.prj' in the cloned blockset. When working in a team it is recommended to use a relative reference so it will also work on their system.
 
 ## Adding a project specific library
 
@@ -90,9 +86,6 @@ Never commit +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx, in theo
 This file will get automatically updated to your local situation everytime the Matlab project is opened.  
 To force this run `git update-index --skip-worktree +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx` in the repository.  
 This will make sure this file doesn't show up in `git status` for example.
-
-GOcontrollSimulinkProject.sltx should not contain itself or any mex files, [see the guide to updating it](/updating_project_template.md).  
-GOcontroll-Simulink.mltbx should contain GOcontrollSimulinkProject.sltx, but still no mex files.
 
 ## Support
 
