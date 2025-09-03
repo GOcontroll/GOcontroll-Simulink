@@ -1,0 +1,95 @@
+%%***************************************************************************************
+%% file         sfcn_gocontroll_k30_voltage.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%%
+%%***************************************************************************************
+
+%function k30BlockInstanceSetup_linux(block, system) void
+	%<LibAddToCommonIncludes("GocontrollProcessorboardSupply.h")>
+	%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
+	%<LibAddToCommonIncludes("pthread.h")>
+	%if EXISTS(::lowest_adc_sample_time)
+		%if %<block.ParamSettings.sample_time> < %<::lowest_adc_sample_time>
+			%assign ::lowest_adc_sample_time = %<block.ParamSettings.sample_time>
+		%endif
+	%else
+		%assign ::lowest_adc_sample_time = %<block.ParamSettings.sample_time>
+	%endif
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization
+%%
+%function k30Start_linux(block, system) Output
+	%if EXISTS("adc_thread") == 0
+		%assign ::adc_thread = 1
+
+		%if EXISTS(::processorboard_hw) == 0
+			%assign ::processorboard_hw = 1
+			%openfile tmpBuf
+			GocontrollProcessorboard_GetHardwareVersion();
+			%closefile tmpBuf
+
+			%<LibMdlStartCustomCode(tmpBuf, "execution")>
+		%endif
+
+		%openfile buff
+		pthread_t adc_thread;
+		struct  ControllerSupplyThreadArgs adc_thread_args;
+		%closefile buff
+
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", buff)>
+
+		adc_thread_args.sample_time = 0.01;
+		adc_thread_args.thread_run = 1;
+		pthread_create(&adc_thread, NULL, GocontrollProcessorboardSupply_ReadAdcThread, &adc_thread_args);
+	%endif
+%endfunction
+
+%% Function: Outputs ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function k30Outputs_linux(block, system) Output
+	/* Get the battery voltage in mV */
+	GocontrollProcessorboardSupply_Voltage(1,%<LibBlockOutputSignalAddr(0, "", "", 0)>);
+%endfunction
+
+%function k30Terminate_linux(block, system) Output
+	%% Kill the adc thread
+	%if EXISTS("terminate_adc_thread") == 0
+		%assign ::terminate_adc_thread = 1
+		adc_thread_args.thread_run = 0;
+		pthread_join(adc_thread, NULL);
+	%endif
+%endfunction
+
+%%******************************* end of sfcn_gocontroll_k30_voltage.tlc ***************************

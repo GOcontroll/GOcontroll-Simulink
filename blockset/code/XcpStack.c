@@ -723,7 +723,7 @@ static void XcpDownload(uint8_t *dataReceived, uint8_t *dataToSend) {
 	printf("XCP \n");
 #endif
 
-	XcpWriteData(&dataReceived[2], dataReceived[1], xcpWrite.adress);
+	XcpWriteData(&dataReceived[2], dataReceived[1], (void *)xcpWrite.adress);
 	XcpPositiveResponse(dataToSend);
 }
 
@@ -1069,7 +1069,9 @@ static void XcpAllocDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
 #endif
 		daq = malloc(*(uint16_t *)&dataReceived[2] * sizeof(_daq));
 		if (daq == NULL) {
+#if DEBUGINFORMATION == 1
 			fprintf(stderr, " could not allocate daq\n");
+#endif
 			XcpNegativeResponse(dataToSend, XCPERRORMEMORYOVERFLOW);
 			return;
 		}
@@ -1129,7 +1131,9 @@ static void XcpAllocOdt(uint8_t *dataReceived, uint8_t *dataToSend) {
 		malloc(dataReceived[4] *
 			   sizeof(_odt));  // Dynamically assign memory to number of odt's
 	if (daq[*(uint16_t *)&dataReceived[2]].odt == NULL) {
+#if DEBUGINFORMATION == 1
 		fprintf(stderr, " could not allocate odt\n");
+#endif
 		XcpNegativeResponse(dataToSend, XCPERRORMEMORYOVERFLOW);
 		return;
 	}
@@ -1211,7 +1215,9 @@ static void XcpAllocOdtEntry(uint8_t *dataReceived, uint8_t *dataToSend) {
 	daq[*(uint16_t *)&dataReceived[2]].odt[dataReceived[4]].entry =
 		malloc(dataReceived[5] * sizeof(_entry));
 	if (daq[*(uint16_t *)&dataReceived[2]].odt[dataReceived[4]].entry == NULL) {
+#if DEBUGINFORMATION == 1
 		fprintf(stderr, " could not allocate odt entry\n");
+#endif
 		XcpNegativeResponse(dataToSend, XCPERRORMEMORYOVERFLOW);
 		return;
 	}
@@ -1420,9 +1426,8 @@ static void XcpStopDataTransmission(void) {
 ** \return    none.
 ****************************************************************************************/
 static void XcpCalculateChecksum(uint8_t *dataToSend) {
-	if (xcpCommunication.checksum ==
-		0)	// if no checksum is required. exit function directly.
-	{
+	/* if no checksum is required. exit function directly. */
+	if (xcpCommunication.checksum == 0) {
 		return;
 	}
 

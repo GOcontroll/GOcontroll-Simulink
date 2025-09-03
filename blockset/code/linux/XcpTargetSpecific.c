@@ -729,12 +729,12 @@ void XcpStopConnection(void) {
 #endif
 }
 
-/************************************************************************************/ /**
-																						** \brief     This function executes a specific user command.
-																						** \param	  A pointer to the data array that holds the data that was received
-																						** \return    none.
-																						**
-																						****************************************************************************************/
+/**************************************************************************************
+ ** \brief     This function executes a specific user command.
+ ** \param	  A pointer to the data array that holds the data that was received
+ ** \return    none.
+ **
+ ****************************************************************************************/
 uint8_t XcpUserCmd(uint8_t *dataReceived) {
 	switch (dataReceived[1]) {
 		case 0x10:

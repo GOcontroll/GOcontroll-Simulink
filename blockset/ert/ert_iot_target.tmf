@@ -25,10 +25,10 @@
 #|
 #|***************************************************************************************
 
-
 #|---------------------------------------------------------------------------------------
 #| Macros read by make_rtw
 #|---------------------------------------------------------------------------------------
+
 # The following macros are read by the Real-Time Workshop build procedure:
 #
 #  HOST            - What platform this template makefile is targeted for
@@ -48,19 +48,20 @@ else ifeq ($(COMPUTER), PCWIN64) # Windows
 MAKECMD                         = "%MATLAB%\bin\|>ARCH<|\gmake"
 COMPILER_TOOL_CHAIN             = default
 SHELL =
-ECHO 							= @echo
+ECHO                            = @echo
 else # Mac
 MAKECMD                         = "|>MATLAB_BIN<|/|>ARCH<|/gmake"
 SHELL                           = /bin/zsh
 ECHO =
 endif
 
-SYS_TARGET_FILE                 = ert_gocontroll.tlc
+SYS_TARGET_FILE                 = ert_linux.tlc
 BUILD                           = yes
 
 #|---------------------------------------------------------------------------------------
 #| Tokens expanded by make_rtw
 #|---------------------------------------------------------------------------------------
+
 # The following tokens, when wrapped with "|>" and "<|" are expanded by the
 # Real-Time Workshop build procedure.
 #
@@ -147,7 +148,7 @@ BIN_PATH     = $(RELATIVE_PATH_TO_ANCHOR)
 #|---------------------------------------------------------------------------------------|
 #| Compiler binaries                                                                     |
 #|---------------------------------------------------------------------------------------|
-# ARMv8_64
+# cortex m4
 CC = |>CC<|
 AS = |>AS<|
 AR = |>AR<|
@@ -176,7 +177,7 @@ SHARED_INCLUDES = -I$(SHARED_SRC_DIR)
 endif
 
 CC_INCLUDES = -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(ADD_INCLUDES) \
-	$(USER_INCLUDES) $(SHARED_INCLUDES)
+	$(USER_INCLUDES) $(SHARED_INCLUDES) $(MODELREF_INC_PATH)
 
 #|---------------------------------------------------------------------------------------
 #| Tool flags
@@ -219,13 +220,15 @@ LIBS += $(EXT_LIB) $(S_FUNCTIONS_LIB)
 #| Source files
 #|---------------------------------------------------------------------------------------
 
-ADD_SRCS = ert_main.c 
-
 SRCS  = $(MODULES) $(ADD_SRCS) $(S_FUNCTIONS)
 
-SRCS += $(MODEL).$(TARGET_LANG_EXT) $(EXT_SRC)
-
 SRC_DEP =
+
+ifeq ($(MODELREF_TARGET_TYPE), NONE)
+  #Topmodel for RTW
+  ADD_SRCS = ert_main.c 
+  SRCS += $(MODEL).$(TARGET_LANG_EXT) $(EXT_SRC)
+endif
 
 USER_SRCS =
 
@@ -246,6 +249,9 @@ SHARED_OBJS = $(addsuffix .obj, $(basename $(SHARED_SRCS)))
 #|---------------------------------------------------------------------------------------
 #| Build rules
 #|---------------------------------------------------------------------------------------
+# Separate set of build rules to accomodate for referenced models
+ifeq ($(MODELREF_TARGET_TYPE), NONE)
+#Topmodel for RTW
 $(PRODUCT): $(BIN_PATH)/$(MODEL_NAME).elf
 	@$(OD) $(OD_FLAGS) $< > $(BIN_PATH)/$(MODEL_NAME).map
 	$(ECHO) ### Created Map file: $(MODEL_NAME).map
@@ -261,6 +267,11 @@ $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(
 	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS)  -Wl,--end-group\
 		-o $@ $(LINKER_FLAGS)
 	$(ECHO) ### Created $(MODEL_NAME).elf
+else
+$(MODELLIB) : $(OBJS) $(SHARED_LIB) $(SRC_DEP) $(LIBS) $(MODELREF_LINK_LIBS)
+	$(AR) ruvs $(MODELLIB) $(LINK_OBJS)
+	$(ECHO) ### Created $(MODELLIB)
+endif
 
 %.obj : %.c
 	$(ECHO) ### Compiling $(notdir $<) -o $(notdir $@)

@@ -1,0 +1,33 @@
+%% GOcontroll 2024 http://www.gocontroll.com All right reserved
+%% File : sfcn_can_config.tlc
+%% Brief : tlc file for generating code to setup the CAN interfaces on the moduline iot
+
+%implements sfcn_can_config "C"
+
+%addincludepath "./iot"
+%include "go_platform.tlc"
+%include "sfcn_can_config_iot.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "IOT")
+		%<CANConfigBlockTypeSetup_iot(block, system)>
+	%endif
+%endfunction
+
+%% Function: BlockInstanceSetup ================================================
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "IOT")
+		%<CANConfigBlockInstanceSetup_iot(block, system)>
+	%endif
+%endfunction
+
+%% Function: Start =============================================================
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "IOT")
+		%<CANConfigStart_iot(block, system)>
+	%endif
+%endfunction

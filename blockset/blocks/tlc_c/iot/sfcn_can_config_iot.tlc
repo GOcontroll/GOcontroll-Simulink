@@ -1,0 +1,23 @@
+%% GOcontroll 2024 http://www.gocontroll.com All right reserved
+%% File : sfcn_can_config_iot.tlc
+%% Brief : tlc file for generating code to setup the CAN interfaces on the moduline iot
+
+%include "can_common_iot.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function CANConfigBlockTypeSetup_iot(block, system) void
+	%<CANCommonBlockTypeSetup()>
+%endfunction
+
+%% Function: BlockInstanceSetup ================================================
+%function CANConfigBlockInstanceSetup_iot(block, system) void
+	%assign canBus = block.RTWdata.canBus
+	%<CreateCanSocket(canBus)>
+%endfunction
+
+%% Function: Start =============================================================
+%function CANConfigStart_iot(block, system) Output
+	%assign canBus = block.RTWdata.canBus
+	%assign baudrate = block.RTWdata.baudrate
+	%<InitCanSocket(canBus, baudrate)>
+%endfunction

@@ -78,8 +78,8 @@
  ****************************************************************************************/
 #include <stdint.h>
 
+#include "CANdriver.h"
 #include "XcpStack.h"
-#include "stdio.h"
 
 /****************************************************************************************
  * XCPSTATICMEMORY
@@ -138,7 +138,7 @@ typedef struct {
  * \param     aArgument pointer to the arguments
  * \return    none
  ****************************************************************************************/
-void InitXcpCan(void *aArgument);
+void InitXcpCan(CAN_HandleTypeDef *hcan, uint32_t canCtoId, uint32_t canDtoId);
 
 /***************************************************************************************
  * \brief This function sends the data from the stack to the specified
@@ -159,7 +159,7 @@ uint8_t XcpSendData(uint8_t *data);
 ** \param	  location The memory location where to read the data from.
 ** \return    none.
 ****************************************************************************************/
-void XcpReadData(uint8_t *data, uint8_t elements, uint32_t *location);
+void XcpReadData(void *data, uint8_t elements, void *location);
 
 /***************************************************************************************
 ** \brief     This function writes the data to a specified memory location. In
@@ -172,7 +172,7 @@ void XcpReadData(uint8_t *data, uint8_t elements, uint32_t *location);
 ** \param	  location The memory location where to write the data to.
 ** \return    none.
 ****************************************************************************************/
-void XcpWriteData(uint8_t *data, uint8_t elements, uint64_t location);
+void XcpWriteData(void *data, uint8_t elements, void *location);
 
 /***************************************************************************************
 ** \brief     Utility function to stop the XCP connection that is made.

@@ -1,0 +1,106 @@
+%%***************************************************************************************
+%% file         sfcn_xcp_server.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%% endinternal
+%%
+%%***************************************************************************************
+
+%implements sfcn_xcp_server "C"
+
+%addincludepath "./linux"
+%addincludepath "./iot"
+%include "go_platform.tlc"
+%include "sfcn_xcp_server_linux.tlc"
+%include "sfcn_xcp_server_iot.tlc"
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Runs once for the block type, no matter how many blocks are present in the model
+
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<XcpBlockTypeSetup_linux(block, system)>
+	%endif
+	%<LibAddToCommonIncludes("XcpStack.h")>
+	%<LibAddToCommonIncludes("XcpTargetSpecific.h")>
+%endfunction
+
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Runs once for every instance of the block in the model
+
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<XcpBlockInstanceSetup_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<XcpBlockInstanceSetup_iot(block, system)>
+	%endif
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      initialize the reconnect_state struct
+
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<XcpStart_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<XcpStart_iot(block, system)>
+	%endif
+%endfunction
+
+%% Function: Output ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+
+%function Outputs(block, system) Output
+	%openfile tmpBuf
+	XcpDataTransmission();
+	%closefile tmpBuf
+
+	%<LibSystemUpdateCustomCode(system, tmpBuf, "trailer")>
+%endfunction
+
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+
+%function Terminate (block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<XcpTerminate_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<XcpTerminate_iot(block, system)>
+	%endif
+%endfunction
