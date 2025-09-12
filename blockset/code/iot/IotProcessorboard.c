@@ -72,10 +72,12 @@ void GocontrollProcessorboard_Delay1ms(uint32_t times) {
 /****************************************************************************************/
 
 int GocontrollProcessorboard_SpiDevice(uint8_t moduleSlot) { return 0; }
+// SPI PE12-13-14 CS1 PE8 CS2 PE9 MOD1_INT PB0 MOD2_INT PB1
 
 /****************************************************************************************/
 
 int GocontrollProcessorboard_ModuleReset(uint8_t moduleSlot) { return 0; }
+// MOD1_RESET PE15 MOD2_RESET PE11
 
 /****************************************************************************************/
 
@@ -87,12 +89,13 @@ int8_t GocontrollProcessorboard_ResetStateModule(uint8_t module,
 /****************************************************************************************/
 
 int GocontrollProcessorboard_LedInitialize(void) { return 0; }
+// LED_R PA0 LED_G PA1 LED_B PA2
 
 /****************************************************************************************/
 
 int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color,
 										uint8_t value) {
-	return 0;
+	return 0;  // LED_R PA0 LED_G PA1 LED_B PA2
 }
 
 /****************************************************************************************/
@@ -109,6 +112,7 @@ int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,
 									 uint8_t id1, uint8_t id2, uint8_t id3,
 									 uint8_t id4, uint8_t module,
 									 uint8_t *dataTx, uint32_t delay) {
+	// HAL_SPI_Transmit()
 	return 0;
 }
 
@@ -119,12 +123,14 @@ int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
 											uint8_t id3, uint8_t id4,
 											uint8_t module, uint8_t *dataTx,
 											uint8_t *dataRx) {
+	// HAL_SPI_TransmitReceive()
 	return 0;
 }
 
 /****************************************************************************************/
 
 int GocontrollProcessorboard_ControllerActive(uint8_t state) { return 0; }
+// PE7
 
 /****************************************************************************************/
 
