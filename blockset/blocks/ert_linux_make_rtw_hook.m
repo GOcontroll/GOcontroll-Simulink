@@ -236,7 +236,7 @@ switch hookMethod
 				addTMFTokens(buildInfo, '|>CC<|', ['"' fullfile(gccpath,'arm-none-eabi-gcc') '"'],'LINK_INFO');
 				addTMFTokens(buildInfo, '|>AS<|', ['"' fullfile(gccpath,'arm-none-eabi-as') '"'],'LINK_INFO');
 				addTMFTokens(buildInfo, '|>AR<|', ['"' fullfile(gccpath,'arm-none-eabi-ar') '"'],'LINK_INFO');
-				addTMFTokens(buildInfo, '|>LD<|', ['"' fullfile(gccpath,'arm-none-eabi--gcc') '"'],'LINK_INFO');
+				addTMFTokens(buildInfo, '|>LD<|', ['"' fullfile(gccpath,'arm-none-eabi-gcc') '"'],'LINK_INFO');
 				addTMFTokens(buildInfo, '|>OC<|', ['"' fullfile(gccpath,'arm-none-eabi-objcopy') '"'],'LINK_INFO');
 				addTMFTokens(buildInfo, '|>OD<|', ['"' fullfile(gccpath,'arm-none-eabi-objdump') '"'],'LINK_INFO');
 				addTMFTokens(buildInfo, '|>SZ<|', ['"' fullfile(gccpath,'arm-none-eabi-size') '"'],'LINK_INFO');
