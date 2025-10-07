@@ -57,8 +57,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define RTC_ALARM_UCO_Pin GPIO_PIN_13
-#define RTC_ALARM_UCO_GPIO_Port GPIOC
 #define NINA_RESET_Pin GPIO_PIN_3
 #define NINA_RESET_GPIO_Port GPIOC
 #define LED_R_Pin GPIO_PIN_0
@@ -81,8 +79,10 @@ void Error_Handler(void);
 #define KL30_ADC_GPIO_Port GPIOC
 #define MOD1_INT_Pin GPIO_PIN_0
 #define MOD1_INT_GPIO_Port GPIOB
+#define MOD1_INT_EXTI_IRQn EXTI0_IRQn
 #define MOD2_INT_Pin GPIO_PIN_1
 #define MOD2_INT_GPIO_Port GPIOB
+#define MOD2_INT_EXTI_IRQn EXTI1_IRQn
 #define KL15_CONTROLLER_UCO_Pin GPIO_PIN_7
 #define KL15_CONTROLLER_UCO_GPIO_Port GPIOE
 #define SPI_MOD1_CS_Pin GPIO_PIN_8
@@ -163,8 +163,10 @@ void Error_Handler(void);
 #define USB_NINA_VBUS_EN_GPIO_Port GPIOD
 #define INT1_ACC_Pin GPIO_PIN_6
 #define INT1_ACC_GPIO_Port GPIOD
+#define INT1_ACC_EXTI_IRQn EXTI9_5_IRQn
 #define INT2_ACC_Pin GPIO_PIN_7
 #define INT2_ACC_GPIO_Port GPIOD
+#define INT2_ACC_EXTI_IRQn EXTI9_5_IRQn
 #define I2C_MOD_SMBA_Pin GPIO_PIN_5
 #define I2C_MOD_SMBA_GPIO_Port GPIOB
 #define I2C_MOD_SCL_Pin GPIO_PIN_6

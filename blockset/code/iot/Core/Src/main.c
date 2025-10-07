@@ -22,7 +22,6 @@
 #include "adc.h"
 #include "can.h"
 #include "i2c.h"
-#include "rtc.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -31,7 +30,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ModulineIot_Processorboard.h"
+#include "ModulineIot_Modules.h"
+#include "ModulineIot_Sim7600G.h"
+#include "ModulineIot_Nina.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -98,12 +100,10 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN1_Init();
   MX_CAN2_Init();
-  MX_RTC_Init();
   MX_SPI1_Init();
   MX_USART3_UART_Init();
   MX_ADC1_Init();
-  MX_I2C1_SMBUS_Init();
-  MX_I2C2_Init();
+  MX_I2C1_Init();
   MX_I2C3_Init();
   MX_SPI3_Init();
   MX_SPI4_Init();
@@ -111,6 +111,8 @@ int main(void)
   MX_USB_OTG_HS_HCD_Init();
   MX_USART1_UART_Init();
   MX_TIM2_Init();
+  MX_I2C2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -182,6 +184,24 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == INT1_ACC_Pin){ModulineIot_Processorboard_AccInterrupt(0);}
+	if(GPIO_Pin == INT2_ACC_Pin){ModulineIot_Processorboard_AccInterrupt(1);}
+	if(GPIO_Pin == MOD1_INT_Pin){ModulineIot_Modules_Interrupt(MODULE1);}
+	if(GPIO_Pin == MOD2_INT_Pin){ModulineIot_Modules_Interrupt(MODULE2);}
+}
+
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	 if (huart->Instance == USART1) {
+		ModulineIot_Nina_UsartCallback(huart);
+	 }
+	 if (huart->Instance == USART3) {
+		ModulineIot_Sim7600G_UsartCallback(huart);
+	 }
+}
 
 /* USER CODE END 4 */
 

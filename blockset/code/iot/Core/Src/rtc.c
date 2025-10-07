@@ -34,8 +34,6 @@ void MX_RTC_Init(void)
 
   /* USER CODE END RTC_Init 0 */
 
-  RTC_TamperTypeDef sTamper = {0};
-
   /* USER CODE BEGIN RTC_Init 1 */
 
   /* USER CODE END RTC_Init 1 */
@@ -46,28 +44,21 @@ void MX_RTC_Init(void)
   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
   hrtc.Init.AsynchPrediv = 127;
   hrtc.Init.SynchPrediv = 255;
-  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPut = RTC_OUTPUT_ALARMA;
   hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
-  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_PUSHPULL;
   if (HAL_RTC_Init(&hrtc) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /** Enable the RTC Tamper 1
+  /* USER CODE BEGIN Check_RTC_BKUP */
+
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
   */
-  sTamper.Tamper = RTC_TAMPER_1;
-  sTamper.PinSelection = RTC_TAMPERPIN_DEFAULT;
-  sTamper.Trigger = RTC_TAMPERTRIGGER_RISINGEDGE;
-  sTamper.Filter = RTC_TAMPERFILTER_DISABLE;
-  sTamper.SamplingFrequency = RTC_TAMPERSAMPLINGFREQ_RTCCLK_DIV32768;
-  sTamper.PrechargeDuration = RTC_TAMPERPRECHARGEDURATION_1RTCCLK;
-  sTamper.TamperPullUp = RTC_TAMPER_PULLUP_ENABLE;
-  sTamper.TimeStampOnTamperDetection = RTC_TIMESTAMPONTAMPERDETECTION_ENABLE;
-  if (HAL_RTCEx_SetTamper(&hrtc, &sTamper) != HAL_OK)
-  {
-    Error_Handler();
-  }
+
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
