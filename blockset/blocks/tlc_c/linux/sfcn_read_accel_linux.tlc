@@ -79,7 +79,8 @@
 			goto accel_end;
 		}
 
-		bytes = iio_device_attr_write(accel_dev, "sampling_frequency", "%<block.RTWdata.sampling_frequency>");
+		%assign freq_arr = [1, 12, 25, 50, 100, 200]
+		bytes = iio_device_attr_write(accel_dev, "sampling_frequency", "%<freq_arr[block.RTWdata.sampling_frequency]>");
 		if (bytes < 0) {
 			fprintf(stderr, "could not set sampling_frequency: %s\n", strerror((int) bytes));
 			iio_context_destroy(accel_ctx);
@@ -102,7 +103,8 @@
 		iio_channel_enable(accel_z_chan);
 		
 		%%even though scale seems to be a channel_attr, changing it for one channel changes it for all of them.
-		bytes = iio_channel_attr_write(accel_x_chan, "scale", "%<block.RTWdata.scale>");
+		%assign scale_arr= ["0.009571", "0.019142", "0.038285", "0.076570"]
+		bytes = iio_channel_attr_write(accel_x_chan, "scale", "%<scale_arr[block.RTWdata.scale]>");
 		if (bytes < 0) {
 			fprintf(stderr, "Could set x scale value: %s\n", strerror((int)bytes));
 			iio_context_destroy(accel_ctx);
@@ -138,6 +140,7 @@ bytes = 0;
 %%      Code generation for signal output
 %%
 %function AccelOutputs_linux(block, system) Output
+	%assign scale_arr= ["0.009571", "0.019142", "0.038285", "0.076570"]
 	if (accel_run) {
 		ssize_t bytes;
 		char channel_buff[2];
@@ -153,7 +156,7 @@ bytes = 0;
 				accel_run = false;
 			}
 			if (bytes == 2) {
-			%<LibBlockOutputSignal(0, "", "", 0)> = (float) *(int16_t *)channel_buff * %<block.RTWdata.scale>;
+			%<LibBlockOutputSignal(0, "", "", 0)> = (float) *(int16_t *)channel_buff * %<scale_arr[block.RTWdata.scale]>;
 			}
 			bytes = iio_channel_read(accel_y_chan, accel_buff, channel_buff, sizeof(channel_buff));
 			if (bytes < 0) {
@@ -161,7 +164,7 @@ bytes = 0;
 				accel_run = false;
 			}
 			if (bytes == 2) {
-				%<LibBlockOutputSignal(1, "", "", 0)> = (float) *(int16_t *)channel_buff * %<block.RTWdata.scale>;
+				%<LibBlockOutputSignal(1, "", "", 0)> = (float) *(int16_t *)channel_buff * %<scale_arr[block.RTWdata.scale]>;
 			}
 			bytes = iio_channel_read(accel_z_chan, accel_buff, channel_buff, sizeof(channel_buff));
 			if (bytes < 0) {
@@ -169,7 +172,7 @@ bytes = 0;
 				accel_run = false;
 			}
 			if (bytes == 2) {
-				%<LibBlockOutputSignal(2, "", "", 0)> = (float) *(int16_t *)channel_buff * %<block.RTWdata.scale>;
+				%<LibBlockOutputSignal(2, "", "", 0)> = (float) *(int16_t *)channel_buff * %<scale_arr[block.RTWdata.scale]>;
 			}
 		}
 	}

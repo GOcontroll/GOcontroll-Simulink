@@ -37,7 +37,8 @@
 
 #include "GocontrollProcessorboardSupply.h"
 
-#include "GocontrollProcessorboard.h"
+#include "adc.h"
+#include "cmsis_os.h"
 
 /****************************************************************************************
  * Data declarations to store supply voltages
@@ -45,16 +46,12 @@
 
 _controllerSupply controllerSupply;
 
-extern _hardwareConfig hardwareConfig;
+uint32_t channels[2] = {ADC_CHANNEL_15, ADC_CHANNEL_14};
 
 /****************************************************************************************
  * Function prototypes
  ****************************************************************************************/
 
-// init in tcl?
-// HAL_ADC_Start() periodically measure the inputs?
-
-// not needed?
 int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t *value) {
 	switch (supply) {
 		case 1: {
@@ -76,11 +73,39 @@ int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t *value) {
 /****************************************************************************************/
 
 int GocontrollProcessorboardSupply_ReadAdc(uint8_t supply, uint16_t *value) {
-	// KL15 PC4 KL30 PC5
-	// HAL_ADC_GetValue()
+	ADC_ChannelConfTypeDef ADCChannelConfiguration;
+
+	HAL_ADC_Stop(&hadc1);
+	ADCChannelConfiguration.Channel = channels[supply];
+	ADCChannelConfiguration.Rank = 1;
+	ADCChannelConfiguration.SamplingTime = ADC_SAMPLETIME_56CYCLES;
+	HAL_ADC_ConfigChannel(&hadc1, &ADCChannelConfiguration);
+	HAL_ADC_Start(&hadc1);
+
+	if (HAL_ADC_PollForConversion(&hadc1, 500) != HAL_OK) {
+		return -1;
+	}
+
+	*value =
+		(uint16_t)(float)(((HAL_ADC_GetValue(&hadc1) * 0.805) / 1500) * 11700);
 	return 0;
 }
 
 /****************************************************************************************/
-// not needed?
-void *GocontrollProcessorboardSupply_ReadAdcThread(void *arg) {}
+
+void GocontrollProcessorboardSupply_ReadAdcThread(void *arg) {
+	struct ControllerSupplyThreadArgs *args =
+		(struct ControllerSupplyThreadArgs *)arg;
+	uint32_t tick = osKernelGetTickCount();
+
+	while (args->thread_run) {
+		tick += args->sample_time;
+		/* Execute actual conversions of the adc */
+		GocontrollProcessorboardSupply_ReadAdc(
+			0, &controllerSupply.batteryVoltage);
+		GocontrollProcessorboardSupply_ReadAdc(1,
+											   &controllerSupply.k15aVoltage);
+		osDelayUntil(tick);
+	}
+	osThreadExit();
+}

@@ -153,7 +153,7 @@ float GocontrollProcessorboard_ControllerTemperature(void);
 ** \param     id4 data byte 4
 ** \param     module the module number to which it must be sent
 ** \param     dataTx buffer for the bytes to transmit
-** \param     delay delay in microseconds befor sending the message
+** \param     delay delay in microseconds before sending the message
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
 int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,

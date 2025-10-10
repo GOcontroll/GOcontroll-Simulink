@@ -254,6 +254,7 @@ switch hookMethod
 			corepath = fullfile(iotpath, 'Core');
 			driverspath = fullfile(iotpath, 'Drivers');
 			rtospath = fullfile(iotpath, 'Middlewares', 'Third_Party', 'FreeRTOS', 'Source');
+			seggerpath = fullfile(driverspath, 'segger');
 			addIncludePaths(buildInfo, {
 				codepath,
 				iotpath,
@@ -266,6 +267,7 @@ switch hookMethod
 				fullfile(rtospath, 'include'),
 				fullfile(rtospath, 'portable', 'MemMang'),
 				fullfile(rtospath, 'portable', 'GCC', 'ARM_CM4F'),
+				fullfile(seggerpath, 'Inc'),
 			});
 			addSourceFiles(buildInfo, '*.c', codepath);
 			addSourceFiles(buildInfo, '*.c', iotpath);
@@ -276,6 +278,7 @@ switch hookMethod
 			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'CMSIS_RTOS_V2'));
 			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'MemMang'));
 			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'GCC', 'ARM_CM4F'));
+			addSourceFiles(buildInfo, '*.c', fullfile(seggerpath, 'Src'));
 			addSourceFiles(buildInfo, '*.s', iotpath);
 			addLinkFlags(buildInfo, ['-T' fullfile(iotpath, 'STM32F437XX_FLASH.ld')])
 

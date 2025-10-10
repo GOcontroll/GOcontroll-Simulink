@@ -50,15 +50,6 @@ struct ControllerSupplyThreadArgs {
 };
 
 /***************************************************************************************
-** \brief     Utility function to serve ADC data to function blocks, reads from
-*the ADC Thread.
-** \param     supply supply source (1=K30 2=K15-A 3=K15-B 4=K15-C)
-** \param	  value pointer to variable to store the calculated voltage in.
-** \return    0 upon succes, -1 when an incorrect supply is supplied.
-****************************************************************************************/
-int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t *value);
-
-/***************************************************************************************
 ** \brief     Dedicated thread to read ADC values from ADC convertor. \
 ** \brief     This thread needs to be running to use
 *GocontrollProcessorboardSupply_Voltage()
@@ -66,7 +57,7 @@ int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t *value);
 ** \return    None
 **
 ****************************************************************************************/
-void *GocontrollProcessorboardSupply_ReadAdcThread(void *arg);
+void GocontrollProcessorboardSupply_ReadAdcThread(void *arg);
 
 /***************************************************************************************
 ** \brief     Function that actually reads the ADC value from the onboard ADC
@@ -75,10 +66,10 @@ void *GocontrollProcessorboardSupply_ReadAdcThread(void *arg);
 *demand. \
 ** \brief     Don't manually call this function when the thread is active, just
 *use the Voltage() function then.
-** \param     supply supply source (1=K30 2=K15-A 3=K15-B 4=K15-C)
+** \param     supply supply source (1=K30 2=K15-A)
 ** \param	  value Pointer to varaiable to store the calculated voltage in.
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-int GocontrollProcessorboardSupply_ReadAdc(uint8_t supply, uint16_t *value);
+int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t *value);
 
 #endif /*_GOCONTROLLPROCESSORBOARD_H*/

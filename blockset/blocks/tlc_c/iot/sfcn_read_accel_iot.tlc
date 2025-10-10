@@ -29,29 +29,16 @@
 %%
 %%***************************************************************************************
 
-%implements sfcn_read_accel "C"
-
-%addincludepath "./linux"
-%addincludepath "./iot"
-%include "go_platform.tlc"
-%include "sfcn_read_accel_linux.tlc"
-%include "sfcn_read_accel_iot.tlc"
-
-%function BlockTypeSetup(block, system) void
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<AccelBlockTypeSetup_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<AccelBlockTypeSetup_iot(block, system)>
-	%endif
+%function AccelBlockTypeSetup_iot(block, system) void
+	%<LibAddToCommonIncludes("i2c.h")>
 %endfunction
 
-%function BlockInstanceSetup(block, system) void
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<AccelBlockInstanceSetup_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<AccelBlockInstanceSetup_iot(block, system)>
+%function AccelBlockInstanceSetup_iot(block, system) void
+	%%verify that there is only one instance of this block
+	%if EXISTS("read_accel") == 0
+		%assign ::read_accel = 1
+	%else
+		%<LibBlockReportError(block, "There cannot be more than one read accelerometer blocks in a model")>
 	%endif
 %endfunction
 
@@ -60,13 +47,14 @@
 %% Purpose:
 %%      Code generation for initialization
 %%
-%function Start(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<AccelStart_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<AccelStart_iot(block, system)>
-	%endif
+%function AccelStart_iot(block, system) Output
+	MX_I2C2_Init();
+	{
+		%assign freq_arr = [1, 1, 2, 3, 4, 5]
+		%assign scale_arr= [0, 2, 1, 3]
+		uint8_t data = (%<freq_arr[block.RTWdata.sampling_frequency]> << 4) + (%<scale_arr[block.RTWdata.scale]> << 2);
+		HAL_I2C_Mem_Write(&hi2c2, 0xd6, 0x10, 1, &data, 1, 1000);
+	}
 %endfunction
 
 %% Function: Outputs ==========================================================
@@ -74,18 +62,18 @@
 %% Purpose:
 %%      Code generation for signal output
 %%
-%function Outputs(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<AccelOutputs_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<AccelOutputs_iot(block, system)>
-	%endif
-%endfunction
+%function AccelOutputs_iot(block, system) Output
+	{
+		%assign scale_arr= [0.061, 0.122, 0.244, 0.488]
+		uint8_t data[6];
+		int16_t result;
 
-%function Terminate(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<AccelTerminate_linux(block, system)>
-	%endif
+		HAL_I2C_Mem_Read(&hi2c2, 0xd6, 0x28, 1, data, 6, 500);
+		result = (int16_t)(data[0]+(data[1]<<8));
+		%<LibBlockOutputSignal(0, "", "", 0)> = (float)result*%<scale_arr[block.RTWdata.scale]>;
+		result = (int16_t)(data[2]+(data[3]<<8));
+		%<LibBlockOutputSignal(1, "", "", 0)> = (float)result*%<scale_arr[block.RTWdata.scale]>;
+		result = (int16_t)(data[4]+(data[5]<<8));
+		%<LibBlockOutputSignal(2, "", "", 0)> = (float)result*%<scale_arr[block.RTWdata.scale]>;
+	}
 %endfunction

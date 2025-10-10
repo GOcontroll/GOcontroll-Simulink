@@ -39,9 +39,6 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-  %%
-
-  %%
 %endfunction
 
 %% Function: Update ==========================================================
@@ -50,17 +47,7 @@
 %%      Code generation for signal input
 %%
 %function Update(block, system) Output
-	%%
-    /* Control contact relais */
 	GocontrollProcessorboard_ControllerActive (%<LibBlockInputSignal(0, "", "", 0)>);
-  %%
 %endfunction
 
-
-
 %%******************************* end of sfcn_gocontroll_controller_active.tlc ***************************
-
-
-
-
-
