@@ -670,7 +670,7 @@ uint8_t XcpCanSend(uint8_t *data) {
 ** \param	  location The memory location where to read the data from.
 ** \return    none.
 ****************************************************************************************/
-void XcpReadData(uint8_t *data, uint8_t elements, uint32_t *location) {
+void XcpReadData(uint8_t *data, uint8_t elements, void *location) {
 	switch (elements) {
 		case 1:
 			*(uint8_t *)data = *(uint8_t *)location;
@@ -698,7 +698,7 @@ void XcpReadData(uint8_t *data, uint8_t elements, uint32_t *location) {
 ** \param	  location The memory location where to write the data to.
 ** \return    none.
 ****************************************************************************************/
-void XcpWriteData(uint8_t *data, uint8_t elements, uint64_t location) {
+void XcpWriteData(uint8_t *data, uint8_t elements, void *location) {
 	// TODO check for write protected area's in memory
 	switch (elements) {
 		case 1:
