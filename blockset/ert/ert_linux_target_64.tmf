@@ -252,15 +252,15 @@ SHARED_OBJS = $(addsuffix .obj, $(basename $(SHARED_SRCS)))
 # Separate set of build rules to accomodate for referenced models
 ifeq ($(MODELREF_TARGET_TYPE), NONE)
 #Topmodel for RTW
-	$(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
-		$(ECHO) ### Linking $(notdir $@)
-		@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group \
-			-o $@ $(LINKER_FLAGS)
-		$(ECHO) ### Created $(MODEL_NAME).elf
+$(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
+	$(ECHO) ### Linking $(notdir $@)
+	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -Wl,--end-group \
+		-o $@ $(LINKER_FLAGS)
+	$(ECHO) ### Created $(MODEL_NAME).elf
 else
-	$(MODELLIB) : $(OBJS) $(SHARED_LIB) $(SRC_DEP) $(LIBS) $(MODELREF_LINK_LIBS)
-		$(AR) ruvs $(MODELLIB) $(LINK_OBJS)
-		$(ECHO) ### Created $(MODELLIB)
+$(MODELLIB) : $(OBJS) $(SHARED_LIB) $(SRC_DEP) $(LIBS) $(MODELREF_LINK_LIBS)
+	$(AR) ruvs $(MODELLIB) $(LINK_OBJS)
+	$(ECHO) ### Created $(MODELLIB)
 endif
 
 %.obj : %.c
