@@ -723,7 +723,8 @@ static void XcpDownload(uint8_t *dataReceived, uint8_t *dataToSend) {
 	printf("XCP \n");
 #endif
 
-	XcpWriteData(&dataReceived[2], dataReceived[1], (void *)xcpWrite.adress);
+	XcpWriteData(&dataReceived[2], dataReceived[1],
+				 (void *)(uintptr_t)xcpWrite.adress);
 	XcpPositiveResponse(dataToSend);
 }
 
