@@ -1,8 +1,8 @@
 #include "CANdriver.h"
 
-#include <stdint.h>
-
 #include "cmsis_os2.h"
+
+uint32_t prescalers[4] = {CAN125KBPS, CAN250KBPS, CAN500KBPS, CAN1MBPS};
 
 /* move to tlc*/
 // void can_rx_pending_callback_0(CAN_HandleTypeDef *hcan) {
@@ -16,11 +16,12 @@
 
 int init_can(CAN_HandleTypeDef *hcan, uint32_t baudrate) {
 	// make some lookup to get proper clock setting for the desired baudrate
-	hcan->Init.Prescaler = 16;
+
+	hcan->Init.Prescaler = prescalers[baudrate];
 	hcan->Init.Mode = CAN_MODE_NORMAL;
 	hcan->Init.SyncJumpWidth = CAN_SJW_1TQ;
-	hcan->Init.TimeSeg1 = CAN_BS1_1TQ;
-	hcan->Init.TimeSeg2 = CAN_BS2_1TQ;
+	hcan->Init.TimeSeg1 = CAN_BS1_14TQ;
+	hcan->Init.TimeSeg2 = CAN_BS2_6TQ;
 	hcan->Init.TimeTriggeredMode = DISABLE;
 	hcan->Init.AutoBusOff = DISABLE;
 	hcan->Init.AutoWakeUp = DISABLE;
