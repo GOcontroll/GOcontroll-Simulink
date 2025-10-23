@@ -63,7 +63,7 @@
     %endif
 %endfunction
 
-%function CreateCanSocket(CanNum) void
+%function CreateCanSocket(CanNum, Baudrate) void
 	%assign can_socket = "::can_%<CanNum>"
 	%if EXISTS(%<can_socket>) == 0
 		%% Mark the socket as created
@@ -80,6 +80,12 @@
 
 		%<LibMdlStartCustomCode(assignBuf, "declaration")>
 
+		%openfile initBuf
+			init_can(&can_%<CanNum>, %<Baudrate>);
+		%closefile initBuf
+
+		%<LibMdlStartCustomCode(initBuf, "execution")>
+
 		%openfile startBuf
 			HAL_CAN_Start(&can_%<CanNum>);
 		%closefile startBuf
@@ -93,6 +99,5 @@
 	%if EXISTS(%<can_socket>) == 0
 		%% Mark the socket as initialized
 		%assign %<can_socket> = 1
-		init_can(&can_%<CanNum>, %<Baudrate>);
 	%endif
 %endfunction

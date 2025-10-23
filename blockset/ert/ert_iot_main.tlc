@@ -4,11 +4,11 @@
 %% parse sample times and offsets
 %assign j = 0
 %foreach i = CompiledModel.NumSampleTimes
-    %if CompiledModel.SampleTime[i].Asynchronous == "no"
-        %assign ::sampleTime%<j> = CompiledModel.SampleTime[i].PeriodAndOffset[0]
-        %assign ::offset%<j> = CompiledModel.SampleTime[i].PeriodAndOffset[1]
-        %assign j = j+1
-    %endif
+	%if CompiledModel.SampleTime[i].Asynchronous == "no"
+		%assign ::sampleTime%<j> = CompiledModel.SampleTime[i].PeriodAndOffset[0]
+		%assign ::offset%<j> = CompiledModel.SampleTime[i].PeriodAndOffset[1]
+		%assign j = j+1
+	%endif
 %endforeach
 
 
@@ -31,6 +31,7 @@
 	#include "tim.h"
 	#include "usart.h"
 	#include "usb_otg.h"
+	#include "SEGGER_RTT.h"
 
 	#include "%<modelName>.h"
 
@@ -89,12 +90,11 @@ void model_step(void *arg)
 ****************************************************************************************/
 void main(void){
 	HAL_Init();
-
-	/* Configure the system clock */
 	SystemClock_Config();
-
-	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
+	/* set keep alive pin high asap */
+	HAL_GPIO_WritePin(KL15_CONTROLLER_UCO_GPIO_Port, KL15_CONTROLLER_UCO_Pin,
+					  GPIO_PIN_SET);
 	MX_SPI1_Init();
 	MX_USART3_UART_Init();
 	MX_ADC1_Init();
@@ -108,6 +108,8 @@ void main(void){
 	MX_USART1_UART_Init();
 	MX_TIM1_Init();
 	MX_TIM2_Init();
+
+	SEGGER_RTT_Init();
 
 	/* Init scheduler */
 	osKernelInitialize();
@@ -173,10 +175,10 @@ void SystemClock_Config(void)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  if (htim->Instance == TIM14)
-  {
-    HAL_IncTick();
-  }
+	if (htim->Instance == TIM14)
+	{
+		HAL_IncTick();
+	}
 }
 
 /**
@@ -185,10 +187,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
-  __disable_irq();
-  while (1)
-  {
-  }
+	__disable_irq();
+	while (1)
+	{
+	}
 }
 #ifdef USE_FULL_ASSERT
 /**

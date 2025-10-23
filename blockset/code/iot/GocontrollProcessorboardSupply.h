@@ -46,7 +46,7 @@ typedef struct {
 
 struct ControllerSupplyThreadArgs {
 	uint8_t thread_run;
-	double sample_time;
+	uint16_t sample_time;
 };
 
 /***************************************************************************************
@@ -57,7 +57,7 @@ struct ControllerSupplyThreadArgs {
 ** \return    None
 **
 ****************************************************************************************/
-void GocontrollProcessorboardSupply_ReadAdcThread(void *arg);
+void GocontrollProcessorboardSupply_ReadAdcThread(void* arg);
 
 /***************************************************************************************
 ** \brief     Function that actually reads the ADC value from the onboard ADC
@@ -70,6 +70,6 @@ void GocontrollProcessorboardSupply_ReadAdcThread(void *arg);
 ** \param	  value Pointer to varaiable to store the calculated voltage in.
 ** \return    0 if ok -1 if  failed
 ****************************************************************************************/
-int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t *value);
+int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t* value);
 
 #endif /*_GOCONTROLLPROCESSORBOARD_H*/

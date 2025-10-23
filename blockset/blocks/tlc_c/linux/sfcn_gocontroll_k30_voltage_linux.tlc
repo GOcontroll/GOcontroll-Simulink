@@ -67,7 +67,7 @@
 
 		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", buff)>
 
-		adc_thread_args.sample_time = 0.01;
+		adc_thread_args.sample_time = %<::lowest_adc_sample_time*1000000>;
 		adc_thread_args.thread_run = 1;
 		pthread_create(&adc_thread, NULL, GocontrollProcessorboardSupply_ReadAdcThread, &adc_thread_args);
 	%endif

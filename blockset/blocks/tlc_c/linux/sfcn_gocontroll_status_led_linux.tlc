@@ -30,16 +30,13 @@
 %%
 %%***************************************************************************************
 
-%% add required include files
-%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
-
 %% Function: BlockTypeSetup ==========================================================
 %%
 %% Purpose:
 %%      Code generation for configuration
 %%
-%function BlockTypeSetup(block, system) void
-
+%function StatusLedBlockTypeSetup_linux(block, system) void
+	%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
 %endfunction
 
 %% Function: Start ==========================================================
@@ -47,7 +44,7 @@
 %% Purpose:
 %%      Code generation for initialization
 %%
-%function Start(block, system) Output
+%function StatusLedStart_linux(block, system) Output
 	%if EXISTS(::processorboard_hw) == 0
 		%assign ::processorboard_hw = 1
 		%openfile tmpBuf
@@ -71,11 +68,8 @@
 %% Purpose:
 %%      Code generation for signal output
 %%
-%function Outputs(block, system) Output
-  %%
-  /* Control LED according to the given settings */
-  GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
-  %%
+%function StatusLedOutputs_linux(block, system) Output
+	GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
 %endfunction
 
 
@@ -84,11 +78,8 @@
 %% Purpose:
 %%      Code generation for signal output
 %%
-%function Terminate (block, system) Output
-  %%
-  /* If program receives the SIGTERM command, the leds will be switched off */
-  GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, 0);
-  %%
+%function StatusLedTerminate_linux(block, system) Output
+	GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, 0);
 %endfunction
 
 %%******************************* end of sfcn_gocontroll_status_led.tlc ********************

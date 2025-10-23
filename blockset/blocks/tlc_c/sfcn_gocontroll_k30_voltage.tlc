@@ -32,13 +32,17 @@
 %implements sfcn_gocontroll_k30_voltage "C"
 
 %addincludepath "./linux"
+%addincludepath "./iot"
 %include "go_platform.tlc"
 %include "sfcn_gocontroll_k30_voltage_linux.tlc"
+%include "sfcn_gocontroll_k30_voltage_iot.tlc"
 
 %function BlockInstanceSetup(block, system) void
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
 		%<k30BlockInstanceSetup_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<k30BlockInstanceSetup_iot(block, system)>
 	%endif
 %endfunction
 
@@ -51,6 +55,8 @@
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
 		%<k30Start_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<k30Start_iot(block, system)>
 	%endif
 %endfunction
 
@@ -63,6 +69,8 @@
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
 		%<k30Outputs_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<k30Outputs_iot(block, system)>
 	%endif
 %endfunction
 
@@ -70,6 +78,8 @@
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
 		%<k30Terminate_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<k30Terminate_iot(block, system)>
 	%endif
 %endfunction
 

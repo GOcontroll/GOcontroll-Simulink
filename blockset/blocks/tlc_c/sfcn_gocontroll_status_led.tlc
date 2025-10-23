@@ -32,7 +32,11 @@
 
 %implements  sfcn_gocontroll_status_led "C"
 
+%addincludepath "./linux"
+%addincludepath "./iot"
 %include "go_platform.tlc"
+%include "sfcn_gocontroll_status_led_linux.tlc"
+%include "sfcn_gocontroll_status_led_iot.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -42,7 +46,9 @@
 %function BlockTypeSetup(block, system) void
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
-		%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
+		%<StatusLedBlockTypeSetup_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<StatusLedBlockTypeSetup_iot(block, system)>
 	%endif
 %endfunction
 
@@ -54,22 +60,9 @@
 %function Start(block, system) Output
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
-		%if EXISTS(::processorboard_hw) == 0
-			%assign ::processorboard_hw = 1
-			%openfile tmpBuf
-			GocontrollProcessorboard_GetHardwareVersion();
-			%closefile tmpBuf
-
-			%<LibMdlStartCustomCode(tmpBuf, "execution")>
-		%endif
-		%if EXISTS(::led_init) == 0
-			%assign ::led_init = 1
-			%openfile tmpBuf
-			GocontrollProcessorboard_LedInitialize();
-			%closefile tmpBuf
-
-			%<LibMdlStartCustomCode(tmpBuf, "execution")>
-		%endif
+		%<StatusLedStart_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<StatusLedStart_iot(block, system)>
 	%endif
 %endfunction
 
@@ -81,7 +74,9 @@
 %function Outputs(block, system) Output
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
-		GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
+		%<StatusLedOutputs_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<StatusLedOutputs_iot(block, system)>
 	%endif
 %endfunction
 
@@ -94,7 +89,9 @@
 %function Terminate (block, system) Output
 	%assign platform = get_platform()
 	%if ISEQUAL(platform, "i.MX8")
-		GocontrollProcessorboard_LedControl((uint8_t)%<block.RTWdata.led>,(_ledColor)%<block.RTWdata.color>, 0);
+		%<StatusLedTerminate_linux(block, system)>
+	%elseif ISEQUAL(platform, "IOT")
+		%<StatusLedTerminate_iot(block, system)>
 	%endif
 %endfunction
 

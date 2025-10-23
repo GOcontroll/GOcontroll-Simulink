@@ -1,9 +1,7 @@
 #include "XcpTargetSpecific.h"
 
-#include <stdint.h>
-
-#include "SYS_config.h"
-#include "XcpStack.h"
+#include "SEGGER_RTT.h"
+#define DEBUG 1
 
 uint8_t XcpCanSend(uint8_t *data);
 
@@ -19,22 +17,18 @@ _eventChannel eventChannel[3] = {
 	{"EvChnl3"},
 };
 
-/* \brief Variables that hold the ECU identifier and the length of the string
- */
-uint32_t uniqueIdLength = (uint32_t)kXcpStationIdLength;
-char uniqueIdString[] = kXcpStationIdString;
-
 void XcpCanHandler(CAN_HandleTypeDef *hcan) {
 	struct can_frame_rx message;
+	SEGGER_RTT_printf(0, "received CAN message\n");
 	while (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &message.header,
 								message.data) == HAL_OK) {
 #if DEBUG == 1
-		printf("received CAN message, dlc: %d, id: %x\ndata: [",
-			   sc_frame.can_dlc, sc_frame.can_id);
-		for (int i = 0; i < sc_frame.can_dlc; i++) {
-			printf("%02x,", sc_frame.data[i]);
+		SEGGER_RTT_printf(0, "received CAN message, dlc: %d, id: %x\ndata: [",
+						  message.header.DLC, message.header.ExtId);
+		for (int i = 0; i < message.header.DLC; i++) {
+			SEGGER_RTT_printf(0, "%02x,", message.data[i]);
 		}
-		printf("]\n");
+		SEGGER_RTT_printf(0, "]\n");
 #endif
 		XcpCommunicationHandling(message.data, message.header.DLC, dataToSend);
 	}
@@ -46,19 +40,32 @@ void InitXcpCan(CAN_HandleTypeDef *hcan, uint32_t canCtoId, uint32_t canDtoId) {
 	XcpConnection_fd = (void *)hcan;
 	XcpDynamicConfigurator(0, 8, 8);
 	CAN_FilterTypeDef filter = {0};
-	filter.FilterIdLow = canCtoId & 0xffff;
-	filter.FilterIdHigh = (canCtoId >> 16) & 0xffff;
+	// filter.FilterIdLow = canCtoId & 0xffff;
+	// filter.FilterIdHigh = (canCtoId >> 16) & 0xffff;
+	filter.FilterIdLow = 0x0000;
+	filter.FilterIdHigh = 0x0000;
+	filter.FilterMaskIdHigh = 0x0000;
+	filter.FilterMaskIdLow = 0x0000;
 	// send all xcp data to fifo1, other data will go to fifo0
 	filter.FilterFIFOAssignment = CAN_FILTER_FIFO1;
-	filter.FilterMode = CAN_FILTERMODE_IDLIST;
-	filter.FilterBank = 27;	 // maybe it should be the first one?
+	// filter.FilterMode = CAN_FILTERMODE_IDLIST;
+	filter.FilterMode = CAN_FILTERMODE_IDMASK;
+	filter.FilterBank = 0;	// maybe it should be the first one?
 	filter.FilterScale = CAN_FILTERSCALE_32BIT;
 	filter.FilterActivation = CAN_FILTER_ENABLE;
 	filter.SlaveStartFilterBank =
-		0;	// this should probably be set based on can if
-	HAL_CAN_ConfigFilter(hcan, &filter);
-	HAL_CAN_RegisterCallback(hcan, HAL_CAN_RX_FIFO1_MSG_PENDING_CB_ID,
-							 XcpCanHandler);
+		14;	 // this should probably be set based on can if
+	if (HAL_CAN_ConfigFilter(hcan, &filter) != HAL_OK)
+		SEGGER_RTT_printf(0, "Could not config filter: 0x%x\n",
+						  hcan->ErrorCode);
+	if (HAL_CAN_RegisterCallback(hcan, HAL_CAN_RX_FIFO1_MSG_PENDING_CB_ID,
+								 XcpCanHandler) != HAL_OK)
+		SEGGER_RTT_printf(0, "Could not register callback: 0x%x\n",
+						  hcan->ErrorCode);
+	if (HAL_CAN_ActivateNotification(
+			hcan, HAL_CAN_RX_FIFO1_MSG_PENDING_CB_ID) != HAL_OK)
+		SEGGER_RTT_printf(0, "Could not activate notification: 0x%x\n",
+						  hcan->ErrorCode);
 }
 
 uint8_t XcpSendData(uint8_t *data) {
@@ -76,6 +83,14 @@ uint8_t XcpCanSend(uint8_t *data) {
 	if (data[0] != 0 && data[0] <= 8) {
 		header.DLC = data[0];
 		header.StdId = xcpDtoId;
+#if DEBUG == 1
+		SEGGER_RTT_printf(0, "sending CAN message, dlc: %d, id: %x\ndata: [",
+						  header.DLC, header.StdId);
+		for (int i = 0; i < header.DLC; i++) {
+			SEGGER_RTT_printf(0, "%02x,", data[i + 1]);
+		}
+		SEGGER_RTT_printf(0, "]\n");
+#endif
 		res = HAL_CAN_AddTxMessage(
 			(CAN_HandleTypeDef *)XcpConnection_fd, &header, &data[1],
 			(uint32_t *)CAN_TX_MAILBOX0);  // mailbox selection?
@@ -84,7 +99,8 @@ uint8_t XcpCanSend(uint8_t *data) {
 		}
 	} else {
 #if DEBUG == 1
-		printf("Could not send message, incorrect size: %d\n", data[0]);
+		SEGGER_RTT_printf(0, "Could not send message, incorrect size: %d\n",
+						  data[0]);
 #endif
 	}
 	return 1;

@@ -1,12 +1,12 @@
 %%***************************************************************************************
-%% file         sfcn_gocontroll_k30_voltage.tlc
+%% file         sfcn_gocontroll_status_led.tlc
 %% brief        Target Language Compiler file that contains the code generation specifics
 %%              for an S-function with the same name.
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
 %%---------------------------------------------------------------------------------------
-%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com   All rights reserved
 %%
 %%---------------------------------------------------------------------------------------
 %%                            L I C E N S E
@@ -26,21 +26,17 @@
 %% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 %% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 %% DEALINGS IN THE SOFTWARE.
+%% endinternal
 %%
 %%***************************************************************************************
 
-%function k30BlockInstanceSetup_iot(block, system) void
-	%<LibAddToCommonIncludes("GocontrollProcessorboardSupply.h")>
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Purpose:
+%%      Code generation for configuration
+%%
+%function StatusLedBlockTypeSetup_iot(block, system) void
 	%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
-	%<LibAddToCommonIncludes("adc.h")>
-	%<LibAddToCommonIncludes("cmsis_os.h")>
-	%if EXISTS(::lowest_adc_sample_time)
-		%if %<block.ParamSettings.sample_time> < %<::lowest_adc_sample_time>
-			%assign ::lowest_adc_sample_time = %<block.ParamSettings.sample_time>
-		%endif
-	%else
-		%assign ::lowest_adc_sample_time = %<block.ParamSettings.sample_time>
-	%endif
 %endfunction
 
 %% Function: Start ==========================================================
@@ -48,54 +44,48 @@
 %% Purpose:
 %%      Code generation for initialization
 %%
-%function k30Start_iot(block, system) Output
-	%if EXISTS("adc_thread") == 0
-		%assign ::adc_thread = 1
+%function StatusLedStart_iot(block, system) Output
+	%if EXISTS(::processorboard_hw) == 0
+		%assign ::processorboard_hw = 1
+		%openfile tmpBuf
+		GocontrollProcessorboard_GetHardwareVersion();
+		%closefile tmpBuf
 
-		%if EXISTS(::processorboard_hw) == 0
-			%assign ::processorboard_hw = 1
-			%openfile tmpBuf
-			GocontrollProcessorboard_GetHardwareVersion();
-			%closefile tmpBuf
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
+	%endif
+	%if EXISTS(::led_init) == 0
+		%assign ::led_init = 1
+		%openfile tmpBuf
+		GocontrollProcessorboard_LedInitialize();
+		%closefile tmpBuf
 
-			%<LibMdlStartCustomCode(tmpBuf, "execution")>
-		%endif
-
-		%openfile buff
-		osThreadId_t adc_thread;
-
-		const osThreadAttr_t adc_thread_attributes = {
-		.name = "adc_thread",
-		.stack_size = 128 * 4,
-		.priority = (osPriority_t) osPriorityNormal,
-		};
-
-		struct ControllerSupplyThreadArgs adc_thread_args;
-		%closefile buff
-
-		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", buff)>
-
-		adc_thread_args.sample_time = %<::lowest_adc_sample_time*1000>;
-		adc_thread_args.thread_run = 1;
-		adc_thread = osThreadNew(GocontrollProcessorboardSupply_ReadAdcThread, &adc_thread_args, &adc_thread_attributes);
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
 	%endif
 %endfunction
 
-%% Function: Outputs ==========================================================
+%% Function: Output ==========================================================
 %%
 %% Purpose:
 %%      Code generation for signal output
 %%
-%function k30Outputs_iot(block, system) Output
-	GocontrollProcessorboardSupply_Voltage(1,%<LibBlockOutputSignalAddr(0, "", "", 0)>);
-%endfunction
-
-%function k30Terminate_iot(block, system) Output
-	%% Kill the adc thread
-	%if EXISTS("terminate_adc_thread") == 0
-		%assign ::terminate_adc_thread = 1
-		adc_thread_args.thread_run = 0;
+%function StatusLedOutputs_iot(block, system) Output
+	%if block.RTWdata.led == "1"
+		GocontrollProcessorboard_LedControl(1,(_ledColor)%<block.RTWdata.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
+	%else
+		%<LibBlockReportWarning(block, "This controller only has led, blocks controlling others will not work")>
 	%endif
 %endfunction
 
-%%******************************* end of sfcn_gocontroll_k30_voltage.tlc ***************************
+
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function StatusLedTerminate_iot(block, system) Output
+	%if block.RTWdata.led == "1"
+		GocontrollProcessorboard_LedControl(1,(_ledColor)%<block.RTWdata.color>, 0);
+	%endif
+%endfunction
+
+%%******************************* end of sfcn_gocontroll_status_led.tlc ********************

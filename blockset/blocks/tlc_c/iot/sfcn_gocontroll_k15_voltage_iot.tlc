@@ -76,7 +76,7 @@
 		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", buff)>
 		MX_ADC1_Init();
 		HAL_ADC_MspInit(&hadc1);
-		adc_thread_args.sample_time = %<::lowest_adc_sample_time>;
+		adc_thread_args.sample_time = %<::lowest_adc_sample_time*1000>;
 		adc_thread_args.thread_run = 1;
 		adc_thread = osThreadNew(GocontrollProcessorboardSupply_ReadAdcThread, &adc_thread_args, &adc_thread_attributes);
 	%endif
@@ -88,8 +88,11 @@
 %%      Code generation for signal output
 %%
 %function k15Outputs_iot(block, system) Output
-	/* Get the contact voltage in mV */
-	GocontrollProcessorboardSupply_Voltage(2, %<LibBlockOutputSignalAddr(0, "", "", 0)>);
+	%if block.ParamSettings.k15pin == 1
+		GocontrollProcessorboardSupply_Voltage(2, %<LibBlockOutputSignalAddr(0, "", "", 0)>);
+	%else
+		%<LibBlockReportWarning(block, "This controller only has K15-1, blocks reading others will not work")>
+	%endif
 %endfunction
 
 %function k15Terminate_iot(block, system) Output

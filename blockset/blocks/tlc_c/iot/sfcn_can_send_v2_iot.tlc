@@ -46,60 +46,50 @@
 %% File : sfcn_can_send_v2.tlc
 %% Brief : tlc file for generating code to send CAN messages on the Moduline Controllers
 
-%implements sfcn_can_send_v2 "C"
-
-%addincludepath "./linux"
-%addincludepath "./iot"
-%include "go_platform.tlc"
-%include "sfcn_can_send_v2_linux.tlc"
-%include "sfcn_can_send_v2_iot.tlc"
+%include "can_common_iot.tlc"
 
 %% Function: BlockTypeSetup ====================================================
-%function BlockTypeSetup(block, system) void
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<CANsendv2BlockTypeSetup_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<CANsendv2BlockTypeSetup_iot(block, system)>
-	%endif
+%function CANsendv2BlockTypeSetup_iot(block, system) void
+	%<CANCommonBlockTypeSetup()>
 %endfunction
 
 %% Function: BlockInstanceSetup ================================================
-%function BlockInstanceSetup(block, system) void
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<CANsendv2BlockInstanceSetup_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<CANsendv2BlockInstanceSetup_iot(block, system)>
-	%endif
+%function CANsendv2BlockInstanceSetup_iot(block, system) void
 %endfunction
 
 %% Function: Start =============================================================
-%function Start(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<CANsendv2Start_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<CANsendv2Start_iot(block, system)>
-	%endif
+%function CANsendv2Start_iot(block, system) Output
 %endfunction
 
 %% Function: Outputs ===========================================================
-%function Outputs(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<CANsendv2Outputs_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<CANsendv2Outputs_iot(block, system)>
+%function CANsendv2Outputs_iot(block, system) Output
+	%if !SLibCodeGenForSim()
+		%assign message = LibBlockInputSignal(0, "", "", 0)
+		%% message will be of the type CAN_MESSAGE, run this command in the matlab console to find the definition: 
+		%% edit(fullfile(matlabroot, 'toolbox','shared','can','src','scanutil','can_message.h'));
+		%assign module_id_par = LibBlockParameterValue(module_id, 0)
+
+		{
+			CAN_TxHeaderTypeDef header = {0};
+
+			%% Transmit CAN_MESSAGE
+			header.DLC = %<message>.Length;
+
+			%%Set ID and flags
+			if (%<message>.Extended) {
+				header.ExtId = %<message>.ID;
+				header.IDE = CAN_ID_EXT;
+			} else {
+				header.StdId = %<message>.ID;
+				header.IDE = CAN_ID_STD;
+			}
+			if (%<message>.Remote)
+				header.RTR = CAN_RTR_REMOTE;
+			HAL_CAN_AddTxMessage(&can_%<module_id_par - 1>, &header, %<message>.Data,(uint32_t *)CAN_TX_MAILBOX0);
+		}
 	%endif
 %endfunction
 
 %% Function: Terminate ===========================================================
-%function Terminate(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<CANsendv2Terminate_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<CANsendv2Terminate_iot(block, system)>
-	%endif
+%function CANsendv2Terminate_iot(block, system) Output
 %endfunction
