@@ -30,9 +30,10 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.6.0-rc3';
+version = 'GOcontroll V4.6.0-rc4';
 
 %% V4.6.0 Update -:
+% Add GPS module read block
 % Fix several potential segfaults in cmex functions
 % Add force option to the compile_gocontroll_mex function
 % Make the GOcontrollSimulinkStart function path independent
