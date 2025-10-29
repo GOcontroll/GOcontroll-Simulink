@@ -74,9 +74,9 @@ void GocontrollProcessorboard_Delay1msOS(uint32_t times) { osDelay(times); }
 int8_t GocontrollProcessorboard_ResetStateModule(uint8_t module,
 												 uint8_t state) {
 	if (module == 0) {
-		HAL_GPIO_WritePin(MOD1_RESET_GPIO_Port, MOD1_RESET_Pin, state);
+		HAL_GPIO_WritePin(MOD1_RESET_GPIO_Port, MOD1_RESET_Pin, !state);
 	} else if (module == 1) {
-		HAL_GPIO_WritePin(MOD2_RESET_GPIO_Port, MOD2_RESET_Pin, state);
+		HAL_GPIO_WritePin(MOD2_RESET_GPIO_Port, MOD2_RESET_Pin, !state);
 	}
 	return 0;
 }
@@ -119,11 +119,11 @@ int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color,
 /****************************************************************************************/
 
 int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,
-												  uint8_t *dataTx,
-												  uint8_t *dataRx) {
+												  uint8_t* dataTx,
+												  uint8_t* dataRx) {
 	dataTx[0] = 19;
 	dataTx[1] = BOOTMESSAGELENGTH - 1;
-	*(uint16_t *)&dataTx[2] = 19;
+	*(uint16_t*)&dataTx[2] = 19;
 
 	dataTx[BOOTMESSAGELENGTH - 1] = GocontrollProcessorboard_CheckSumCalculator(
 		&dataTx[0], BOOTMESSAGELENGTH - 1);
@@ -159,7 +159,7 @@ int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,
 int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,
 									 uint8_t id1, uint8_t id2, uint8_t id3,
 									 uint8_t id4, uint8_t module,
-									 uint8_t *dataTx, uint32_t delay) {
+									 uint8_t* dataTx, uint32_t delay) {
 	dataTx[0] = command;
 	dataTx[1] = dataLength - 1;
 	dataTx[2] = id1;
@@ -194,8 +194,8 @@ int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,
 int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
 											uint8_t id1, uint8_t id2,
 											uint8_t id3, uint8_t id4,
-											uint8_t module, uint8_t *dataTx,
-											uint8_t *dataRx) {
+											uint8_t module, uint8_t* dataTx,
+											uint8_t* dataRx) {
 	dataTx[0] = command;
 	dataTx[1] = dataLength - 1;
 	dataTx[2] = id1;
