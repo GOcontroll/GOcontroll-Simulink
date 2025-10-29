@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #include "SEGGER_RTT.h"
-#define DEBUG 1
+
 void dbg(char* format, ...) {
 #if DEBUG == 1
 	va_list args;
