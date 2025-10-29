@@ -5,8 +5,8 @@
  *----------------------------------------------------------------------------------------
  *                          C O P Y R I G H T
  *----------------------------------------------------------------------------------------
- * Copyright 2024 (c) by GOcontroll http://www.gocontroll.com All rights
- * reserved
+ * Copyright 2024 (c) by GOcontroll http://www.gocontroll.com
+ * All rights reserved
  *
  *----------------------------------------------------------------------------------------
  *                            L I C E N S E
@@ -36,6 +36,8 @@
  ****************************************************************************************/
 #include "Gocontroll420maInputModule.h"
 
+#include <errno.h>
+
 #include "GocontrollProcessorboard.h"
 
 /****************************************************************************************
@@ -56,10 +58,10 @@ extern _hardwareConfig hardwareConfig;
 
 /****************************************************************************************/
 
-void InputModule420ma_Configuration(_inputModule420ma *inputModule420ma) {
+int InputModule420ma_Configuration(_inputModule420ma* inputModule420ma) {
 	// module not registered
 	if (hardwareConfig.moduleOccupancy[inputModule420ma->moduleSlot][0] == 0) {
-		return;
+		return -ENODEV;
 	}
 
 	inputModule420ma->sw_version =
@@ -79,29 +81,31 @@ void InputModule420ma_Configuration(_inputModule420ma *inputModule420ma) {
 			inputModule420ma->supply16ch[pointer];
 	}
 
-	GocontrollProcessorboard_SendSpi(
+	return GocontrollProcessorboard_SendSpi(
 		inputModule420ma->moduleSlot + 1, INPUTMODULE420MAMESSAGELENGTH, 1, 13,
 		2, 1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0], 0);
 }
 
 /****************************************************************************************/
 
-void InputModule420ma_ReceiveValues(_inputModule420ma *inputModule420ma) {
+int InputModule420ma_ReceiveValues(_inputModule420ma* inputModule420ma) {
+	int res;
 	// module not registered
 	if (hardwareConfig.moduleOccupancy[inputModule420ma->moduleSlot][0] == 0) {
-		return;
+		return -ENODEV;
 	}
+	res = GocontrollProcessorboard_SendReceiveSpi(
+		inputModule420ma->moduleSlot + 1, INPUTMODULE420MAMESSAGELENGTH, 2, 13,
+		3, 1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0],
+		&inputModule420maDataRx[0]);
+	if (res) return res;
 
-	if (GocontrollProcessorboard_SendReceiveSpi(
-			inputModule420ma->moduleSlot + 1, INPUTMODULE420MAMESSAGELENGTH, 2,
-			13, 3, 1, inputModule420ma->moduleSlot, &inputModule420maDataTx[0],
-			&inputModule420maDataRx[0]) == 0) {
-		for (uint8_t pointer = 0; pointer < 10; pointer++) {
-			inputModule420ma->value[pointer] =
-				*(uint16_t *)&inputModule420maDataRx[(pointer * 2) + 6];
-		}
-		inputModule420ma->status = inputModule420maDataRx[26];
+	for (uint8_t pointer = 0; pointer < 10; pointer++) {
+		inputModule420ma->value[pointer] =
+			*(uint16_t*)&inputModule420maDataRx[(pointer * 2) + 6];
 	}
+	inputModule420ma->status = inputModule420maDataRx[26];
+	return 0;
 }
 
 /****************************************************************************************/

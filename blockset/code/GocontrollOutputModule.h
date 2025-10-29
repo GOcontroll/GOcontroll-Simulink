@@ -5,8 +5,8 @@
  *----------------------------------------------------------------------------------------
  *                          C O P Y R I G H T
  *----------------------------------------------------------------------------------------
- *  Copyright 2024 (c)  by GOcontroll   http://www.gocontroll.com      All
- *rights reserved
+ * Copyright 2024 (c) by GOcontroll http://www.gocontroll.com
+ * All rights reserved
  *
  *----------------------------------------------------------------------------------------
  *                            L I C E N S E
@@ -36,7 +36,6 @@
  * Include files
  ****************************************************************************************/
 #include "GocontrollProcessorboard.h"
-#include "stdio.h"
 
 /****************************************************************************************
  * Module specific defines
@@ -46,45 +45,45 @@
 
 #define OUTPUTFUNC_DISABLED 1  // channel is unused
 
-#define OUTPUTFUNC_6CH_HALFBRIDGE 2  // half bridge duty cycle controlled
+#define OUTPUTFUNC_6CH_HALFBRIDGE 2	 // half bridge duty cycle controlled
 #define OUTPUTFUNC_6CH_LOWSIDEDUTY \
-  3  // low side switching duty cycle
-     // controlled
+	3  // low side switching duty cycle
+	   // controlled
 #define OUTPUTFUNC_6CH_HIGHSIDEDUTY \
-  4  // high side switching duty cycle controlled
+	4  // high side switching duty cycle controlled
 #define OUTPUTFUNC_6CH_LOWSIDEBOOL 5   // low side switching on or off (0-1)
 #define OUTPUTFUNC_6CH_HIGHSIDEBOOL 6  // high side switching on or off (0-1)
 #define OUTPUTFUNC_6CH_PEAKANDHOLD \
-  7  // peak and hold function (uses half bridge switching)
+	7  // peak and hold function (uses half bridge switching)
 #define OUTPUTFUNC_6CH_FREQUENCYOUT 8  // frequency output (0-500Hz)
 
 #define OUTPUTFUNC_10CH_HIGHSIDEDUTY \
-  2  // high side switching duty cycle controlled
-#define OUTPUTFUNC_10CH_HIGHSIDEBOOL 3  // high side switching on or off (0-1)
+	2  // high side switching duty cycle controlled
+#define OUTPUTFUNC_10CH_HIGHSIDEBOOL 3	// high side switching on or off (0-1)
 
-#define OUTPUTFREQ_100HZ 1      // duty cycle frequency
-#define OUTPUTFREQ_200HZ 2      // duty cycle frequency
-#define OUTPUTFREQ_6CH_500HZ 3  // duty cycle frequency (6 channel module only)
-#define OUTPUTFREQ_6CH_1KHZ 4   // duty cycle frequency (6 channel module only)
-#define OUTPUTFREQ_6CH_2KHZ 5   // duty cycle frequency (6 channel module only)
-#define OUTPUTFREQ_6CH_5KHZ 6   // duty cycle frequency (6 channel module only)
-#define OUTPUTFREQ_6CH_10KHZ 7  // duty cycle frequency (6 channel module only)
+#define OUTPUTFREQ_100HZ 1		// duty cycle frequency
+#define OUTPUTFREQ_200HZ 2		// duty cycle frequency
+#define OUTPUTFREQ_6CH_500HZ 3	// duty cycle frequency (6 channel module only)
+#define OUTPUTFREQ_6CH_1KHZ 4	// duty cycle frequency (6 channel module only)
+#define OUTPUTFREQ_6CH_2KHZ 5	// duty cycle frequency (6 channel module only)
+#define OUTPUTFREQ_6CH_5KHZ 6	// duty cycle frequency (6 channel module only)
+#define OUTPUTFREQ_6CH_10KHZ 7	// duty cycle frequency (6 channel module only)
 
-#define PEAKCURRENTMAX 3500  // max allowed duty cycle
-#define CURRENTMAXMAX 4000   // max allowed current through a channel
+#define PEAKCURRENTMAX 3500	 // max allowed duty cycle
+#define CURRENTMAXMAX 4000	 // max allowed current through a channel
 
 #define OUTPUTFREQCHANNEL1AND2 \
-  0  // macro for selecting the frequency channels on the output modules
+	0  // macro for selecting the frequency channels on the output modules
 #define OUTPUTFREQCHANNEL3AND4 \
-  1  // macro for selecting the frequency channels on the output modules
+	1  // macro for selecting the frequency channels on the output modules
 #define OUTPUTFREQCHANNEL5AND6 \
-  2  // macro for selecting the frequency channels on the output modules
+	2  // macro for selecting the frequency channels on the output modules
 #define OUTPUTFREQCHANNEL7AND8_10CH \
-  3  // macro for selecting the frequency channels on the output modules (10
-     // channel module only)
+	3  // macro for selecting the frequency channels on the output modules (10
+	   // channel module only)
 #define OUTPUTFREQCHANNEL9AND10_10CH \
-  4  // macro for selecting the frequency channels on the output modules (10
-     // channel module only)
+	4  // macro for selecting the frequency channels on the output modules (10
+	   // channel module only)
 
 #define OUTPUTCHANNEL1 0
 #define OUTPUTCHANNEL2 1
@@ -105,38 +104,38 @@
  ****************************************************************************************/
 
 union parameter1 {
-  uint16_t raw;
-  uint16_t peakCurrent;
-  uint16_t fastLoopGain;
+	uint16_t raw;
+	uint16_t peakCurrent;
+	uint16_t fastLoopGain;
 };
 
 union parameter2 {
-  uint16_t raw;
-  uint16_t peakTime;
-  uint16_t fastLoopBasicDuty;
+	uint16_t raw;
+	uint16_t peakTime;
+	uint16_t fastLoopBasicDuty;
 };
 
 typedef struct {
-  uint8_t configuration[10];
-  uint16_t value[10];
-  uint16_t dutyCycle[6];
-  uint32_t syncCounter[6];
-  int16_t current[6];
-  uint16_t currentMax[6];
-  union parameter1 channelParameter1[6];
-  union parameter2 channelParameter2[6];
-  uint8_t fastLoopModule[6];
-  uint8_t fastLoopChannel[6];
-  int16_t temperature;
-  int16_t ground;
-  uint16_t supply;
-  int16_t totalCurrent;
-  uint32_t errorCode;
-  uint8_t communicationCheck;
-  uint32_t moduleIdentifier;
-  uint8_t moduleType;
-  uint8_t moduleSlot;
-  uint32_t sw_version;
+	uint8_t configuration[10];
+	uint16_t value[10];
+	uint16_t dutyCycle[6];
+	uint32_t syncCounter[6];
+	int16_t current[6];
+	uint16_t currentMax[6];
+	union parameter1 channelParameter1[6];
+	union parameter2 channelParameter2[6];
+	uint8_t fastLoopModule[6];
+	uint8_t fastLoopChannel[6];
+	int16_t temperature;
+	int16_t ground;
+	uint16_t supply;
+	int16_t totalCurrent;
+	uint32_t errorCode;
+	uint8_t communicationCheck;
+	uint32_t moduleIdentifier;
+	uint8_t moduleType;
+	uint8_t moduleSlot;
+	uint32_t sw_version;
 } _outputModule;
 
 /****************************************************************************************
@@ -147,27 +146,26 @@ typedef struct {
 ** \brief	Function that sends the configuration data to the output module
 ** \param	outputModule pointer to a _outputModule struct that holds the
 *data for the module configuration
-** \return	None
+** \return	0 if ok negative if failed
 ****************************************************************************************/
-void OutputModule_Configuration(_outputModule *outputModule);
+int OutputModule_Configuration(_outputModule* outputModule);
 
 /***************************************************************************************
 ** \brief	Function that sends the output data to the output module
 ** \param	outputModule pointer to a _outputModule struct that holds the
 *data for the module configuration
-** \return	None
+** \return	0 if ok negative if failed
 ****************************************************************************************/
-void OutputModule_SendValues(_outputModule *outputModule);
+int OutputModule_SendValues(_outputModule* outputModule);
 
 /***************************************************************************************
 ** \brief	Function that sets the module slot for an output module
 ** \param	outputModule pointer to a _outputModule struct that holds the
 *data for the module configuration
 ** \param	moduleSlot the slot that the module is inserted in
-** \return	None
+** \return	0 if ok negative if failed
 ****************************************************************************************/
-void OutputModule_SetModuleSlot(_outputModule *outputModule,
-                                uint8_t moduleSlot);
+int OutputModule_SetModuleSlot(_outputModule* outputModule, uint8_t moduleSlot);
 
 /***************************************************************************************
 ** \brief	Function that sets the module type, 6 or 10 channel
@@ -175,10 +173,9 @@ void OutputModule_SetModuleSlot(_outputModule *outputModule,
 *data for the module configuration
 ** \param	moduleType the type of module, either outputModule6CHANNEL or
 *outputModule10CHANNEL
-** \return	None
+** \return	0 if ok negative if failed
 ****************************************************************************************/
-void OutputModule_SetModuleType(_outputModule *outputModule,
-                                uint8_t moduleType);
+int OutputModule_SetModuleType(_outputModule* outputModule, uint8_t moduleType);
 
 /***************************************************************************************
 ** \brief	Function that Configures an input channel on a 6 channel module
@@ -195,13 +192,12 @@ void OutputModule_SetModuleType(_outputModule *outputModule,
 *from 0-200
 ** \param 	analog_filter_samples analog filter samples per measurement rang
 *from 0 -1000
-** \return	none
+** \return	0 if ok negative if failed
 ****************************************************************************************/
-void OutputModule6ch_ConfigureChannel(_outputModule *outputModule,
-                                      uint8_t channel, uint8_t func,
-                                      uint16_t currentMax,
-                                      uint16_t peak_current,
-                                      uint16_t peak_time);
+int OutputModule6ch_ConfigureChannel(_outputModule* outputModule,
+									 uint8_t channel, uint8_t func,
+									 uint16_t currentMax, uint16_t peak_current,
+									 uint16_t peak_time);
 
 /***************************************************************************************
 ** \brief	Function that Configures an input channel on a 10 channel module
@@ -214,10 +210,10 @@ void OutputModule6ch_ConfigureChannel(_outputModule *outputModule,
 *module type INPUTPULLUP*
 ** \param 	pull_down pull down resistor for channel use macros related to
 *module type INPUTPULLDOWN*
-** \return	none
+** \return	0 if ok negative if failed
 ****************************************************************************************/
-void OutputModule10ch_ConfigureChannel(_outputModule *outputModule,
-                                       uint8_t channel, uint8_t func);
+int OutputModule10ch_ConfigureChannel(_outputModule* outputModule,
+									  uint8_t channel, uint8_t func);
 
 /***************************************************************************************
 ** \brief	Function that initializes sensor supplies on the module for 6
@@ -227,9 +223,9 @@ void OutputModule10ch_ConfigureChannel(_outputModule *outputModule,
 ** \param	channel the frequency channel to be configured
 ** \param	frequency the frequency at which this channel should put out its
 *PWM signal
-** \return	None
+** \return	0 if ok negative if failed
 ****************************************************************************************/
-void OutputModule_ConfigureFrequency(_outputModule *outputModule,
-                                     uint8_t channel, uint8_t frequency);
+int OutputModule_ConfigureFrequency(_outputModule* outputModule,
+									uint8_t channel, uint8_t frequency);
 
 #endif /* GOCONTROLL_OUTPUT_MODULE_H_ */

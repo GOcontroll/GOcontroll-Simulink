@@ -36,10 +36,11 @@
  ****************************************************************************************/
 #include "GocontrollBridgeModule.h"
 
-#include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 
 #include "GocontrollProcessorboard.h"
+#include "print.h"
 
 /****************************************************************************************
  * Macro definitions
@@ -61,10 +62,10 @@ extern _hardwareConfig hardwareConfig;
 
 /****************************************************************************************/
 
-void BridgeModule_Configuration(_bridgeModule *bridgeModule) {
+int BridgeModule_Configuration(_bridgeModule* bridgeModule) {
 	// module not registered
 	if (hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][0] == 0) {
-		return;
+		return -ENODEV;
 	}
 
 	bridgeModule->sw_version =
@@ -74,15 +75,15 @@ void BridgeModule_Configuration(_bridgeModule *bridgeModule) {
 
 	for (uint8_t channel = 0; channel < 2; channel++) {
 		bridgeModuleDataTx[6 + channel] = bridgeModule->configuration[channel];
-		*(uint16_t *)&bridgeModuleDataTx[12 + (channel * 2)] =
+		*(uint16_t*)&bridgeModuleDataTx[12 + (channel * 2)] =
 			4000;  // bridgeModule->maxCurrent[channel];
 	}
 	if (bridgeModule->sw_version >= VERSIONSPIPROTOCOLV2_BRIDGE) {
-		GocontrollProcessorboard_SendSpi(
+		return GocontrollProcessorboard_SendSpi(
 			bridgeModule->moduleSlot + 1, BRIDGEMODULEMESSAGELENGTH, 1, 21, 2,
 			1, bridgeModule->moduleSlot, &bridgeModuleDataTx[0], 0);
 	} else {
-		GocontrollProcessorboard_SendSpi(
+		return GocontrollProcessorboard_SendSpi(
 			1, BRIDGEMODULEMESSAGELENGTH, 0x2d, 0x01, 0x00, 0x00,
 			bridgeModule->moduleSlot, &bridgeModuleDataTx[0], 0);
 	}
@@ -90,17 +91,17 @@ void BridgeModule_Configuration(_bridgeModule *bridgeModule) {
 
 /****************************************************************************************/
 
-void BridgeModule_SendValues(_bridgeModule *bridgeModule) {
+int BridgeModule_SendValues(_bridgeModule* bridgeModule) {
 	// module not registered
 	if (hardwareConfig.moduleOccupancy[bridgeModule->moduleSlot][0] == 0) {
-		return;
+		return -ENODEV;
 	}
 
 	int res = 0;
 	for (uint8_t channel = 0; channel < 2; channel++) {
-		*(uint16_t *)&bridgeModuleDataTx[(channel * 6) + 6] =
+		*(uint16_t*)&bridgeModuleDataTx[(channel * 6) + 6] =
 			bridgeModule->value[channel];
-		*(uint32_t *)&bridgeModuleDataTx[(channel * 6) + 8] =
+		*(uint32_t*)&bridgeModuleDataTx[(channel * 6) + 8] =
 			bridgeModule->syncCounter[channel];
 	}
 
@@ -115,64 +116,60 @@ void BridgeModule_SendValues(_bridgeModule *bridgeModule) {
 			bridgeModule->moduleSlot, &bridgeModuleDataTx[0],
 			&bridgeModuleDataRx[0]);
 	}
-	if (res == 0) {
-		bridgeModule->temperature = *(int16_t *)&bridgeModuleDataRx[6];
-		bridgeModule->ground = *(uint16_t *)&bridgeModuleDataRx[8];
-		for (uint8_t channel = 0; channel < 2; channel++) {
-			bridgeModule->current[channel] =
-				*(int16_t *)&bridgeModuleDataRx[(channel * 2) + 10];
-		}
+	if (res) return res;
+
+	bridgeModule->temperature = *(int16_t*)&bridgeModuleDataRx[6];
+	bridgeModule->ground = *(uint16_t*)&bridgeModuleDataRx[8];
+	for (uint8_t channel = 0; channel < 2; channel++) {
+		bridgeModule->current[channel] =
+			*(int16_t*)&bridgeModuleDataRx[(channel * 2) + 10];
 	}
+	return 0;
 }
 
 /****************************************************************************************/
 
-void BridgeModule_SetModuleSlot(_bridgeModule *bridgeModule,
-								uint8_t moduleSlot) {
+int BridgeModule_SetModuleSlot(_bridgeModule* bridgeModule,
+							   uint8_t moduleSlot) {
 	if (moduleSlot < hardwareConfig.moduleNumber) {
 		if (!memcmp(hardwareConfig.moduleOccupancy, BRIDGEMODULECHANNELID, 3)) {
 			bridgeModule->moduleSlot = moduleSlot;
-			return;
+			return 0;
 		}
-		printf(
-			"module slot %d is contested by multiple module claims, check "
+		err("module slot %d is contested by multiple module claims, check "
 			"*SetModuleSlot init functions for double slot claims.\n",
 			moduleSlot + 1);
-		exit(-1);
+		return -EINVAL;
 	}
-	printf(
-		"Invalid module slot selected for a bridge module, selected %d, but "
+	err("Invalid module slot selected for a bridge module, selected %d, but "
 		"the range is 1-%d.\n",
 		moduleSlot + 1, hardwareConfig.moduleNumber);
-	exit(-1);
+	return -EINVAL;
 }
 
 /****************************************************************************************/
 
-void BridgeModule_ConfigureChannel(_bridgeModule *bridgeModule, uint8_t channel,
-								   uint8_t func, uint8_t freq) {
+int BridgeModule_ConfigureChannel(_bridgeModule* bridgeModule, uint8_t channel,
+								  uint8_t func, uint8_t freq) {
 	if (channel > 1) {
-		printf(
-			"Configured channel is out of range for bridge module in slot %d, "
+		err("Configured channel is out of range for bridge module in slot %d, "
 			"range is 1-10, entered is %d, please use the macros to configure "
 			"channels.",
 			bridgeModule->moduleSlot + 1, channel + 1);
-		exit(-1);
+		return -EINVAL;
 	}
 	if ((func == 0) || (func > 6)) {
-		printf(
-			"Invalid function set for channel %d, bridge module in slot %d, "
+		err("Invalid function set for channel %d, bridge module in slot %d, "
 			"please use the macros to set the channel function\n",
 			channel + 1, bridgeModule->moduleSlot + 1);
-		exit(-1);
+		return -EINVAL;
 	}
 	if ((freq == 0) || (freq > 7)) {
-		printf(
-			"Invalid frequency set for channel %d, bridge module in slot %d, "
+		err("Invalid frequency set for channel %d, bridge module in slot %d, "
 			"please use the macros to set the channel frequency\n",
 			channel + 1, bridgeModule->moduleSlot + 1);
-		exit(-1);
+		return -EINVAL;
 	}
 	bridgeModule->configuration[channel] = freq | (func << 4);
-	return;
+	return 0;
 }

@@ -39,18 +39,19 @@
 
 #include <errno.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
+
+#include "print.h"
 
 _hardwareConfig hardwareConfig;
 
-void GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t *rx) {
+void GocontrollProcessorboard_RegisterModule(uint8_t slot, uint8_t* rx) {
 	memcpy(hardwareConfig.moduleOccupancy[slot], &rx[6], 7);
-	printf("module %d registered, firmware: [ ", slot + 1);
+	info("module %d registered, firmware: [ ", slot + 1);
 	for (uint8_t i = 0; i < 7; i++) {
-		printf("%d, ", hardwareConfig.moduleOccupancy[slot][i]);
+		info("%d, ", hardwareConfig.moduleOccupancy[slot][i]);
 	}
-	printf("]\n");
+	info("]\n");
 }
 
 int GocontrollProcessorboard_ModuleInitialize(uint8_t moduleslot) {
@@ -67,36 +68,30 @@ int GocontrollProcessorboard_ModuleInitialize(uint8_t moduleslot) {
 		uint8_t dataRxBoot[BOOTMESSAGELENGTHCHECK] = {0};
 		res = GocontrollProcessorboard_EscapeFromBootloader(
 			moduleslot, dataTxBoot, dataRxBoot);
-#ifdef DEBUG
-		printf("bootloader:\n[");
+
+		dbg("bootloader:\n[");
 		for (uint8_t j = 0; j < BOOTMESSAGELENGTH; j++) {
-			printf("%d, ", dataRxBoot[j]);
+			dbg("%d, ", dataRxBoot[j]);
 		}
-		printf("]\n");
-#endif
+		dbg("]\n");
+
 		// checksum faulty, but a module seems to be there, retry
 		if (res &&
 			(dataRxBoot[0] == 9 || dataRxBoot[1] == BOOTMESSAGELENGTH - 1 ||
 			 dataRxBoot[2] == 9)) {
-#ifdef DEBUG
-			printf("checksum error\n");
-#endif
+			dbg("checksum error\n");
 			continue;
 		}
 		// checksum correct but message doesn't come from the bootloader
 		if (!res &&
 			(dataRxBoot[0] != 9 || dataRxBoot[1] != BOOTMESSAGELENGTH - 1 ||
 			 dataRxBoot[2] != 9)) {
-#ifdef DEBUG
-			printf("message incorrect\n");
-#endif
+			dbg("message incorrect\n");
 			continue;
 		}
 		// no module present, don't loop multiple times.
 		if (dataRxBoot[0] == 255) {
-#ifdef DEBUG
-			printf("no module present\n");
-#endif
+			dbg("no module present\n");
 			break;
 		}
 		uint8_t dataTxFirm[BOOTMESSAGELENGTHCHECK] = {0};
@@ -104,13 +99,11 @@ int GocontrollProcessorboard_ModuleInitialize(uint8_t moduleslot) {
 		GocontrollProcessorboard_Delay1ms(2);
 		res = GocontrollProcessorboard_EscapeFromBootloader(
 			moduleslot, dataTxFirm, dataRxFirm);
-#ifdef DEBUG
-		printf("firmware:\n[");
+		dbg("firmware:\n[");
 		for (uint8_t j = 0; j <= dataRxFirm[1]; j++) {
-			printf("%d, ", dataRxFirm[j]);
+			dbg("%d, ", dataRxFirm[j]);
 		}
-		printf("]\n");
-#endif
+		dbg("]\n");
 		if (!res && dataRxFirm[0] != 9 && dataRxFirm[2] != 9 &&
 			dataRxFirm[1] != 0) {
 			GocontrollProcessorboard_RegisterModule(moduleslot, dataRxBoot);
@@ -121,7 +114,7 @@ int GocontrollProcessorboard_ModuleInitialize(uint8_t moduleslot) {
 	return -ENODEV;
 }
 
-uint8_t GocontrollProcessorboard_CheckSumCalculator(uint8_t *array,
+uint8_t GocontrollProcessorboard_CheckSumCalculator(uint8_t* array,
 													uint8_t length) {
 	uint8_t checkSum = 0;
 	for (uint8_t pointer = 0; pointer < length; pointer++) {
