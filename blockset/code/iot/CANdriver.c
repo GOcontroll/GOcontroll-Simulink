@@ -1,8 +1,8 @@
 #include "CANdriver.h"
 
-#include "SEGGER_RTT.h"
 #include "cmsis_os2.h"
 #include "main.h"
+#include "print.h"
 
 uint32_t prescalers[4] = {CAN125KBPS, CAN250KBPS, CAN500KBPS, CAN1MBPS};
 
@@ -16,7 +16,7 @@ uint32_t prescalers[4] = {CAN125KBPS, CAN250KBPS, CAN500KBPS, CAN1MBPS};
 // 	}
 // }
 
-int init_can(CAN_HandleTypeDef *hcan, uint32_t baudrate) {
+int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate) {
 	// make some lookup to get proper clock setting for the desired baudrate
 	hcan->Init.Prescaler = prescalers[baudrate];
 	hcan->Init.Mode = CAN_MODE_NORMAL;
@@ -30,10 +30,10 @@ int init_can(CAN_HandleTypeDef *hcan, uint32_t baudrate) {
 	hcan->Init.ReceiveFifoLocked = DISABLE;
 	hcan->Init.TransmitFifoPriority = DISABLE;
 	if (HAL_CAN_Init(hcan) != HAL_OK) {
-		SEGGER_RTT_printf(0, "Could not init\n");
+		err("Could not init CAN %d\n", hcan->Instance);
 		return -1;
 	}
-	SEGGER_RTT_printf(0, "init: %x\n", hcan->ErrorCode);
+	dbg(0, "CAN %d init: %x\n", hcan->Instance, hcan->ErrorCode);
 	HAL_GPIO_WritePin(CAN1_SILENT_UCO_GPIO_Port, CAN1_SILENT_UCO_Pin,
 					  GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(CAN2_SILENT_UCO_GPIO_Port, CAN2_SILENT_UCO_Pin,
