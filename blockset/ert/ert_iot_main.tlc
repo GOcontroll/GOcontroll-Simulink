@@ -31,15 +31,17 @@
 	#include "tim.h"
 	#include "usart.h"
 	#include "usb_otg.h"
+	#include "dma.h"
 	#include "SEGGER_RTT.h"
+	#include "print.h"
 
 	#include "%<modelName>.h"
 
 	osThreadId_t model_step_thread;
 	const osThreadAttr_t model_step_thread_attributes = {
 	.name = "model_step_thread",
-	.stack_size = 128 * 4,
-	.priority = (osPriority_t) osPriorityNormal,
+	.stack_size = 128 * 16,
+	.priority = (osPriority_t) osPriorityRealtime,
 	};
 
 	#define MODEL %<modelName>
@@ -73,9 +75,6 @@ void model_step(void *arg)
 		//serveCANconnection();
 		/* Run model code */
 		%<modelName>_step();
-		#if(DEBUG == 1)
-			fprintf(stderr,"Model step\n");
-		#endif
 		osDelayUntil(tick);
 	}
 	osThreadExit();
@@ -96,6 +95,7 @@ void main(void){
 	HAL_GPIO_WritePin(KL15_CONTROLLER_UCO_GPIO_Port, KL15_CONTROLLER_UCO_Pin,
 					  GPIO_PIN_SET);
 	MX_SPI1_Init();
+	MX_DMA_Init();
 	MX_USART3_UART_Init();
 	MX_ADC1_Init();
 	MX_I2C1_Init();
