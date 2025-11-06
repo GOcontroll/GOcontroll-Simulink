@@ -29,11 +29,15 @@ int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate) {
 	hcan->Init.AutoRetransmission = DISABLE;
 	hcan->Init.ReceiveFifoLocked = DISABLE;
 	hcan->Init.TransmitFifoPriority = DISABLE;
+	HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 10, 0);
+	HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+	HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 10, 0);
+	HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
 	if (HAL_CAN_Init(hcan) != HAL_OK) {
 		err("Could not init CAN %d\n", hcan->Instance);
 		return -1;
 	}
-	dbg(0, "CAN %d init: %x\n", hcan->Instance, hcan->ErrorCode);
+	dbg("CAN %d init: %x\n", hcan->Instance, hcan->ErrorCode);
 	HAL_GPIO_WritePin(CAN1_SILENT_UCO_GPIO_Port, CAN1_SILENT_UCO_Pin,
 					  GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(CAN2_SILENT_UCO_GPIO_Port, CAN2_SILENT_UCO_Pin,

@@ -49,7 +49,7 @@
 %% Function: CANCommonBlockTypeSetup ========================================
 %% 	Declares and initializes all common variables and constants.
 
-%function CANCommonBlockTypeSetup() void
+%function CANCommonBlockTypeSetup_linux() void
 	%<LibAddToCommonIncludes("<stdio.h>")>
 	%<LibAddToCommonIncludes("<sys/socket.h>")>
 	%<LibAddToCommonIncludes("<net/if.h>")>
@@ -73,7 +73,7 @@
     %endif
 %endfunction
 
-%function CreateCanSocket(CanNum) void
+%function CreateCanSocket_linux(CanNum) void
 	%assign can_socket = "::can_%<CanNum>"
 	%if EXISTS(%<can_socket>) == 0
 		%% Mark the socket as created
@@ -86,7 +86,7 @@
 	%endif
 %endfunction
 
-%function InitCanSocket(CanNum) Output
+%function InitCanSocket_linux(CanNum) Output
 	%assign can_socket = "::can_%<CanNum>_init"
 	%if EXISTS(%<can_socket>) == 0
 		%% Mark the socket as initialized
@@ -120,7 +120,7 @@
 	%endif
 %endfunction
 
-%function CloseCanSocket(CanNum) Output
+%function CloseCanSocket_linux(CanNum) Output
 	%assign can_socket = "::can_%<CanNum>_term"
 	%if EXISTS(%<can_socket>) == 0
 		%assign %<can_socket> = 1

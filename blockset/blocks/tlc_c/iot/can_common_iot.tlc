@@ -49,52 +49,45 @@
 %% Function: CANCommonBlockTypeSetup ========================================
 %% 	Declares and initializes all common variables and constants.
 
-%function CANCommonBlockTypeSetup() void
+%function CANCommonBlockTypeSetup_iot() void
 	%if !SLibCodeGenForSim()
 		%%<LibAddToCommonIncludes("can_message.h")>
+		%<LibAddToCommonIncludes("can.h")>
 	%endif
 %endfunction
 
-%function SLibCodeGenForSim() void
-    %if (CompiledModel.TargetStyle=="SimulationTarget")
-        %return 1
-    %else
-        %return 0
-    %endif
-%endfunction
-
-%function CreateCanSocket(CanNum, Baudrate) void
+%function CreateCanSocket_iot(CanNum, Baudrate) void
 	%assign can_socket = "::can_%<CanNum>"
 	%if EXISTS(%<can_socket>) == 0
 		%% Mark the socket as created
 		%assign %<can_socket> = 1
 		%openfile declBuf
-			CAN_HandleTypeDef can_%<CanNum>;
+			//CAN_HandleTypeDef can_%<CanNum>;
 		%closefile declBuf
 
 		%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", declBuf)>
 
 		%openfile assignBuf
-			can_%<CanNum>.Instance = CAN%<CAST("Number", CanNum) + 1>;
+			hcan%<CAST("Number", CanNum) + 1>.Instance = CAN%<CAST("Number", CanNum) + 1>;
 		%closefile assignBuf
 
 		%<LibMdlStartCustomCode(assignBuf, "declaration")>
 
 		%openfile initBuf
-			init_can(&can_%<CanNum>, %<Baudrate>);
+			init_can(&hcan%<CAST("Number", CanNum) + 1>, %<Baudrate>);
 		%closefile initBuf
 
 		%<LibMdlStartCustomCode(initBuf, "execution")>
 
 		%openfile startBuf
-			HAL_CAN_Start(&can_%<CanNum>);
+			HAL_CAN_Start(&hcan%<CAST("Number", CanNum) + 1>);
 		%closefile startBuf
 
 		%<LibMdlStartCustomCode(startBuf, "trailer")>
 	%endif
 %endfunction
 
-%function InitCanSocket(CanNum, Baudrate) Output
+%function InitCanSocket_iot(CanNum, Baudrate) Output
 	%assign can_socket = "::can_%<CanNum>_init"
 	%if EXISTS(%<can_socket>) == 0
 		%% Mark the socket as initialized

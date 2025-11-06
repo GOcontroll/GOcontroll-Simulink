@@ -51,6 +51,7 @@
 %addincludepath "./linux"
 %addincludepath "./iot"
 %include "go_platform.tlc"
+%include "can_common.tlc"
 %include "sfcn_can_send_v2_linux.tlc"
 %include "sfcn_can_send_v2_iot.tlc"
 

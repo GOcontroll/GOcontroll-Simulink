@@ -36,6 +36,25 @@
 
 %function XcpBlockInstanceSetup_iot(block, system) void
 	%if EXISTS(::xcp_socket) == 0
+		%openfile tmpBufDecls
+			%if ISEQUAL(%<block.RTWdata.server_type>, 3)
+				osThreadId_t xcp_thread;
+
+				_XCP_CAN_Args xcp_args = {
+					&hcan%<CAST("Number", block.RTWdata.can_if) + 1>,
+					%<block.RTWdata.send_id>,
+					%<block.RTWdata.receive_id>,
+				};
+
+				const osThreadAttr_t xcp_thread_attributes = {
+					.name = "xcp_thread",
+					.stack_size = 128 * 2,
+					.priority = (osPriority_t) osPriorityNormal,
+				};
+			%endif
+		%closefile tmpBufDecls
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+
 		%assign ::xcp_socket = 1
 	%else
 		%<LibBlockReportError(block, "Multiple xcp server blocks exist in the model, this is not allowed")>
@@ -46,7 +65,8 @@
 %function XcpStart_iot(block, system) Output
 	%switch (%<block.RTWdata.server_type>)
 		%case 3
-			InitXcpCan(&can_%<block.RTWdata.can_if>, %<block.RTWdata.send_id>, %<block.RTWdata.receive_id>);
+			XcpInit_can(&xcp_args);
+			xcp_thread = osThreadNew(XcpThread_can, &xcp_args, &xcp_thread_attributes);
 			%break
 		%default
 			%<LibBlockReportError(block, "Invalid XCP server type selected, iot controller only supports xcp over CAN")>

@@ -6,14 +6,14 @@
 
 %% Function: BlockTypeSetup ====================================================
 %function CANConfigBlockTypeSetup_iot(block, system) void
-	%<CANCommonBlockTypeSetup()>
+	%<CANCommonBlockTypeSetup_iot()>
 %endfunction
 
 %% Function: BlockInstanceSetup ================================================
 %function CANConfigBlockInstanceSetup_iot(block, system) void
 	%assign canBus = block.RTWdata.canBus
 	%assign baudrate = block.RTWdata.baudrate
-	%<CreateCanSocket(canBus, baudrate)>
+	%<CreateCanSocket_iot(canBus, baudrate)>
 %endfunction
 
 %% Function: Start =============================================================

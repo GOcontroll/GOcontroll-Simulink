@@ -123,7 +123,7 @@ typedef struct {
 } _eventChannel;
 
 typedef struct {
-	CAN_HandleTypeDef *can_channel;
+	CAN_HandleTypeDef* can_channel;
 	uint32_t xcp_send_id;
 	uint32_t xcp_receive_id;
 } _XCP_CAN_Args;
@@ -132,13 +132,15 @@ typedef struct {
  * Function prototypes
  ****************************************************************************************/
 
+void XcpInit_can(_XCP_CAN_Args* can_args);
+
 /****************************************************************************************
  * \brief     Initializes the XCP slave communication module with theCAN
  * protocol
  * \param     aArgument pointer to the arguments
  * \return    none
  ****************************************************************************************/
-void InitXcpCan(CAN_HandleTypeDef *hcan, uint32_t canCtoId, uint32_t canDtoId);
+void XcpThread_can(void* args);
 
 /***************************************************************************************
  * \brief This function sends the data from the stack to the specified
@@ -147,7 +149,7 @@ void InitXcpCan(CAN_HandleTypeDef *hcan, uint32_t canCtoId, uint32_t canDtoId);
  * to the master
  * \return status 0 if success 1 if failure.
  ****************************************************************************************/
-uint8_t XcpSendData(uint8_t *data);
+uint8_t XcpSendData(uint8_t* data);
 
 /***************************************************************************************
 ** \brief     This function reads the data from a specified memory location. In
@@ -159,7 +161,7 @@ uint8_t XcpSendData(uint8_t *data);
 ** \param	  location The memory location where to read the data from.
 ** \return    none.
 ****************************************************************************************/
-void XcpReadData(void *data, uint8_t elements, void *location);
+void XcpReadData(void* data, uint8_t elements, void* location);
 
 /***************************************************************************************
 ** \brief     This function writes the data to a specified memory location. In
@@ -172,7 +174,7 @@ void XcpReadData(void *data, uint8_t elements, void *location);
 ** \param	  location The memory location where to write the data to.
 ** \return    none.
 ****************************************************************************************/
-void XcpWriteData(void *data, uint8_t elements, void *location);
+void XcpWriteData(void* data, uint8_t elements, void* location);
 
 /***************************************************************************************
 ** \brief     Utility function to stop the XCP connection that is made.
@@ -186,7 +188,7 @@ void XcpStopConnection(void);
 ** \param	  dataReceived the data received in the incoming xcp command.
 ** \return    none.
 ****************************************************************************************/
-uint8_t XcpUserCmd(uint8_t *dataReceived);
+uint8_t XcpUserCmd(uint8_t* dataReceived);
 
 #endif
 

@@ -50,7 +50,7 @@
 
 %% Function: BlockTypeSetup ====================================================
 %function CANsendv2BlockTypeSetup_iot(block, system) void
-	%<CANCommonBlockTypeSetup()>
+	%<CANCommonBlockTypeSetup_iot()>
 %endfunction
 
 %% Function: BlockInstanceSetup ================================================
@@ -85,7 +85,7 @@
 			}
 			if (%<message>.Remote)
 				header.RTR = CAN_RTR_REMOTE;
-			HAL_CAN_AddTxMessage(&can_%<module_id_par - 1>, &header, %<message>.Data,(uint32_t *)CAN_TX_MAILBOX0);
+			HAL_CAN_AddTxMessage(&hcan%<module_id_par>, &header, %<message>.Data,(uint32_t *)CAN_TX_MAILBOX0);
 		}
 	%endif
 %endfunction
