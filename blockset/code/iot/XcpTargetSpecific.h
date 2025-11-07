@@ -108,7 +108,7 @@
  ****************************************************************************************/
 
 #define XCPSTATICMEMORY (2048)
-#define DYNAMICMEMORYALLOCATION (1)
+#define DYNAMICMEMORYALLOCATION (0)
 #define DYNAMICMEMORYALLOCATIONFREERTOS (0)
 
 #if DYNAMICMEMORYALLOCATION == 1 && DYNAMICMEMORYALLOCATIONFREERTOS == 1

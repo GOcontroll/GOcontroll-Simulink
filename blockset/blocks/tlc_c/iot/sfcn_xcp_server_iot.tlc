@@ -48,8 +48,8 @@
 
 				const osThreadAttr_t xcp_thread_attributes = {
 					.name = "xcp_thread",
-					.stack_size = 128 * 2,
-					.priority = (osPriority_t) osPriorityNormal,
+					.stack_size = 128 * 4,
+					.priority = (osPriority_t) osPriorityAboveNormal,
 				};
 			%endif
 		%closefile tmpBufDecls
@@ -66,7 +66,7 @@
 	%switch (%<block.RTWdata.server_type>)
 		%case 3
 			XcpInit_can(&xcp_args);
-			xcp_thread = osThreadNew(XcpThread_can, &xcp_args, &xcp_thread_attributes);
+			xcp_thread = osThreadNew(XcpThread_can, NULL, &xcp_thread_attributes);
 			%break
 		%default
 			%<LibBlockReportError(block, "Invalid XCP server type selected, iot controller only supports xcp over CAN")>

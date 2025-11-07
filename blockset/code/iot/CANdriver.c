@@ -4,6 +4,10 @@
 #include "main.h"
 #include "print.h"
 
+#define CAN_PACKED_DLC 0b001111
+#define CAN_PACKED_EXTID 0b010000
+#define CAN_PACKED_RTR 0b100000
+
 uint32_t prescalers[4] = {CAN125KBPS, CAN250KBPS, CAN500KBPS, CAN1MBPS};
 
 /* move to tlc*/
@@ -15,6 +19,27 @@ uint32_t prescalers[4] = {CAN125KBPS, CAN250KBPS, CAN500KBPS, CAN1MBPS};
 // 		osMessageQueuePut(mid_MsgQueue, &message, 0, 0);
 // 	}
 // }
+
+void can_pack_header(struct can_frame* frame, CAN_RxHeaderTypeDef* header) {
+	dbg("IDE: %d, Ext: 0x%x, Std: 0x%x, DLC: %d\n", header->IDE, header->ExtId,
+		header->StdId, header->DLC);
+	frame->id = header->IDE ? header->ExtId : header->StdId;
+	frame->flags = header->DLC & CAN_PACKED_DLC;
+	frame->flags |= header->IDE ? CAN_PACKED_EXTID : 0;
+	frame->flags |= header->RTR ? CAN_PACKED_RTR : 0;
+}
+
+uint8_t can_packed_dlc(struct can_frame* frame) {
+	return frame->flags & CAN_PACKED_DLC;
+}
+
+bool can_packed_is_ExtId(struct can_frame* frame) {
+	return (frame->flags & CAN_PACKED_EXTID) > 0;
+}
+
+bool can_packed_is_RTR(struct can_frame* frame) {
+	return (frame->flags & CAN_PACKED_RTR) > 0;
+}
 
 int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate) {
 	// make some lookup to get proper clock setting for the desired baudrate

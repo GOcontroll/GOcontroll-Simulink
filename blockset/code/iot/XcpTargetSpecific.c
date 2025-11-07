@@ -20,22 +20,14 @@ _eventChannel eventChannel[3] = {
 };
 
 void XcpCanHandler(CAN_HandleTypeDef* hcan) {
-	struct can_frame_rx message;
-	uint8_t dummy = 0;
-	while (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &message.header,
-								message.data) == HAL_OK) {
-		dbg("received CAN message, dlc: %d, id: %x\ndata: [",
-			message.header.DLC, message.header.StdId);
-		for (int i = 0; i < message.header.DLC; i++) {
-			dbg("%02x,", message.data[i]);
-		}
-		dbg(0, "]\n");
-		XcpCommunicationHandling(message.data, message.header.DLC, dataToSend);
+	CAN_RxHeaderTypeDef header;
+	struct can_frame message;
+	while (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &header, message.data) ==
+		   HAL_OK) {
+		can_pack_header(&message, &header);
+		osMessageQueuePut(xcp_received, &message, 0, 0);
 	}
 	return;
-	HAL_CAN_DeactivateNotification(hcan, CAN_IT_RX_FIFO1_MSG_PENDING);
-	dbg("here\n");
-	osMessageQueuePut(xcp_received, &dummy, 0, 0);
 }
 
 void XcpInit_can(_XCP_CAN_Args* can_args) {
@@ -73,29 +65,23 @@ void XcpInit_can(_XCP_CAN_Args* can_args) {
 		err("Could not activate notification: 0x%x\n",
 			can_args->can_channel->ErrorCode);
 
-	xcp_received = osMessageQueueNew(5, sizeof(uint8_t), NULL);
+	xcp_received = osMessageQueueNew(1, sizeof(struct can_frame), NULL);
 }
 
 void XcpThread_can(void* args) {
-	struct can_frame_rx message;
-	_XCP_CAN_Args* can_args = (_XCP_CAN_Args*)args;
-	CAN_HandleTypeDef* hcan = can_args->can_channel;
-	uint8_t dummy;
+	struct can_frame message;
 
 	while (1) {
-		if (!osMessageQueueGet(xcp_received, &dummy, 0, osWaitForever)) {
-			while (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &message.header,
-										message.data) == HAL_OK) {
-				dbg("received CAN message, dlc: %d, id: %x\ndata: [",
-					message.header.DLC, message.header.ExtId);
-				for (int i = 0; i < message.header.DLC; i++) {
-					dbg("%02x,", message.data[i]);
-				}
-				dbg(0, "]\n");
-				XcpCommunicationHandling(message.data, message.header.DLC,
-										 dataToSend);
+		if (!osMessageQueueGet(xcp_received, &message, 0, osWaitForever)) {
+			dbg("received CAN message, dlc: %d, id: %x\ndata: [",
+				can_packed_dlc(&message), message.id);
+			for (int i = 0; i < can_packed_dlc(&message); i++) {
+				dbg("%02x,", message.data[i]);
 			}
-			HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO1_MSG_PENDING);
+			dbg("]\n");
+			dbg("xcp stack free: %d\n", osThreadGetStackSpace(osThreadGetId()));
+			XcpCommunicationHandling(message.data, can_packed_dlc(&message),
+									 dataToSend);
 		}
 	}
 }
