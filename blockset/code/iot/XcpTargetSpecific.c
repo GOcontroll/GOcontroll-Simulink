@@ -7,6 +7,7 @@ uint8_t XcpCanSend(uint8_t* data);
 
 static uint8_t dataToSend[16] = {0};
 uint32_t xcpDtoId;
+uint8_t xcpDtoIdExt;
 void* XcpConnection_fd;
 static uint8_t xcpTransmissionBus = 0;
 
@@ -34,24 +35,30 @@ void XcpInit_can(_XCP_CAN_Args* can_args) {
 	CAN_FilterTypeDef filter = {0};
 	xcpTransmissionBus = XCPCAN;
 	xcpDtoId = can_args->xcp_send_id;
+	xcpDtoIdExt = can_args->xcp_send_id_extended;
 	XcpConnection_fd = can_args->can_channel;
 	XcpDynamicConfigurator(0, 8, 8);
-	// filter.FilterIdLow = canCtoId & 0xffff;
-	// filter.FilterIdHigh = (canCtoId >> 16) & 0xffff;
-	filter.FilterIdHigh = (can_args->xcp_receive_id << 5) & 0xffff;
-	filter.FilterIdLow = 0x0000;
-	// filter.FilterIdHigh = 0x0000;
+
+	if (can_args->xcp_receive_id_extended) {
+		filter.FilterIdHigh = (can_args->xcp_receive_id >> 13) & 0xffff;
+		filter.FilterIdLow = ((can_args->xcp_receive_id << 3) & 0xffff) | 0b100;
+	} else {
+		filter.FilterIdHigh = (can_args->xcp_receive_id << 5) & 0xffff;
+		filter.FilterIdLow = 0x0000;
+	}
+
 	filter.FilterMaskIdHigh = 0x0000;
 	filter.FilterMaskIdLow = 0x0000;
 	// send all xcp data to fifo1, other data will go to fifo0
 	filter.FilterFIFOAssignment = CAN_FILTER_FIFO1;
 	filter.FilterMode = CAN_FILTERMODE_IDLIST;
-	// filter.FilterMode = CAN_FILTERMODE_IDMASK;
-	filter.FilterBank = 0;	// maybe it should be the first one?
+	if (can_args->can_channel->Instance == CAN1)
+		filter.FilterBank = 0;
+	else
+		filter.FilterBank = 14;
 	filter.FilterScale = CAN_FILTERSCALE_32BIT;
 	filter.FilterActivation = CAN_FILTER_ENABLE;
-	filter.SlaveStartFilterBank =
-		14;	 // this should probably be set based on can if
+	filter.SlaveStartFilterBank = 14;
 	if (HAL_CAN_ConfigFilter(can_args->can_channel, &filter) != HAL_OK)
 		err("Could not config filter: 0x%x\n",
 			can_args->can_channel->ErrorCode);
@@ -100,9 +107,17 @@ uint8_t XcpCanSend(uint8_t* data) {
 	HAL_StatusTypeDef res;
 	if (data[0] != 0 && data[0] <= 8) {
 		header.DLC = data[0];
-		header.StdId = xcpDtoId;
-		dbg("sending CAN message, dlc: %d, id: %x\ndata: [", header.DLC,
-			header.StdId);
+		if (xcpDtoIdExt) {
+			header.ExtId = xcpDtoId;
+			header.IDE = CAN_ID_EXT;
+			dbg("sending CAN message, dlc: %d, id: %x\ndata: [", header.DLC,
+				header.ExtId);
+		} else {
+			header.StdId = xcpDtoId;
+			header.IDE = CAN_ID_STD;
+			dbg("sending CAN message, dlc: %d, id: %x\ndata: [", header.DLC,
+				header.StdId);
+		}
 		for (int i = 0; i < header.DLC; i++) {
 			dbg("%02x,", data[i + 1]);
 		}
@@ -114,7 +129,7 @@ uint8_t XcpCanSend(uint8_t* data) {
 			return 0;
 		}
 	} else {
-		dbg("Could not send message, incorrect size: %d\n", data[0]);
+		err("Could not send message, incorrect size: %d\n", data[0]);
 	}
 	return 1;
 }

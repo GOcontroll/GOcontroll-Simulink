@@ -21,8 +21,6 @@ uint32_t prescalers[4] = {CAN125KBPS, CAN250KBPS, CAN500KBPS, CAN1MBPS};
 // }
 
 void can_pack_header(struct can_frame* frame, CAN_RxHeaderTypeDef* header) {
-	dbg("IDE: %d, Ext: 0x%x, Std: 0x%x, DLC: %d\n", header->IDE, header->ExtId,
-		header->StdId, header->DLC);
 	frame->id = header->IDE ? header->ExtId : header->StdId;
 	frame->flags = header->DLC & CAN_PACKED_DLC;
 	frame->flags |= header->IDE ? CAN_PACKED_EXTID : 0;
@@ -58,6 +56,8 @@ int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate) {
 	HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
 	HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 10, 0);
 	HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
+	HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 10, 0);
+	HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
 	if (HAL_CAN_Init(hcan) != HAL_OK) {
 		err("Could not init CAN %d\n", hcan->Instance);
 		return -1;

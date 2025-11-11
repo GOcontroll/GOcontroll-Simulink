@@ -147,8 +147,8 @@ _eventChannel eventChannel[3] = {
  ****************************************************************************************/
 int ServeEthXcpConnection(void);
 int ServeCANXcpConnection(void);
-uint8_t XcpEthSend(uint8_t *data);
-uint8_t XcpCanSend(uint8_t *data);
+uint8_t XcpEthSend(uint8_t* data);
+uint8_t XcpCanSend(uint8_t* data);
 
 void expired(union sigval timer_data);
 
@@ -196,8 +196,8 @@ void expired(union sigval timer_data) {
 	data[1] = 0x00;	 // Mode 00 = stop DAQ list
 	// data[2] = 0x01; // DAQ list 1
 	XcpCommunicationHandling(
-		(uint8_t *)&data, (uint32_t)3,
-		(uint8_t *)&dataToSend);  // Call XCP stack for command received
+		(uint8_t*)&data, (uint32_t)3,
+		(uint8_t*)&dataToSend);	 // Call XCP stack for command received
 	its.it_value.tv_sec = 0;
 	its.it_value.tv_nsec = 0;
 	its.it_interval.tv_sec = 0;
@@ -213,7 +213,7 @@ void expired(union sigval timer_data) {
 ** \param     aArgument pointer to the arguments
 ** \return    none
 ****************************************************************************************/
-void *XcpInitialize_tcp(void *aArgument) {
+void* XcpInitialize_tcp(void* aArgument) {
 	xcpTransmissionBus = XCPETH;
 	struct sockaddr_in XcpSocketAddr,
 		XCPclientAddr; /* Structs to hold the XCP address	*/
@@ -252,7 +252,7 @@ void *XcpInitialize_tcp(void *aArgument) {
 		htons(XCP_PORT_NUM); /* Host to network byte order, port nr */
 
 	xcpSocketResult =
-		bind(XcpSocket, (struct sockaddr *)&XcpSocketAddr,
+		bind(XcpSocket, (struct sockaddr*)&XcpSocketAddr,
 			 sizeof(XcpSocketAddr)); /* Bind the socket to an address */
 	if (xcpSocketResult == -1)
 		fprintf(stderr, "Error in XCPinit; bind socket: %s\n", strerror(errno));
@@ -276,7 +276,7 @@ void *XcpInitialize_tcp(void *aArgument) {
 	for (;;) {
 		/* From here the actual XCP communication is started */
 		XcpConnection_fd = accept(
-			XcpSocket, (struct sockaddr *)&XCPclientAddr,
+			XcpSocket, (struct sockaddr*)&XCPclientAddr,
 			&XCPclientAddrLen); /* Accept incoming from all IP addresses */
 		if (XcpConnection_fd == -1) {
 			fprintf(stderr,
@@ -324,7 +324,7 @@ void *XcpInitialize_tcp(void *aArgument) {
 ** \return    none
 **
 ****************************************************************************************/
-void *XcpInitialize_udp(void *aArgument) {
+void* XcpInitialize_udp(void* aArgument) {
 	xcpTransmissionBus = XCPETH;
 	struct sockaddr_in XcpSocketAddr; /* Structs to hold the XCP address	*/
 	int result;						  /* File descriptors					*/
@@ -352,7 +352,7 @@ void *XcpInitialize_udp(void *aArgument) {
 	XcpSocketAddr.sin_port =
 		htons(XCP_PORT_NUM); /* Host to network byte order short, port nr */
 
-	result = bind(XcpConnection_fd, (struct sockaddr *)&XcpSocketAddr,
+	result = bind(XcpConnection_fd, (struct sockaddr*)&XcpSocketAddr,
 				  sizeof(XcpSocketAddr)); /* Bind the socket to an address */
 	if (result == -1)
 		fprintf(stderr, "Error in XCPinit; bind socket: %s\n", strerror(errno));
@@ -384,9 +384,9 @@ void *XcpInitialize_udp(void *aArgument) {
 ** \return    none
 **
 ****************************************************************************************/
-void *XcpInitialize_can(void *aArgument) {
+void* XcpInitialize_can(void* aArgument) {
 	xcpTransmissionBus = XCPCAN;
-	_XCP_CAN_Args *args = (_XCP_CAN_Args *)aArgument;
+	_XCP_CAN_Args* args = (_XCP_CAN_Args*)aArgument;
 	xcpCanParameters.xcpDtoId = args->xcp_send_id;
 	struct sockaddr_can addr;
 	struct ifreq ifr;
@@ -413,7 +413,7 @@ void *XcpInitialize_can(void *aArgument) {
 	}
 	addr.can_ifindex = ifr.ifr_ifindex;
 
-	result = bind(XcpConnection_fd, (struct sockaddr *)(void *)&addr,
+	result = bind(XcpConnection_fd, (struct sockaddr*)(void*)&addr,
 				  sizeof(addr)); /* Bind the socket to an address */
 	if (result == -1)
 		fprintf(stderr, "Error in XCPinit; bind socket: %s\n", strerror(errno));
@@ -423,7 +423,7 @@ void *XcpInitialize_can(void *aArgument) {
 
 	struct can_filter filter;
 	filter.can_id = args->xcp_receive_id;
-	filter.can_mask = CAN_EFF_MASK;
+	filter.can_mask = CAN_EFF_MASK | CAN_EFF_FLAG;
 	result = setsockopt(XcpConnection_fd, SOL_CAN_RAW, CAN_RAW_FILTER, &filter,
 						sizeof(filter));
 	if (result == -1)
@@ -455,9 +455,9 @@ int ServeEthXcpConnection(void) {
 	do {
 		/* Check for received messages */
 		readCnt = recvfrom(
-			XcpConnection_fd, (void *)&ctoPacket, 4, MSG_PEEK,
-			(struct sockaddr *restrict)&addr_HT,
-			(socklen_t *restrict)&slen); /* Receive first 4 bytes to be able to
+			XcpConnection_fd, (void*)&ctoPacket, 4, MSG_PEEK,
+			(struct sockaddr* restrict)&addr_HT,
+			(socklen_t* restrict)&slen); /* Receive first 4 bytes to be able to
 											read the XCP counter and length*/
 #if (DEBUG == 1)
 		fprintf(stderr, "recv1: %li\n", readCnt);
@@ -480,10 +480,10 @@ int ServeEthXcpConnection(void) {
 
 			/* Now we have the length we can read the rest of the message */
 			readCnt = recvfrom(
-				XcpConnection_fd, (uint8_t *)&ctoPacket,
+				XcpConnection_fd, (uint8_t*)&ctoPacket,
 				(size_t)ctoPacket.s.len + 4, 0,
-				(struct sockaddr *restrict)&addr_HT,
-				(socklen_t *restrict)&slen); /* Read the rest of the bytes in
+				(struct sockaddr* restrict)&addr_HT,
+				(socklen_t* restrict)&slen); /* Read the rest of the bytes in
 												the receive buffer */
 #if (DEBUG == 1)
 			fprintf(stderr, "recv2: %li\n", readCnt);
@@ -525,9 +525,9 @@ int ServeEthXcpConnection(void) {
 					}
 				}
 				XcpCommunicationHandling(
-					(uint8_t *)&ctoPacket.s.data, (uint32_t)ctoPacket.s.len,
-					(uint8_t
-						 *)&dataToSend);  // Call XCP stack for command received
+					(uint8_t*)&ctoPacket.s.data, (uint32_t)ctoPacket.s.len,
+					(uint8_t*)&dataToSend);	 // Call XCP stack for command
+											 // received
 			}
 		}
 	} while (readCnt > 0); /* End of do while loop */
@@ -573,7 +573,7 @@ int ServeCANXcpConnection(void) {
  * to the master
  * \return status 0 if success 1 if failure.
  ****************************************************************************************/
-uint8_t XcpSendData(uint8_t *data) {
+uint8_t XcpSendData(uint8_t* data) {
 	switch (xcpTransmissionBus) {
 		case XCPETH:
 			return XcpEthSend(data);
@@ -592,7 +592,7 @@ uint8_t XcpSendData(uint8_t *data) {
  * \return status 0 if success 1 if failure.
  ****************************************************************************************/
 
-uint8_t XcpEthSend(uint8_t *data) {
+uint8_t XcpEthSend(uint8_t* data) {
 	static uint16_t CTR =
 		0; /* Counter according to XCP over TCP specification */
 	tMacNetXcpDtoPacket dtoPacket;
@@ -609,9 +609,9 @@ uint8_t XcpEthSend(uint8_t *data) {
 	addr_HT.sin_port =
 		htons(50000);  // TODO port now hardcoded: should be setting in Simulink
 	/* Write data to XCP connection */
-	res = sendto(XcpConnection_fd, (void *)&dtoPacket.raw[0],
+	res = sendto(XcpConnection_fd, (void*)&dtoPacket.raw[0],
 				 (size_t)dtoPacket.s.len + 4, MSG_DONTWAIT,
-				 (struct sockaddr *)&addr_HT, slen);
+				 (struct sockaddr*)&addr_HT, slen);
 	if (res != (dtoPacket.s.len + 4)) {
 #if (DEBUG == 1)
 		fprintf(stderr, "sent %ld bytes, which should have been %d\n", res,
@@ -640,7 +640,7 @@ uint8_t XcpEthSend(uint8_t *data) {
  * \return status 0 if success 1 if failure.
  ****************************************************************************************/
 
-uint8_t XcpCanSend(uint8_t *data) {
+uint8_t XcpCanSend(uint8_t* data) {
 	struct can_frame sc_frame;
 	int res;
 	if (data[0] != 0 && data[0] <= 8) {
@@ -670,19 +670,19 @@ uint8_t XcpCanSend(uint8_t *data) {
 ** \param	  location The memory location where to read the data from.
 ** \return    none.
 ****************************************************************************************/
-void XcpReadData(uint8_t *data, uint8_t elements, void *location) {
+void XcpReadData(uint8_t* data, uint8_t elements, void* location) {
 	switch (elements) {
 		case 1:
-			*(uint8_t *)data = *(uint8_t *)location;
+			*(uint8_t*)data = *(uint8_t*)location;
 			break;
 		case 2:
-			*(uint16_t *)data = *(uint16_t *)location;
+			*(uint16_t*)data = *(uint16_t*)location;
 			break;
 		case 4:
-			*(uint32_t *)data = *(uint32_t *)location;
+			*(uint32_t*)data = *(uint32_t*)location;
 			break;
 		case 8:
-			*(uint64_t *)data = *(uint64_t *)location;
+			*(uint64_t*)data = *(uint64_t*)location;
 			break;
 	}
 }
@@ -698,20 +698,20 @@ void XcpReadData(uint8_t *data, uint8_t elements, void *location) {
 ** \param	  location The memory location where to write the data to.
 ** \return    none.
 ****************************************************************************************/
-void XcpWriteData(uint8_t *data, uint8_t elements, void *location) {
+void XcpWriteData(uint8_t* data, uint8_t elements, void* location) {
 	// TODO check for write protected area's in memory
 	switch (elements) {
 		case 1:
-			*(uint8_t *)location = *(uint8_t *)&data[0];
+			*(uint8_t*)location = *(uint8_t*)&data[0];
 			break;
 		case 2:
-			*(uint16_t *)location = *(uint16_t *)&data[0];
+			*(uint16_t*)location = *(uint16_t*)&data[0];
 			break;
 		case 4:
-			*(uint32_t *)location = *(uint32_t *)&data[0];
+			*(uint32_t*)location = *(uint32_t*)&data[0];
 			break;
 		case 8:
-			*(uint64_t *)location = *(uint64_t *)&data[0];
+			*(uint64_t*)location = *(uint64_t*)&data[0];
 			break;
 	}
 }
@@ -735,7 +735,7 @@ void XcpStopConnection(void) {
  ** \return    none.
  **
  ****************************************************************************************/
-uint8_t XcpUserCmd(uint8_t *dataReceived) {
+uint8_t XcpUserCmd(uint8_t* dataReceived) {
 	switch (dataReceived[1]) {
 		case 0x10:
 			timeout_sec = (int)(dataReceived[2] << 8) + dataReceived[3];

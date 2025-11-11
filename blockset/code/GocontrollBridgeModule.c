@@ -132,7 +132,8 @@ int BridgeModule_SendValues(_bridgeModule* bridgeModule) {
 int BridgeModule_SetModuleSlot(_bridgeModule* bridgeModule,
 							   uint8_t moduleSlot) {
 	if (moduleSlot < hardwareConfig.moduleNumber) {
-		if (!memcmp(hardwareConfig.moduleOccupancy, BRIDGEMODULECHANNELID, 3)) {
+		if (!memcmp(hardwareConfig.moduleOccupancy[moduleSlot],
+					BRIDGEMODULECHANNELID, 3)) {
 			bridgeModule->moduleSlot = moduleSlot;
 			return 0;
 		}

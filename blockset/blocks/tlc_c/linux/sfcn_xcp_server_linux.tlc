@@ -42,8 +42,16 @@
 			%if ISEQUAL(%<block.RTWdata.server_type>, 3)
 				_XCP_CAN_Args xcp_args = {
 					"can%<block.RTWdata.can_if>",
-					%<block.RTWdata.send_id>,
-					%<block.RTWdata.receive_id>,
+					%if ISEQUAL(%<block.RTWdata.send_id_ext>, 1)
+						%<block.RTWdata.send_id> | CAN_EFF_FLAG,
+					%else
+						%<block.RTWdata.send_id>,
+					%endif
+					%if ISEQUAL(%<block.RTWdata.receive_id_ext>, 1)
+						%<block.RTWdata.receive_id> | CAN_EFF_FLAG,
+					%else
+						%<block.RTWdata.receive_id>,
+					%endif
 				};
 			%endif
 		%closefile tmpBufDecls

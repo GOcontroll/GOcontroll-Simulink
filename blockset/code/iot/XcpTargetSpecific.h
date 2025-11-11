@@ -126,6 +126,8 @@ typedef struct {
 	CAN_HandleTypeDef* can_channel;
 	uint32_t xcp_send_id;
 	uint32_t xcp_receive_id;
+	uint8_t xcp_send_id_extended;
+	uint8_t xcp_receive_id_extended;
 } _XCP_CAN_Args;
 
 /****************************************************************************************

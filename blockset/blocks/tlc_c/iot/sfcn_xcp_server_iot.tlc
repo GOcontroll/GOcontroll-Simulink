@@ -44,6 +44,8 @@
 					&hcan%<CAST("Number", block.RTWdata.can_if) + 1>,
 					%<block.RTWdata.send_id>,
 					%<block.RTWdata.receive_id>,
+					%<block.RTWdata.send_id_ext>,
+					%<block.RTWdata.receive_id_ext>,
 				};
 
 				const osThreadAttr_t xcp_thread_attributes = {

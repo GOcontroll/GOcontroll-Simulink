@@ -51,7 +51,7 @@
 
 %function CANCommonBlockTypeSetup_iot() void
 	%if !SLibCodeGenForSim()
-		%%<LibAddToCommonIncludes("can_message.h")>
+		%<LibAddToCommonIncludes("can_message.h")>
 		%<LibAddToCommonIncludes("can.h")>
 	%endif
 %endfunction
@@ -61,11 +61,6 @@
 	%if EXISTS(%<can_socket>) == 0
 		%% Mark the socket as created
 		%assign %<can_socket> = 1
-		%openfile declBuf
-			//CAN_HandleTypeDef can_%<CanNum>;
-		%closefile declBuf
-
-		%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", declBuf)>
 
 		%openfile assignBuf
 			hcan%<CAST("Number", CanNum) + 1>.Instance = CAN%<CAST("Number", CanNum) + 1>;

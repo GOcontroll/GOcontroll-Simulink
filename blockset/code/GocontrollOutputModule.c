@@ -113,7 +113,8 @@ int OutputModule_Configuration(_outputModule* outputModule) {
 		if (outputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNELOUT) {
 			return GocontrollProcessorboard_SendSpi(
 				outputModule->moduleSlot + 1, OUTPUTMODULE6CHMESSAGELENGTH, 1,
-				22, 2, 2, outputModule->moduleSlot, &outputModuleDataTx[0], 0);
+				22, 2, 2, outputModule->moduleSlot, &outputModuleDataTx[0],
+				500);
 		} else {
 			return GocontrollProcessorboard_SendSpi(
 				1, OUTPUTMODULE6CHMESSAGELENGTH, 111, 0, 0, 0,
@@ -238,8 +239,8 @@ int OutputModule_SetModuleSlot(_outputModule* outputModule,
 							   uint8_t moduleSlot) {
 	if (moduleSlot < hardwareConfig.moduleNumber) {
 		if (outputModule->moduleType == OUTPUTMODULE6CHANNEL) {
-			if (!memcmp(hardwareConfig.moduleOccupancy, OUTPUTMODULE6CHANNELID,
-						3)) {
+			if (!memcmp(hardwareConfig.moduleOccupancy[moduleSlot],
+						OUTPUTMODULE6CHANNELID, 3)) {
 				outputModule->moduleSlot = moduleSlot;
 				return 0;
 			}

@@ -242,8 +242,8 @@ int InputModule_ResetPulsCounter(_inputModule* inputModule, uint8_t channel,
 int InputModule_SetModuleSlot(_inputModule* inputModule, uint8_t moduleSlot) {
 	if (moduleSlot < hardwareConfig.moduleNumber) {
 		if (inputModule->moduleType == INPUTMODULE6CHANNEL) {
-			if (!memcmp(hardwareConfig.moduleOccupancy, INPUTMODULE6CHANNELID,
-						3)) {
+			if (!memcmp(hardwareConfig.moduleOccupancy[moduleSlot],
+						INPUTMODULE6CHANNELID, 3)) {
 				inputModule->moduleSlot = moduleSlot;
 				return 0;
 			}

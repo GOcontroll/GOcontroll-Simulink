@@ -46,15 +46,16 @@
 %% File : sfcn_can_receive_v2.tlc
 %% Brief : tlc file for generating code to receive CAN messages on the Moduline Controllers
 
-%include "can_common_linux.tlc"
+%include "can_common_iot.tlc"
 
 %% Function: BlockTypeSetup ====================================================
-%function CANrecvv2BlockTypeSetup_linux(block, system) void
-	%<CANCommonBlockTypeSetup_linux()>
+%function CANrecvv2BlockTypeSetup_iot(block, system) void
+	%<CANCommonBlockTypeSetup_iot()>
+	%<LibAddToCommonIncludes("print.h")>
 %endfunction
 
 %% Function: BlockInstanceSetup ================================================
-%function CANrecvv2BlockInstanceSetup_linux(block, system) void
+%function CANrecvv2BlockInstanceSetup_iot(block, system) void
 	%assign module_id_par = LibBlockParameterValue(module_id, 0)
 	%% There can only be one receive block per socket, check, error if one already exists
 	%assign can_recv_socket = "::can_%<module_id_par>_recv"
@@ -66,19 +67,64 @@
 		%assign %<can_recv_socket> = 1
 	%endif
 
-	%% Check if the socket for this bus is already there, if not create it
-	%<CreateCanSocket_linux(module_id_par)>
+	%openfile queue
+		osMessageQueueId_t can%<module_id_par>_queue;
+	%closefile queue
+
+	%assign srcFile = LibGetModelDotCFile()
+	%<LibSetSourceFileSection(srcFile, "Definitions", queue)>
+
+	%openfile callback
+		void can%<module_id_par>_rx_pending(CAN_HandleTypeDef *hcan) {
+			CAN_RxHeaderTypeDef header;
+			struct can_frame message;
+			while (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &header, message.data) == HAL_OK) {
+				can_pack_header(&message, &header);
+				osMessageQueuePut(can%<module_id_par>_queue, &message, 0, 0);
+			}
+		}
+	%closefile callback
+
+	%<LibSetSourceFileSection(srcFile, "Functions", callback)>
 %endfunction
 
 %% Function: Start =============================================================
-%function CANrecvv2Start_linux(block, system) Output
+%function CANrecvv2Start_iot(block, system) Output
 	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-	%% Initialize the socket if it hasn't already been done
-	%<InitCanSocket_linux(module_id_par)>
+	%assign hcan = "hcan%<module_id_par>"
+	{
+		CAN_FilterTypeDef filter = {0};
+		can%<module_id_par>_queue = osMessageQueueNew(20, sizeof(struct can_frame), NULL);
+
+		filter.FilterIdHigh = 0x0000;
+		filter.FilterIdLow = 0x0000;
+		filter.FilterMaskIdHigh = 0x0000;
+		filter.FilterMaskIdLow = 0x0000;
+		filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+		filter.FilterMode = CAN_FILTERMODE_IDMASK;
+		%if ISEQUAL(%<module_id_par>, 1)
+			filter.FilterBank = 1;
+		%else
+			filter.FilterBank = 15;
+		%endif
+		filter.FilterScale = CAN_FILTERSCALE_32BIT;
+		filter.FilterActivation = CAN_FILTER_ENABLE;
+		filter.SlaveStartFilterBank = 14;
+		HAL_CAN_Stop(&%<hcan>);
+		if(HAL_CAN_ConfigFilter(&%<hcan>, &filter) != HAL_OK)
+			err("Could not config filter: 0x%x\n", %<hcan>.ErrorCode);
+		if(HAL_CAN_RegisterCallback(&%<hcan>,
+								 HAL_CAN_RX_FIFO0_MSG_PENDING_CB_ID,
+								 can%<module_id_par>_rx_pending) != HAL_OK)
+			err("Could not register callback0: 0x%x\n", %<hcan>.ErrorCode);
+		if(HAL_CAN_ActivateNotification(&%<hcan>, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+			err("Could not activate notification: 0x%x\n", %<hcan>.ErrorCode);
+		HAL_CAN_Start(&%<hcan>);
+	}
 %endfunction
 
 %% Function: Outputs ===========================================================
-%function CANrecvv2Outputs_linux(block, system) Output
+%function CANrecvv2Outputs_iot(block, system) Output
 	%if !SLibCodeGenForSim()
 		%assign module_id_par = LibBlockParameterValue(module_id, 0)
 		%% message will be of the type CAN_MESSAGE, run this command in the matlab console to find the definition: 
@@ -87,26 +133,15 @@
 
 		{
 			struct can_frame sc_frame;
-			int ret;
-			int dlc;
+
 			%% Drain the sockets buffer and decode these messages
-			while ((ret = recv(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0)) > 0) {
-				%% Invalid message received
-				if (ret < sizeof(sc_frame)) {
-					continue;
-				}
-
-				dlc = sc_frame.can_dlc;
-				%% dlc cant be larger than 8
-				if (dlc > 8)
-					dlc = 8;
-
+			while (!osMessageQueueGet(can%<module_id_par>_queue, &sc_frame, 0, 0)) {
 				%% Receive CAN_MESSAGE
-				%<message>.Length = dlc;
-				%<message>.ID = sc_frame.can_id & CAN_EFF_MASK;
+				%<message>.Length = can_packed_dlc(&sc_frame);
+				%<message>.ID = sc_frame.id;
 				%% Check message flags
-				%<message>.Extended = sc_frame.can_id & CAN_EFF_FLAG ? 1 : 0;
-				%<message>.Remote = sc_frame.can_id & CAN_RTR_FLAG ? 1 : 0;
+				%<message>.Extended = can_packed_is_ExtId(&sc_frame);
+				%<message>.Remote = can_packed_is_RTR(&sc_frame);
 
 				%%Write all bytes in one go
 				*(uint64_t *)&%<message>.Data[0]= *(uint64_t *)&sc_frame.data[0];
@@ -124,7 +159,5 @@
 	%endif
 %endfunction
 
-%function CANrecvv2Terminate_linux(block, system) Output
-	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-	%<CloseCanSocket_linux(module_id_par)>
+%function CANrecvv2Terminate_iot(block, system) Output
 %endfunction
