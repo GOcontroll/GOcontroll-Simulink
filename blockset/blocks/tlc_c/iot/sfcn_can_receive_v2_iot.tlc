@@ -104,8 +104,12 @@
 		filter.FilterMode = CAN_FILTERMODE_IDMASK;
 		%if ISEQUAL(%<module_id_par>, 1)
 			filter.FilterBank = 1;
+			HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 10, 0);
+			HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
 		%else
 			filter.FilterBank = 15;
+			HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 10, 0);
+			HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
 		%endif
 		filter.FilterScale = CAN_FILTERSCALE_32BIT;
 		filter.FilterActivation = CAN_FILTER_ENABLE;

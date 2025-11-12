@@ -72,8 +72,6 @@ void model_step(void *arg)
 	uint32_t tick = osKernelGetTickCount();
 	for (;;) {
 		tick += %<CompiledModel.SampleTime[0].ClockTickStepSize*1000>;
-		//serveCANconnection();
-		/* Run model code */
 		%<modelName>_step();
 		osDelayUntil(tick);
 	}

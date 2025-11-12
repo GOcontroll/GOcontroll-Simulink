@@ -52,10 +52,15 @@ void XcpInit_can(_XCP_CAN_Args* can_args) {
 	// send all xcp data to fifo1, other data will go to fifo0
 	filter.FilterFIFOAssignment = CAN_FILTER_FIFO1;
 	filter.FilterMode = CAN_FILTERMODE_IDLIST;
-	if (can_args->can_channel->Instance == CAN1)
+	if (can_args->can_channel->Instance == CAN1) {
 		filter.FilterBank = 0;
-	else
+		HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 10, 0);
+		HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
+	} else {
 		filter.FilterBank = 14;
+		HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 10, 0);
+		HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
+	}
 	filter.FilterScale = CAN_FILTERSCALE_32BIT;
 	filter.FilterActivation = CAN_FILTER_ENABLE;
 	filter.SlaveStartFilterBank = 14;
