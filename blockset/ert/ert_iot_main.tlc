@@ -40,7 +40,7 @@
 	osThreadId_t model_step_thread;
 	const osThreadAttr_t model_step_thread_attributes = {
 	.name = "model_step_thread",
-	.stack_size = 128 * 16,
+	.stack_size = 128 * 24,
 	.priority = (osPriority_t) osPriorityRealtime,
 	};
 

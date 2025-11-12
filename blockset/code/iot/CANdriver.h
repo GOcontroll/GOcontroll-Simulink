@@ -8,6 +8,10 @@
 #define CAN500KBPS 4
 #define CAN1MBPS 2
 
+#define CAN_PACKED_DLC 0b001111
+#define CAN_PACKED_EXTID 0b010000
+#define CAN_PACKED_RTR 0b100000
+
 struct can_frame {
 	uint8_t data[8];
 	uint32_t id;

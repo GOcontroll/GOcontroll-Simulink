@@ -80,6 +80,7 @@
 
 #include "CANdriver.h"
 #include "XcpStack.h"
+#include "cmsis_os2.h"
 
 /****************************************************************************************
  * XCPSTATICMEMORY
@@ -122,19 +123,13 @@ typedef struct {
 	char channel[7];
 } _eventChannel;
 
-typedef struct {
-	CAN_HandleTypeDef* can_channel;
-	uint32_t xcp_send_id;
-	uint32_t xcp_receive_id;
-	uint8_t xcp_send_id_extended;
-	uint8_t xcp_receive_id_extended;
-} _XCP_CAN_Args;
-
 /****************************************************************************************
  * Function prototypes
  ****************************************************************************************/
 
-void XcpInit_can(_XCP_CAN_Args* can_args);
+void XcpInit_can(CAN_HandleTypeDef* can_channel, osMessageQueueId_t tx_queue,
+				 uint32_t xcp_send_id, uint32_t xcp_receive_id,
+				 uint8_t xcp_send_id_extended, uint8_t xcp_receive_id_extended);
 
 /****************************************************************************************
  * \brief     Initializes the XCP slave communication module with theCAN

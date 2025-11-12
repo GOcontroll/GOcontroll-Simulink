@@ -20,13 +20,21 @@
 %% errors or omissions or the results obtained from use of the software.
 %%
 %%***************************************************************************************
+
 %implements  sfcn_exec_shell "C"
 
-%% add required include files
-%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
-%<LibAddToCommonIncludes("stdlib.h")>
-%<LibAddToCommonIncludes("unistd.h")>
-%<LibAddToCommonIncludes("sys/types.h")>
+%include "go_platform.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
+		%<LibAddToCommonIncludes("stdlib.h")>
+		%<LibAddToCommonIncludes("unistd.h")>
+		%<LibAddToCommonIncludes("sys/types.h")>
+	%endif
+%endfunction
 
 %% Function: Start ==========================================================
 %%
@@ -42,12 +50,18 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	if (%<LibBlockInputSignal(0, "", "", 0)>){
-		pid_t pid = fork();
-		if (pid == 0) {
-			exit(system("%<block.RTWdata.command>"));
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		if (%<LibBlockInputSignal(0, "", "", 0)>){
+			pid_t pid = fork();
+			if (pid == 0) {
+				exit(system("%<block.RTWdata.command>"));
+			}
 		}
-	}
+	%elseif ISEQUAL(platform, "IOT")
+		%<LibBlockReportWarning(block, "This controller cannot execute shell commands, thus it will not work")>
+	%endif
+
 %endfunction
 
 

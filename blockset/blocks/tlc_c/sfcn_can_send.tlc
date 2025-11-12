@@ -21,12 +21,10 @@
 %% errors or omissions or the results obtained from use of the software.
 %%
 %%***************************************************************************************
+
 %implements  sfcn_can_send "C"
 
-
-%% add required include files
-%<LibAddToCommonIncludes("CANdriver.h")>
-
+%include "go_platform.tlc"
 
 %% Function: BlockTypeSetup ==========================================================
 %%
@@ -34,6 +32,10 @@
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		%<LibAddToCommonIncludes("CANdriver.h")>
+	%endif
 %endfunction
 
 
@@ -43,15 +45,20 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	CANsocket(%<block.RTWdata.canBus>); /* Initialize CAN socket */
-	%% get the can connection from CANdriver.c
-	%if EXISTS("::canConnection") == 0
-		%openfile tmpBuf
-		extern _canConnection canConnection;
-		%closefile tmpBuf
-		
-		%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", tmpBuf)>
-		%assign ::canConnection = 1
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		CANsocket(%<block.RTWdata.canBus>); /* Initialize CAN socket */
+		%% get the can connection from CANdriver.c
+		%if EXISTS("::canConnection") == 0
+			%openfile tmpBuf
+			extern _canConnection canConnection;
+			%closefile tmpBuf
+			
+			%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", tmpBuf)>
+			%assign ::canConnection = 1
+		%endif
+	%endif
+		%<LibBlockReportWarning(block, "This block is deprepecated and not implemented on this target")>
 	%endif
 %endfunction
 
@@ -61,28 +68,30 @@
 %%      Code generation for signal input
 %%
 %function Update(block, system) Output
-	/* Sending a message over CAN */
-	{
-		struct can_frame sendframe; /* Declare a frame to send */
-		sendframe.can_id = %<LibBlockInputSignal(0, "", "", 0)>; /* Mask value for ID */
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "i.MX8")
+		{
+			struct can_frame sendframe; /* Declare a frame to send */
+			sendframe.can_id = %<LibBlockInputSignal(0, "", "", 0)>; /* Mask value for ID */
 
-		%if(block.RTWdata.RTR)
-			sendframe.can_id |= CAN_RTR_FLAG; /* Add RTR bit to identifier */
-		%endif
+			%if(block.RTWdata.RTR)
+				sendframe.can_id |= CAN_RTR_FLAG; /* Add RTR bit to identifier */
+			%endif
 
-		%if CAST("Number",block.RTWdata.frameType) == 2
-			sendframe.can_id |= CAN_EFF_FLAG; /* Set CAN_EFF_FLAG for extended identifiers */
-		%endif
+			%if CAST("Number",block.RTWdata.frameType) == 2
+				sendframe.can_id |= CAN_EFF_FLAG; /* Set CAN_EFF_FLAG for extended identifiers */
+			%endif
 
-		sendframe.can_dlc = %<block.RTWdata.dataLength>; /* Mask value for number of bytes */
+			sendframe.can_dlc = %<block.RTWdata.dataLength>; /* Mask value for number of bytes */
 
-		/* prepare the data */
-		%foreach counter = block.RTWdata.dataLength
-			sendframe.data[%<counter>] = %<LibBlockInputSignal(counter + 1, "", "", 0)>;
-		%endforeach
+			/* prepare the data */
+			%foreach counter = block.RTWdata.dataLength
+				sendframe.data[%<counter>] = %<LibBlockInputSignal(counter + 1, "", "", 0)>;
+			%endforeach
 
-		write(canConnection.socket[%<block.RTWdata.canBus>], &sendframe, sizeof(struct can_frame));	/* Send message */
-	}
+			write(canConnection.socket[%<block.RTWdata.canBus>], &sendframe, sizeof(struct can_frame));	/* Send message */
+		}
+	%endif
 %endfunction
 
 

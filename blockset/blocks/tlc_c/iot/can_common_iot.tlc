@@ -92,3 +92,103 @@
 		%assign %<can_socket> = 1
 	%endif
 %endfunction
+
+%function StartCanTx_iot(module_id_par, hcan) Output
+	%assign can_socket = "::can_tx_%<module_id_par>_init"
+	%if EXISTS(%<can_socket>) == 0
+		%assign %<can_socket> = 1
+
+		%assign srcFile = LibGetModelDotCFile()
+		%openfile define
+			#define CAN%<module_id_par>_TX_FREE_MASK 0b1UL
+		%closefile define
+
+		%<LibSetSourceFileSection(srcFile, "Defines", define)>
+
+		%openfile queue
+			osMessageQueueId_t can%<module_id_par>_tx_queue;
+			osEventFlagsId_t can%<module_id_par>_tx_free;
+			osThreadId_t can%<module_id_par>_tx_thread;
+		%closefile queue
+
+		
+		%<LibSetSourceFileSection(srcFile, "Definitions", queue)>
+
+		%openfile decls
+			const osThreadAttr_t can%<module_id_par>_tx_thread_attributes = {
+					.name = "can%<module_id_par>_tx_thread",
+					.stack_size = 128 * 4,
+					.priority = (osPriority_t) osPriorityAboveNormal,
+				};
+		%closefile decls
+
+		%<LibSetSourceFileSection(srcFile, "Declarations", decls)>
+
+		%openfile callback
+			void can%<module_id_par>_tx_empty(CAN_HandleTypeDef *hcan){
+				osEventFlagsSet(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
+			}
+		%closefile callback
+
+		%<LibSetSourceFileSection(srcFile, "Functions", callback)>
+
+		%openfile task
+			void can%<module_id_par>TxThread(void* args) {
+				CAN_TxHeaderTypeDef header = {0};
+				struct can_frame message;
+				uint32_t dummy;
+
+				osEventFlagsSet(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
+
+				while (1) {
+					while(HAL_CAN_GetTxMailboxesFreeLevel(&%<hcan>)) {
+						osMessageQueueGet(can%<module_id_par>_tx_queue, &message, 0 , osWaitForever);
+						%% Transmit CAN_MESSAGE
+						header.DLC = can_packed_dlc(&message);
+
+						%%Set ID and flags
+						if (can_packed_is_ExtId(&message)) {
+							header.ExtId = message.id;
+							header.IDE = CAN_ID_EXT;
+						} else {
+							header.StdId = message.id;
+							header.IDE = CAN_ID_STD;
+						}
+						if (can_packed_is_RTR(&message))
+							header.RTR = CAN_RTR_REMOTE;
+						dbg("can tx stack free: %d\n", osThreadGetStackSpace(osThreadGetId()));
+						dbg("sending CAN message, dlc: %d, id: %x\ndata: [", header.DLC, message.id);
+						for (int i = 0; i < header.DLC; i++) {
+							dbg("%02x,", message.data[i]);
+						}
+						dbg("]\n");
+						HAL_CAN_AddTxMessage(&hcan%<module_id_par>, &header, message.data,&dummy);
+					}
+					osEventFlagsClear(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
+					osEventFlagsWait(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK,osFlagsWaitAny, osWaitForever);
+				}
+			}
+		%closefile task
+
+		%<LibSetSourceFileSection(srcFile, "Functions", task)>
+
+		%openfile initBuf
+			can%<module_id_par>_tx_free = osEventFlagsNew(NULL);
+			can%<module_id_par>_tx_queue = osMessageQueueNew(20, sizeof(struct can_frame), NULL);
+		%closefile initBuf
+		%<LibMdlStartCustomCode(initBuf, "execution")>
+
+
+		HAL_NVIC_SetPriority(CAN%<module_id_par>_TX_IRQn, 10, 0);
+		HAL_NVIC_EnableIRQ(CAN%<module_id_par>_TX_IRQn);
+		HAL_CAN_Stop(&%<hcan>);
+		if(HAL_CAN_RegisterCallback(&%<hcan>,
+								 HAL_CAN_TX_MAILBOX0_COMPLETE_CB_ID,
+								 can%<module_id_par>_tx_empty) != HAL_OK)
+			err("Could not register callback: 0x%x\n", %<hcan>.ErrorCode);
+		if (HAL_CAN_ActivateNotification(&%<hcan>, CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK)
+			err("Could not activate notification: 0x%x\n", %<hcan>.ErrorCode);
+		HAL_CAN_Start(&%<hcan>);
+		can%<module_id_par>_tx_thread = osThreadNew(can%<module_id_par>TxThread, NULL, &can%<module_id_par>_tx_thread_attributes);
+	%endif
+%endfunction

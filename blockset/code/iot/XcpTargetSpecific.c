@@ -1,5 +1,8 @@
 #include "XcpTargetSpecific.h"
 
+#include <string.h>
+
+#include "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h"
 #include "cmsis_os2.h"
 #include "print.h"
 
@@ -9,6 +12,7 @@ static uint8_t dataToSend[16] = {0};
 uint32_t xcpDtoId;
 uint8_t xcpDtoIdExt;
 void* XcpConnection_fd;
+osMessageQueueId_t can_tx_queue;
 static uint8_t xcpTransmissionBus = 0;
 
 osMessageQueueId_t xcp_received;
@@ -31,19 +35,23 @@ void XcpCanHandler(CAN_HandleTypeDef* hcan) {
 	return;
 }
 
-void XcpInit_can(_XCP_CAN_Args* can_args) {
+void XcpInit_can(CAN_HandleTypeDef* can_channel, osMessageQueueId_t tx_queue,
+				 uint32_t xcp_send_id, uint32_t xcp_receive_id,
+				 uint8_t xcp_send_id_extended,
+				 uint8_t xcp_receive_id_extended) {
 	CAN_FilterTypeDef filter = {0};
 	xcpTransmissionBus = XCPCAN;
-	xcpDtoId = can_args->xcp_send_id;
-	xcpDtoIdExt = can_args->xcp_send_id_extended;
-	XcpConnection_fd = can_args->can_channel;
+	xcpDtoId = xcp_send_id;
+	xcpDtoIdExt = xcp_send_id_extended;
+	XcpConnection_fd = can_channel;
+	can_tx_queue = tx_queue;
 	XcpDynamicConfigurator(0, 8, 8);
 
-	if (can_args->xcp_receive_id_extended) {
-		filter.FilterIdHigh = (can_args->xcp_receive_id >> 13) & 0xffff;
-		filter.FilterIdLow = ((can_args->xcp_receive_id << 3) & 0xffff) | 0b100;
+	if (xcp_receive_id_extended) {
+		filter.FilterIdHigh = (xcp_receive_id >> 13) & 0xffff;
+		filter.FilterIdLow = ((xcp_receive_id << 3) & 0xffff) | 0b100;
 	} else {
-		filter.FilterIdHigh = (can_args->xcp_receive_id << 5) & 0xffff;
+		filter.FilterIdHigh = (xcp_receive_id << 5) & 0xffff;
 		filter.FilterIdLow = 0x0000;
 	}
 
@@ -52,7 +60,7 @@ void XcpInit_can(_XCP_CAN_Args* can_args) {
 	// send all xcp data to fifo1, other data will go to fifo0
 	filter.FilterFIFOAssignment = CAN_FILTER_FIFO1;
 	filter.FilterMode = CAN_FILTERMODE_IDLIST;
-	if (can_args->can_channel->Instance == CAN1) {
+	if (can_channel->Instance == CAN1) {
 		filter.FilterBank = 0;
 		HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 10, 0);
 		HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
@@ -64,18 +72,15 @@ void XcpInit_can(_XCP_CAN_Args* can_args) {
 	filter.FilterScale = CAN_FILTERSCALE_32BIT;
 	filter.FilterActivation = CAN_FILTER_ENABLE;
 	filter.SlaveStartFilterBank = 14;
-	if (HAL_CAN_ConfigFilter(can_args->can_channel, &filter) != HAL_OK)
-		err("Could not config filter: 0x%x\n",
-			can_args->can_channel->ErrorCode);
-	if (HAL_CAN_RegisterCallback(can_args->can_channel,
+	if (HAL_CAN_ConfigFilter(can_channel, &filter) != HAL_OK)
+		err("Could not config filter: 0x%x\n", can_channel->ErrorCode);
+	if (HAL_CAN_RegisterCallback(can_channel,
 								 HAL_CAN_RX_FIFO1_MSG_PENDING_CB_ID,
 								 XcpCanHandler) != HAL_OK)
-		err("Could not register callback0: 0x%x\n",
-			can_args->can_channel->ErrorCode);
-	if (HAL_CAN_ActivateNotification(can_args->can_channel,
+		err("Could not register callback0: 0x%x\n", can_channel->ErrorCode);
+	if (HAL_CAN_ActivateNotification(can_channel,
 									 CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
-		err("Could not activate notification: 0x%x\n",
-			can_args->can_channel->ErrorCode);
+		err("Could not activate notification: 0x%x\n", can_channel->ErrorCode);
 
 	xcp_received = osMessageQueueNew(1, sizeof(struct can_frame), NULL);
 }
@@ -108,29 +113,16 @@ uint8_t XcpSendData(uint8_t* data) {
 }
 
 uint8_t XcpCanSend(uint8_t* data) {
-	CAN_TxHeaderTypeDef header = {0};
-	HAL_StatusTypeDef res;
+	struct can_frame message;
+	int res;
 	if (data[0] != 0 && data[0] <= 8) {
-		header.DLC = data[0];
-		if (xcpDtoIdExt) {
-			header.ExtId = xcpDtoId;
-			header.IDE = CAN_ID_EXT;
-			dbg("sending CAN message, dlc: %d, id: %x\ndata: [", header.DLC,
-				header.ExtId);
-		} else {
-			header.StdId = xcpDtoId;
-			header.IDE = CAN_ID_STD;
-			dbg("sending CAN message, dlc: %d, id: %x\ndata: [", header.DLC,
-				header.StdId);
-		}
-		for (int i = 0; i < header.DLC; i++) {
-			dbg("%02x,", data[i + 1]);
-		}
-		dbg("]\n");
-		res = HAL_CAN_AddTxMessage(
-			(CAN_HandleTypeDef*)XcpConnection_fd, &header, &data[1],
-			(uint32_t*)CAN_TX_MAILBOX0);  // mailbox selection?
-		if (res == HAL_OK) {
+		dbg("xcp stack free: %d\n", osThreadGetStackSpace(osThreadGetId()));
+		message.flags = data[0] & CAN_PACKED_DLC;
+		message.flags |= xcpDtoIdExt ? CAN_PACKED_EXTID : 0;
+		message.id = xcpDtoId;
+		memcpy(message.data, &data[1], data[0]);
+		res = osMessageQueuePut(can_tx_queue, &message, 0, 0);
+		if (!res) {
 			return 0;
 		}
 	} else {

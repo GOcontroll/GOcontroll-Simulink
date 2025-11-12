@@ -30,32 +30,27 @@
 %%
 %%***************************************************************************************
 
+%include "can_common_iot.tlc"
+
 %function XcpBlockTypeSetup_iot(block, system) void
 %endfunction
 
-
 %function XcpBlockInstanceSetup_iot(block, system) void
 	%if EXISTS(::xcp_socket) == 0
-		%openfile tmpBufDecls
-			%if ISEQUAL(%<block.RTWdata.server_type>, 3)
+		%if ISEQUAL(%<block.RTWdata.server_type>, 3)
+			%assign module_id_par = %<CAST("Number", block.RTWdata.can_if) + 1>
+			%assign hcan = "hcan%<module_id_par>"
+			%openfile tmpBufDecls
 				osThreadId_t xcp_thread;
-
-				_XCP_CAN_Args xcp_args = {
-					&hcan%<CAST("Number", block.RTWdata.can_if) + 1>,
-					%<block.RTWdata.send_id>,
-					%<block.RTWdata.receive_id>,
-					%<block.RTWdata.send_id_ext>,
-					%<block.RTWdata.receive_id_ext>,
-				};
 
 				const osThreadAttr_t xcp_thread_attributes = {
 					.name = "xcp_thread",
 					.stack_size = 128 * 4,
 					.priority = (osPriority_t) osPriorityAboveNormal,
 				};
-			%endif
-		%closefile tmpBufDecls
-		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+			%closefile tmpBufDecls
+			%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+		%endif
 
 		%assign ::xcp_socket = 1
 	%else
@@ -65,9 +60,19 @@
 
 
 %function XcpStart_iot(block, system) Output
+	%assign module_id_par = %<CAST("Number", block.RTWdata.can_if) + 1>
+	%assign hcan = "hcan%<module_id_par>"
 	%switch (%<block.RTWdata.server_type>)
 		%case 3
-			XcpInit_can(&xcp_args);
+			%<StartCanTx_iot(module_id_par, hcan)>
+			XcpInit_can(
+					&%<hcan>,
+					can%<module_id_par>_tx_queue,
+					%<block.RTWdata.send_id>,
+					%<block.RTWdata.receive_id>,
+					%<block.RTWdata.send_id_ext>,
+					%<block.RTWdata.receive_id_ext>
+			);
 			xcp_thread = osThreadNew(XcpThread_can, NULL, &xcp_thread_attributes);
 			%break
 		%default

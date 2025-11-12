@@ -59,6 +59,9 @@
 
 %% Function: Start =============================================================
 %function CANsendv2Start_iot(block, system) Output
+	%assign module_id_par = LibBlockParameterValue(module_id, 0)
+	%assign hcan = "hcan%<module_id_par>"
+	%<StartCanTx_iot(module_id_par, hcan)>
 %endfunction
 
 %% Function: Outputs ===========================================================
@@ -70,22 +73,13 @@
 		%assign module_id_par = LibBlockParameterValue(module_id, 0)
 
 		{
-			CAN_TxHeaderTypeDef header = {0};
-
-			%% Transmit CAN_MESSAGE
-			header.DLC = %<message>.Length;
-
-			%%Set ID and flags
-			if (%<message>.Extended) {
-				header.ExtId = %<message>.ID;
-				header.IDE = CAN_ID_EXT;
-			} else {
-				header.StdId = %<message>.ID;
-				header.IDE = CAN_ID_STD;
-			}
-			if (%<message>.Remote)
-				header.RTR = CAN_RTR_REMOTE;
-			HAL_CAN_AddTxMessage(&hcan%<module_id_par>, &header, %<message>.Data,(uint32_t *)CAN_TX_MAILBOX0);
+			struct can_frame message;
+			memcpy(message.data, %<message>.Data, %<message>.Length);
+			message.id = %<message>.ID;
+			message.flags = %<message>.Length & CAN_PACKED_DLC;
+			message.flags |= %<message>.Extended ? CAN_PACKED_EXTID : 0;
+			message.flags |= %<message>.Remote ? CAN_PACKED_RTR : 0;
+			osMessageQueuePut(can%<module_id_par>_tx_queue, &message, 0 , osWaitForever);
 		}
 	%endif
 %endfunction

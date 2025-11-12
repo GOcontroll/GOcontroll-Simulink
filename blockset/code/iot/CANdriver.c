@@ -4,10 +4,6 @@
 #include "main.h"
 #include "print.h"
 
-#define CAN_PACKED_DLC 0b001111
-#define CAN_PACKED_EXTID 0b010000
-#define CAN_PACKED_RTR 0b100000
-
 uint32_t prescalers[4] = {CAN125KBPS, CAN250KBPS, CAN500KBPS, CAN1MBPS};
 
 /* move to tlc*/
@@ -49,15 +45,15 @@ int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate) {
 	hcan->Init.TimeTriggeredMode = DISABLE;
 	hcan->Init.AutoBusOff = DISABLE;
 	hcan->Init.AutoWakeUp = DISABLE;
-	hcan->Init.AutoRetransmission = DISABLE;
+	hcan->Init.AutoRetransmission = ENABLE;
 	hcan->Init.ReceiveFifoLocked = DISABLE;
-	hcan->Init.TransmitFifoPriority = DISABLE;
+	hcan->Init.TransmitFifoPriority = ENABLE;
 	if (HAL_CAN_Init(hcan) != HAL_OK) {
 		err("Could not init CAN %d\n", hcan->Instance);
 		return -1;
 	}
 	dbg("CAN %d init: %x\n", hcan->Instance, hcan->ErrorCode);
-	if (hcan.Instance == CAN1)
+	if (hcan->Instance == CAN1)
 		HAL_GPIO_WritePin(CAN1_SILENT_UCO_GPIO_Port, CAN1_SILENT_UCO_Pin,
 						  GPIO_PIN_RESET);
 	else

@@ -68,7 +68,7 @@
 	%endif
 
 	%openfile queue
-		osMessageQueueId_t can%<module_id_par>_queue;
+		osMessageQueueId_t can%<module_id_par>_rx_queue;
 	%closefile queue
 
 	%assign srcFile = LibGetModelDotCFile()
@@ -80,7 +80,7 @@
 			struct can_frame message;
 			while (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &header, message.data) == HAL_OK) {
 				can_pack_header(&message, &header);
-				osMessageQueuePut(can%<module_id_par>_queue, &message, 0, 0);
+				osMessageQueuePut(can%<module_id_par>_rx_queue, &message, 0, 0);
 			}
 		}
 	%closefile callback
@@ -94,7 +94,7 @@
 	%assign hcan = "hcan%<module_id_par>"
 	{
 		CAN_FilterTypeDef filter = {0};
-		can%<module_id_par>_queue = osMessageQueueNew(20, sizeof(struct can_frame), NULL);
+		can%<module_id_par>_rx_queue = osMessageQueueNew(20, sizeof(struct can_frame), NULL);
 
 		filter.FilterIdHigh = 0x0000;
 		filter.FilterIdLow = 0x0000;
@@ -120,7 +120,7 @@
 		if(HAL_CAN_RegisterCallback(&%<hcan>,
 								 HAL_CAN_RX_FIFO0_MSG_PENDING_CB_ID,
 								 can%<module_id_par>_rx_pending) != HAL_OK)
-			err("Could not register callback0: 0x%x\n", %<hcan>.ErrorCode);
+			err("Could not register callback: 0x%x\n", %<hcan>.ErrorCode);
 		if(HAL_CAN_ActivateNotification(&%<hcan>, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
 			err("Could not activate notification: 0x%x\n", %<hcan>.ErrorCode);
 		HAL_CAN_Start(&%<hcan>);
@@ -139,7 +139,7 @@
 			struct can_frame sc_frame;
 
 			%% Drain the sockets buffer and decode these messages
-			while (!osMessageQueueGet(can%<module_id_par>_queue, &sc_frame, 0, 0)) {
+			while (!osMessageQueueGet(can%<module_id_par>_rx_queue, &sc_frame, 0, 0)) {
 				%% Receive CAN_MESSAGE
 				%<message>.Length = can_packed_dlc(&sc_frame);
 				%<message>.ID = sc_frame.id;
