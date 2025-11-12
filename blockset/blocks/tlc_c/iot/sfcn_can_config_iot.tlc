@@ -13,7 +13,7 @@
 %function CANConfigBlockInstanceSetup_iot(block, system) void
 	%assign canBus = block.RTWdata.canBus
 	%assign baudrate = block.RTWdata.baudrate
-	%<CreateCanSocket_iot(canBus, baudrate)>
+	%<CreateCanSocket_iot(block, canBus, baudrate)>
 %endfunction
 
 %% Function: Start =============================================================

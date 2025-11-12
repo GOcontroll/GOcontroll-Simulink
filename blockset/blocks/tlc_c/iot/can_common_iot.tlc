@@ -56,7 +56,7 @@
 	%endif
 %endfunction
 
-%function CreateCanSocket_iot(CanNum, Baudrate) void
+%function CreateCanSocket_iot(block, CanNum, Baudrate) void
 	%assign can_socket = "::can_%<CanNum>"
 	%if EXISTS(%<can_socket>) == 0
 		%% Mark the socket as created
@@ -79,6 +79,9 @@
 		%closefile startBuf
 
 		%<LibMdlStartCustomCode(startBuf, "trailer")>
+	%else
+		%assign error = "2 or more CAN config blocks are configuring CAN %<CAST("Number", CanNum) + 1>, this is not allowed"
+		%<LibBlockReportError(block, error)>
 	%endif
 %endfunction
 
