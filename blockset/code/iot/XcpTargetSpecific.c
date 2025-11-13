@@ -116,7 +116,6 @@ uint8_t XcpCanSend(uint8_t* data) {
 	struct can_frame message;
 	int res;
 	if (data[0] != 0 && data[0] <= 8) {
-		dbg("xcp stack free: %d\n", osThreadGetStackSpace(osThreadGetId()));
 		message.flags = data[0] & CAN_PACKED_DLC;
 		message.flags |= xcpDtoIdExt ? CAN_PACKED_EXTID : 0;
 		message.id = xcpDtoId;
