@@ -79,7 +79,7 @@
 			message.flags = %<message>.Length & CAN_PACKED_DLC;
 			message.flags |= %<message>.Extended ? CAN_PACKED_EXTID : 0;
 			message.flags |= %<message>.Remote ? CAN_PACKED_RTR : 0;
-			osMessageQueuePut(can%<module_id_par>_tx_queue, &message, 0 , osWaitForever);
+			osMessageQueuePut(can%<module_id_par>_tx_queue, &message, 0 , 0);
 		}
 	%endif
 %endfunction

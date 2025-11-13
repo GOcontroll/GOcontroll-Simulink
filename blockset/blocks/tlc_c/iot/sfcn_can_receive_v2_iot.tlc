@@ -92,9 +92,11 @@
 %function CANrecvv2Start_iot(block, system) Output
 	%assign module_id_par = LibBlockParameterValue(module_id, 0)
 	%assign hcan = "hcan%<module_id_par>"
+	%assign can_rx_buf = "::can_%<module_id_par>_rx"
+	%assign can_rx_buff = %<can_rx_buf>
 	{
 		CAN_FilterTypeDef filter = {0};
-		can%<module_id_par>_rx_queue = osMessageQueueNew(20, sizeof(struct can_frame), NULL);
+		can%<module_id_par>_rx_queue = osMessageQueueNew(%<can_rx_buff>, sizeof(struct can_frame), NULL);
 
 		filter.FilterIdHigh = 0x0000;
 		filter.FilterIdLow = 0x0000;

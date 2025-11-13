@@ -18,7 +18,8 @@ struct can_frame {
 	uint8_t flags;
 };
 
-int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate);
+int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate,
+			 FunctionalState autort);
 
 void can_pack_header(struct can_frame* frame, CAN_RxHeaderTypeDef* header);
 

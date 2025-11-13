@@ -35,7 +35,8 @@ bool can_packed_is_RTR(struct can_frame* frame) {
 	return (frame->flags & CAN_PACKED_RTR) > 0;
 }
 
-int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate) {
+int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate,
+			 FunctionalState autort) {
 	// make some lookup to get proper clock setting for the desired baudrate
 	hcan->Init.Prescaler = prescalers[baudrate];
 	hcan->Init.Mode = CAN_MODE_NORMAL;
@@ -43,9 +44,9 @@ int init_can(CAN_HandleTypeDef* hcan, uint32_t baudrate) {
 	hcan->Init.TimeSeg1 = CAN_BS1_14TQ;
 	hcan->Init.TimeSeg2 = CAN_BS2_6TQ;
 	hcan->Init.TimeTriggeredMode = DISABLE;
-	hcan->Init.AutoBusOff = DISABLE;
+	hcan->Init.AutoBusOff = ENABLE;
 	hcan->Init.AutoWakeUp = DISABLE;
-	hcan->Init.AutoRetransmission = ENABLE;
+	hcan->Init.AutoRetransmission = autort;
 	hcan->Init.ReceiveFifoLocked = DISABLE;
 	hcan->Init.TransmitFifoPriority = ENABLE;
 	if (HAL_CAN_Init(hcan) != HAL_OK) {

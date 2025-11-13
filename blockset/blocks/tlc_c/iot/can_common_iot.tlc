@@ -56,35 +56,6 @@
 	%endif
 %endfunction
 
-%function CreateCanSocket_iot(block, CanNum, Baudrate) void
-	%assign can_socket = "::can_%<CanNum>"
-	%if EXISTS(%<can_socket>) == 0
-		%% Mark the socket as created
-		%assign %<can_socket> = 1
-
-		%openfile assignBuf
-			hcan%<CAST("Number", CanNum) + 1>.Instance = CAN%<CAST("Number", CanNum) + 1>;
-		%closefile assignBuf
-
-		%<LibMdlStartCustomCode(assignBuf, "declaration")>
-
-		%openfile initBuf
-			init_can(&hcan%<CAST("Number", CanNum) + 1>, %<Baudrate>);
-		%closefile initBuf
-
-		%<LibMdlStartCustomCode(initBuf, "execution")>
-
-		%openfile startBuf
-			HAL_CAN_Start(&hcan%<CAST("Number", CanNum) + 1>);
-		%closefile startBuf
-
-		%<LibMdlStartCustomCode(startBuf, "trailer")>
-	%else
-		%assign error = "2 or more CAN config blocks are configuring CAN %<CAST("Number", CanNum) + 1>, this is not allowed"
-		%<LibBlockReportError(block, error)>
-	%endif
-%endfunction
-
 %function InitCanSocket_iot(CanNum, Baudrate) Output
 	%assign can_socket = "::can_%<CanNum>_init"
 	%if EXISTS(%<can_socket>) == 0
@@ -97,6 +68,8 @@
 	%assign can_socket = "::can_tx_%<module_id_par>_init"
 	%if EXISTS(%<can_socket>) == 0
 		%assign %<can_socket> = 1
+		%assign can_tx_buf = "::can_%<module_id_par>_tx"
+		%assign can_tx_buff = %<can_tx_buf>
 
 		%assign srcFile = LibGetModelDotCFile()
 		%openfile define
@@ -127,6 +100,14 @@
 		%openfile callback
 			void can%<module_id_par>_tx_empty(CAN_HandleTypeDef *hcan){
 				osEventFlagsSet(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
+			}
+
+			void can%<module_id_par>_err(CAN_HandleTypeDef *hcan) {
+				if (hcan->ErrorCode | HAL_CAN_ERROR_TX_TERR0 || hcan->ErrorCode | HAL_CAN_ERROR_TX_ALST0) {
+					hcan->ErrorCode &= ~(HAL_CAN_ERROR_TX_TERR0 | HAL_CAN_ERROR_TX_ALST0 | HAL_CAN_ERROR_TX_TERR1 | HAL_CAN_ERROR_TX_ALST1 | HAL_CAN_ERROR_TX_TERR2 | HAL_CAN_ERROR_TX_ALST2);
+					if (HAL_CAN_GetTxMailboxesFreeLevel(&%<hcan>))
+						osEventFlagsSet(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
+				}
 			}
 		%closefile callback
 
@@ -165,7 +146,7 @@
 						HAL_CAN_AddTxMessage(&hcan%<module_id_par>, &header, message.data,&dummy);
 					}
 					osEventFlagsClear(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
-					osEventFlagsWait(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK,osFlagsWaitAny, osWaitForever);
+					osEventFlagsWait(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK,osFlagsWaitAny | osFlagsNoClear, osWaitForever);
 				}
 			}
 		%closefile task
@@ -174,7 +155,7 @@
 
 		%openfile initBuf
 			can%<module_id_par>_tx_free = osEventFlagsNew(NULL);
-			can%<module_id_par>_tx_queue = osMessageQueueNew(20, sizeof(struct can_frame), NULL);
+			can%<module_id_par>_tx_queue = osMessageQueueNew(%<can_tx_buff>, sizeof(struct can_frame), NULL);
 		%closefile initBuf
 		%<LibMdlStartCustomCode(initBuf, "execution")>
 
@@ -185,7 +166,11 @@
 		if(HAL_CAN_RegisterCallback(&%<hcan>,
 								 HAL_CAN_TX_MAILBOX0_COMPLETE_CB_ID,
 								 can%<module_id_par>_tx_empty) != HAL_OK)
-			err("Could not register callback: 0x%x\n", %<hcan>.ErrorCode);
+			err("Could not register mbox callback: 0x%x\n", %<hcan>.ErrorCode);
+		if(HAL_CAN_RegisterCallback(&%<hcan>,
+								 HAL_CAN_ERROR_CB_ID,
+								 can%<module_id_par>_err) != HAL_OK)
+			err("Could not register error callback: 0x%x\n", %<hcan>.ErrorCode);
 		if (HAL_CAN_ActivateNotification(&%<hcan>, CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK)
 			err("Could not activate notification: 0x%x\n", %<hcan>.ErrorCode);
 		HAL_CAN_Start(&%<hcan>);
