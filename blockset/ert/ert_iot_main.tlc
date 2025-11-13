@@ -19,7 +19,7 @@
 %function generateDeclarations() Output
 	#include "adc.h"
 	#include "can.h"
-	#include "cmsis_os.h"
+	#include "cmsis_os2.h"
 	#include "FreeRTOS.h"
 	#include "gpio.h"
 	#include "i2c.h"
@@ -38,11 +38,9 @@
 	#include "%<modelName>.h"
 
 	osThreadId_t model_step_thread;
-	const osThreadAttr_t model_step_thread_attributes = {
-	.name = "model_step_thread",
-	.stack_size = 128 * 24,
-	.priority = (osPriority_t) osPriorityRealtime,
-	};
+	osThreadAttr_t model_step_thread_attributes = { 0 };
+	uint32_t main_thread_stack = 2048;
+
 
 	#define MODEL %<modelName>
 	#define DEBUG 0
@@ -112,6 +110,11 @@ void main(void){
 	/* Init scheduler */
 	osKernelInitialize();
 	%<modelName>_initialize();
+
+	model_step_thread_attributes.name = "model_step_thread";
+	model_step_thread_attributes.stack_size = main_thread_stack;
+	model_step_thread_attributes.priority = (osPriority_t) osPriorityRealtime;
+
 	model_step_thread = osThreadNew(model_step, NULL, &model_step_thread_attributes);
 	osKernelStart();
 	/* should never get here */
