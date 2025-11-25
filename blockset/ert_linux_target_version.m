@@ -30,7 +30,7 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.6.0-rc4';
+version = 'GOcontroll V4.6.0-rc5-gps';
 
 %% V4.6.0 Update -:
 % Add GPS module read block
@@ -40,6 +40,7 @@ version = 'GOcontroll V4.6.0-rc4';
 % Start supporting referenced models
 % Remove the immutable project template, the new recommended way
 % will be to use git submodules/project references
+% Fix the transmit delay on the second output module init message
 
 %% V4.5.0 Update 7-7-2025:
 % Added new diagnostic helpers
