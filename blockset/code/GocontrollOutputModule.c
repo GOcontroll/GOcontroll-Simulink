@@ -108,7 +108,7 @@ void OutputModule_Configuration(_outputModule *outputModule) {
 		if (outputModule->sw_version >= VERSIONSPIPROTOCOLV2_6CHANNELOUT) {
 			GocontrollProcessorboard_SendSpi(
 				outputModule->moduleSlot + 1, OUTPUTMODULE6CHMESSAGELENGTH, 1,
-				22, 2, 2, outputModule->moduleSlot, &outputModuleDataTx[0], 0);
+				22, 2, 2, outputModule->moduleSlot, &outputModuleDataTx[0], 500);
 		} else {
 			GocontrollProcessorboard_SendSpi(
 				1, OUTPUTMODULE6CHMESSAGELENGTH, 111, 0, 0, 0,
