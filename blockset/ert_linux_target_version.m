@@ -30,9 +30,9 @@
 
 function [version] = ert_linux_target_version()
 
-version = 'GOcontroll V4.6.0-rc5-gps';
+version = 'GOcontroll V4.6.0';
 
-%% V4.6.0 Update -:
+%% V4.6.0 Update 25-11-2025:
 % Add GPS module read block
 % Fix several potential segfaults in cmex functions
 % Add force option to the compile_gocontroll_mex function
