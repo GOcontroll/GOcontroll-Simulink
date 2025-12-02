@@ -33,12 +33,6 @@
 		%closefile initBuf
 
 		%<LibMdlStartCustomCode(initBuf, "execution")>
-
-		%openfile startBuf
-			HAL_CAN_Start(&hcan%<canNum>);
-		%closefile startBuf
-
-		%<LibMdlStartCustomCode(startBuf, "trailer")>
 	%else
 		%assign error = "2 or more CAN config blocks are configuring CAN %<CAST("Number", CanNum) + 1>, this is not allowed"
 		%<LibBlockReportError(block, error)>

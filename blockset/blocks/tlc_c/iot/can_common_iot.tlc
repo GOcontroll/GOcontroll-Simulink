@@ -52,7 +52,7 @@
 %function CANCommonBlockTypeSetup_iot() void
 	%if !SLibCodeGenForSim()
 		%<LibAddToCommonIncludes("can_message.h")>
-		%<LibAddToCommonIncludes("can.h")>
+	%<LibAddToCommonIncludes("can.h")>
 	%endif
 %endfunction
 
@@ -162,7 +162,8 @@
 
 		HAL_NVIC_SetPriority(CAN%<module_id_par>_TX_IRQn, 10, 0);
 		HAL_NVIC_EnableIRQ(CAN%<module_id_par>_TX_IRQn);
-		HAL_CAN_Stop(&%<hcan>);
+		if (%<hcan>.State == HAL_CAN_STATE_LISTENING)
+			HAL_CAN_Stop(&%<hcan>);
 		if(HAL_CAN_RegisterCallback(&%<hcan>,
 								 HAL_CAN_TX_MAILBOX0_COMPLETE_CB_ID,
 								 can%<module_id_par>_tx_empty) != HAL_OK)
@@ -173,7 +174,8 @@
 			err("Could not register error callback: 0x%x\n", %<hcan>.ErrorCode);
 		if (HAL_CAN_ActivateNotification(&%<hcan>, CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK)
 			err("Could not activate notification: 0x%x\n", %<hcan>.ErrorCode);
-		HAL_CAN_Start(&%<hcan>);
+		if (%<hcan>.State != HAL_CAN_STATE_LISTENING)
+			HAL_CAN_Start(&%<hcan>);
 		can%<module_id_par>_tx_thread = osThreadNew(can%<module_id_par>TxThread, NULL, &can%<module_id_par>_tx_thread_attributes);
 	%endif
 %endfunction
