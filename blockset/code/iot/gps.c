@@ -84,7 +84,7 @@ void ParseGps(char* buff, struct gps_data* gps_data,
 	if (token == NULL) goto no_msg;
 	velocity = strtof(token, NULL) * 1.852;
 
-	dbg("GpsThread stack space left: %d\n",
+	dbg("ParseGps stack space left: %d\n",
 		osThreadGetStackSpace(osThreadGetId()));
 
 	if (!osMutexAcquire(gps_data_lock, 1)) {
