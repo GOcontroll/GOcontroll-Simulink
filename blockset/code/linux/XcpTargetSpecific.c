@@ -94,6 +94,7 @@
 
 #include "SYS_config.h" /* For the XCP_PORT_NUM				*/
 #include "XcpStack.h"
+#include "print.h"
 
 /****************************************************************************************
  * Macro definitions
@@ -191,7 +192,7 @@ struct itimerspec its;
 void expired(union sigval timer_data) {
 	char data[3];
 	// Somehow stop XCP?
-	fprintf(stderr, "Timer expired, killing XCP\n");
+	err("Timer expired, killing XCP\n");
 	data[0] = 0xdd;	 // START_STOP_DAQ_LIST
 	data[1] = 0x00;	 // Mode 00 = stop DAQ list
 	// data[2] = 0x01; // DAQ list 1
@@ -204,7 +205,7 @@ void expired(union sigval timer_data) {
 	its.it_interval.tv_nsec = 0;
 	int res = timer_settime(countDownTimer, 0, &its, NULL);
 	if (res != 0) {
-		fprintf(stderr, "Error timer_settime: %s\n", strerror(errno));
+		err("Error timer_settime: %s\n", strerror(errno));
 	}
 }
 
@@ -234,15 +235,14 @@ void* XcpInitialize_tcp(void* aArgument) {
 	/* Initialize the TCP socket for XCP communication */
 	XcpSocket = socket(AF_INET, SOCK_STREAM, 0); /* Create the socket */
 	if (XcpSocket == -1)
-		fprintf(stderr, "Error in XCPinit; create socket: %s\n",
-				strerror(errno));
-	else if (DEBUG == 1)
-		fprintf(stderr, "Successfully created socket\n");
+		err("Error in XCPinit; create socket: %s\n", strerror(errno));
+
+	dbg("Successfully created socket\n");
 
 	/* Enable possibility to reconnect next time */
 	if (setsockopt(XcpSocket, SOL_SOCKET, SO_REUSEADDR, &(int){1},
 				   sizeof(int)) < 0)
-		fprintf(stderr, "setsockopt(SO_REUSEADDR) failed");
+		err("setsockopt(SO_REUSEADDR) failed");
 
 	memset(&XcpSocketAddr, 0,
 		   sizeof(struct sockaddr_in));			/* Clear the socket address */
@@ -255,23 +255,22 @@ void* XcpInitialize_tcp(void* aArgument) {
 		bind(XcpSocket, (struct sockaddr*)&XcpSocketAddr,
 			 sizeof(XcpSocketAddr)); /* Bind the socket to an address */
 	if (xcpSocketResult == -1)
-		fprintf(stderr, "Error in XCPinit; bind socket: %s\n", strerror(errno));
-	else if (DEBUG == 1)
-		fprintf(stderr, "Successfully bound socket\n");
+		err("Error in XCPinit; bind socket: %s\n", strerror(errno));
+
+	dbg("Successfully bound socket\n");
 
 	xcpSocketResult =
 		listen(XcpSocket, SOMAXCONN); /* Set the socket to listen mode */
 	if (xcpSocketResult == -1)
-		fprintf(stderr, "Error in XCPinit; listen to socket: %s\n",
-				strerror(errno));
-	else if (DEBUG == 1)
-		fprintf(stderr, "Successfully listening to socket\n");
+		err("Error in XCPinit; listen to socket: %s\n", strerror(errno));
+
+	dbg("Successfully listening to socket\n");
 
 	unsigned int timeout = 5000;
 
 	if (setsockopt(XcpSocket, SOL_TCP, TCP_USER_TIMEOUT, &timeout,
 				   sizeof(timeout)) < 0)
-		fprintf(stderr, "setsockopt(TCP_USER_TIMEOUT) failed\n");
+		err("setsockopt(TCP_USER_TIMEOUT) failed\n");
 
 	for (;;) {
 		/* From here the actual XCP communication is started */
@@ -279,40 +278,35 @@ void* XcpInitialize_tcp(void* aArgument) {
 			XcpSocket, (struct sockaddr*)&XCPclientAddr,
 			&XCPclientAddrLen); /* Accept incoming from all IP addresses */
 		if (XcpConnection_fd == -1) {
-			fprintf(stderr,
-					"Error in XCPinit; accepting incoming connection%s\n",
-					strerror(errno));
+			err("Error in XCPinit; accepting incoming connection%s\n",
+				strerror(errno));
 			if (close(XcpConnection_fd) ==
 				-1) /* Close connection when accept returns an error */
-				fprintf(stderr,
-						"XcpInitialize: error while trying to close the "
-						"connection: %s\n",
-						strerror(errno));
+				err("XcpInitialize: error while trying to close the "
+					"connection: %s\n",
+					strerror(errno));
 			continue;
-		} else if (DEBUG == 1)
-			fprintf(stderr,
-					"Successfully accepted incoming connection from client\n");
+		}
+		dbg("Successfully accepted incoming connection from client\n");
 
 		if (inet_ntop(AF_INET, &XCPclientAddr.sin_addr.s_addr, XcpClientAddrStr,
 					  sizeof(XcpClientAddrStr)) != NULL)
-			fprintf(stderr, "Incoming connection from client: %s \n",
-					inet_ntoa(XCPclientAddr.sin_addr));
+			info("Incoming connection from client: %s \n",
+				 inet_ntoa(XCPclientAddr.sin_addr));
 		else
-			fprintf(stderr, "Unable to get client IP address: %s\n",
-					strerror(errno));
+			err("Unable to get client IP address: %s\n", strerror(errno));
 
 		/* XCP Task */
 		while (ServeEthXcpConnection() != -1) {
 		}
-		if (DEBUG == 1)
-			fprintf(stderr, "ServeXcpConnection() returned an error\n");
+
+		dbg("ServeXcpConnection() returned an error\n");
 		if (close(XcpConnection_fd) ==
 			-1) /* Close connection when ServeXcpConnection() returns an error
 				 */
-			fprintf(stderr,
-					"XcpInitialize: error while trying to close the "
-					"connection: %s\n",
-					strerror(errno));
+			err("XcpInitialize: error while trying to close the "
+				"connection: %s\n",
+				strerror(errno));
 	}
 
 	return 0;
@@ -340,10 +334,9 @@ void* XcpInitialize_udp(void* aArgument) {
 	/* Initialize the UDP socket for XCP communication */
 	XcpConnection_fd = socket(AF_INET, SOCK_DGRAM, 0); /* Create the socket */
 	if (XcpConnection_fd == -1)
-		fprintf(stderr, "Error in XCPinit; create socket: %s\n",
-				strerror(errno));
-	else if (DEBUG == 1)
-		fprintf(stderr, "Successfully created socket\n");
+		err("Error in XCPinit; create socket: %s\n", strerror(errno));
+
+	dbg("Successfully created socket\n");
 
 	memset(&XcpSocketAddr, 0,
 		   sizeof(struct sockaddr_in));			/* Clear the socket address */
@@ -355,24 +348,24 @@ void* XcpInitialize_udp(void* aArgument) {
 	result = bind(XcpConnection_fd, (struct sockaddr*)&XcpSocketAddr,
 				  sizeof(XcpSocketAddr)); /* Bind the socket to an address */
 	if (result == -1)
-		fprintf(stderr, "Error in XCPinit; bind socket: %s\n", strerror(errno));
-	else if (DEBUG == 1)
-		fprintf(stderr, "Successfully bound socket\n");
+		err("Error in XCPinit; bind socket: %s\n", strerror(errno));
+
+	dbg("Successfully bound socket\n");
 
 	sev.sigev_notify = SIGEV_THREAD;
 	sev.sigev_notify_function = &expired;
 	sev.sigev_value.sival_ptr = &eventData;
 	int res = timer_create(CLOCK_REALTIME, &sev, &countDownTimer);
 	if (res != 0) {
-		fprintf(stderr, "Error timer_create: %s\n", strerror(errno));
+		err("Error timer_create: %s\n", strerror(errno));
 	}
 
 	for (;;) {
 		/* XCP Task */
 		while (ServeEthXcpConnection() != -1) {
 		}
-		if (DEBUG == 1)
-			fprintf(stderr, "ServeXcpConnection() returned an error\n");
+
+		dbg("ServeXcpConnection() returned an error\n");
 	}
 
 	return 0;
@@ -400,26 +393,24 @@ void* XcpInitialize_can(void* aArgument) {
 	XcpDynamicConfigurator(0, 8, 8);
 	XcpConnection_fd = socket(AF_CAN, SOCK_RAW, CAN_RAW);
 	if (XcpConnection_fd == -1)
-		fprintf(stderr, "Error in XCPinit; create socket: %s\n",
-				strerror(errno));
-#if DEBUG == 1
-	fprintf(stderr, "Successfully created socket\n");
-#endif
+		err("Error in XCPinit; create socket: %s\n", strerror(errno));
+
+	dbg("Successfully created socket\n");
+
 	memset(&addr, 0, sizeof(addr));
 	addr.can_family = AF_CAN;
 	strncpy(ifr.ifr_name, args->can_channel, sizeof(ifr.ifr_name) - 1);
 	if (ioctl(XcpConnection_fd, SIOCGIFINDEX, &ifr) < 0) {
-		fprintf(stderr, "CAN socket ioctl SIOCGIFINDEX error.\n");
+		err("CAN socket ioctl SIOCGIFINDEX error.\n");
 	}
 	addr.can_ifindex = ifr.ifr_ifindex;
 
 	result = bind(XcpConnection_fd, (struct sockaddr*)(void*)&addr,
 				  sizeof(addr)); /* Bind the socket to an address */
 	if (result == -1)
-		fprintf(stderr, "Error in XCPinit; bind socket: %s\n", strerror(errno));
-#if DEBUG == 1
-	fprintf(stderr, "Successfully bound socket\n");
-#endif
+		err("Error in XCPinit; bind socket: %s\n", strerror(errno));
+
+	dbg("Successfully bound socket\n");
 
 	struct can_filter filter;
 	filter.can_id = args->xcp_receive_id;
@@ -427,15 +418,14 @@ void* XcpInitialize_can(void* aArgument) {
 	result = setsockopt(XcpConnection_fd, SOL_CAN_RAW, CAN_RAW_FILTER, &filter,
 						sizeof(filter));
 	if (result == -1)
-		fprintf(stderr, "Error in XCPinit; setsockopt: %s\n", strerror(errno));
+		err("Error in XCPinit; setsockopt: %s\n", strerror(errno));
 
 	for (;;) {
 		/* XCP Task */
 		while (ServeCANXcpConnection() != -1) {
 		}
-#if DEBUG == 1
-		fprintf(stderr, "ServeXcpConnection() returned an error\n");
-#endif
+
+		dbg("ServeXcpConnection() returned an error\n");
 	}
 
 	return 0;
@@ -459,18 +449,14 @@ int ServeEthXcpConnection(void) {
 			(struct sockaddr* restrict)&addr_HT,
 			(socklen_t* restrict)&slen); /* Receive first 4 bytes to be able to
 											read the XCP counter and length*/
-#if (DEBUG == 1)
-		fprintf(stderr, "recv1: %li\n", readCnt);
-#endif
+		dbg("recv1: %li\n", readCnt);
 		if (readCnt != 4) {
 			if (readCnt == -1) {
-				fprintf(stderr,
-						"ServeXcpConnection failed to read first 4 bytes: %s\n",
-						strerror(errno));
+				err("ServeXcpConnection failed to read first 4 bytes: %s\n",
+					strerror(errno));
 				return -1;
 			} else if (readCnt == 0) { /* Socket is closed with FIN */
-				if (DEBUG == 1)
-					fprintf(stderr, "ServeXcpConnection: Connection closed\n");
+				if (DEBUG == 1) err("ServeXcpConnection: Connection closed\n");
 				return -1;
 			}
 		} else {
@@ -485,26 +471,19 @@ int ServeEthXcpConnection(void) {
 				(struct sockaddr* restrict)&addr_HT,
 				(socklen_t* restrict)&slen); /* Read the rest of the bytes in
 												the receive buffer */
-#if (DEBUG == 1)
-			fprintf(stderr, "recv2: %li\n", readCnt);
-#endif
+			dbg("recv2: %li\n", readCnt);
 			if (readCnt == 0) {
-				fprintf(stderr, "Connection lost, closing socket...\n");
+				err("Connection lost, closing socket...\n");
 				return -1;
 			} else if (readCnt != ctoPacket.s.len + 4) {
-				fprintf(
-					stderr,
-					"ServeXcpConnection failed to read rest of message: %s\n",
+				err("ServeXcpConnection failed to read rest of message: %s\n",
 					strerror(errno));
 			} else {
-#if (DEBUG == 1)
-				// Print out the data of the message
-				fprintf(stderr, "Message from HANtune: %d\n", ctoPacket.s.len);
+				dbg("Message from HANtune: %d\n", ctoPacket.s.len);
 				for (int i = 0; i < ctoPacket.s.len; i++) {
-					fprintf(stderr, "%02x ", ctoPacket.s.data[i]);
+					dbg("%02x ", ctoPacket.s.data[i]);
 				}
-				fprintf(stderr, "\n");
-#endif
+				dbg("\n");
 				if (timeout_active) {
 					if (ctoPacket.s.data[0] ==
 						0xFE) {	 // Disconnect message, turn off timer
@@ -520,8 +499,7 @@ int ServeEthXcpConnection(void) {
 
 					int res = timer_settime(countDownTimer, 0, &its, NULL);
 					if (res != 0) {
-						fprintf(stderr, "Error timer_settime: %s\n",
-								strerror(errno));
+						err("Error timer_settime: %s\n", strerror(errno));
 					}
 				}
 				XcpCommunicationHandling(
@@ -548,21 +526,17 @@ int ServeCANXcpConnection(void) {
 		if (ret < sizeof(sc_frame)) {
 			continue;
 		}
-#if DEBUG == 1
-		printf("received CAN message, dlc: %d, id: %x\ndata: [",
-			   sc_frame.can_dlc, sc_frame.can_id);
+
+		dbg("received CAN message, dlc: %d, id: %x\ndata: [", sc_frame.can_dlc,
+			sc_frame.can_id);
 		for (int i = 0; i < sc_frame.can_dlc; i++) {
-			printf("%02x,", sc_frame.data[i]);
+			dbg("%02x,", sc_frame.data[i]);
 		}
-		printf("]\n");
-#endif
+		dbg("]\n");
 
 		XcpCommunicationHandling(sc_frame.data, sc_frame.can_dlc, dataToSend);
 	}
-#if DEBUG == 1
-	fprintf(stderr, "ServeCANXcpConnection broke out of loop: %s\n",
-			strerror(errno));
-#endif
+
 	return ret;
 }
 
@@ -613,20 +587,18 @@ uint8_t XcpEthSend(uint8_t* data) {
 				 (size_t)dtoPacket.s.len + 4, MSG_DONTWAIT,
 				 (struct sockaddr*)&addr_HT, slen);
 	if (res != (dtoPacket.s.len + 4)) {
-#if (DEBUG == 1)
-		fprintf(stderr, "sent %ld bytes, which should have been %d\n", res,
-				dtoPacket.s.len + 4);
-		fprintf(stderr, "XcpSendData: Error in sending: %s\n", strerror(errno));
-#endif
+		dbg("sent %ld bytes, which should have been %d\n", res,
+			dtoPacket.s.len + 4);
+		dbg("XcpSendData: Error in sending: %s\n", strerror(errno));
+
 		/* Disconnect to make sure sending stops */
 		if (close(XcpConnection_fd) ==
 			-1) /* Close connection when ServeXcpConnection() returns an
 				 * error
 				 */
-			fprintf(stderr,
-					"XcpSendData: error while trying to close the connection: "
-					"%s\nLikely already closed in XcpInitialize.",
-					strerror(errno));
+			err("XcpSendData: error while trying to close the connection: "
+				"%s\nLikely already closed in XcpInitialize.",
+				strerror(errno));
 		return 1;  // Message not send: error
 	}
 	return 0;
@@ -652,10 +624,7 @@ uint8_t XcpCanSend(uint8_t* data) {
 			return 0;
 		}
 	} else {
-#if DEBUG == 1
-		fprintf(stderr, "Could not send message, incorrect size: %d\n",
-				data[0]);
-#endif
+		dbg("Could not send message, incorrect size: %d\n", data[0]);
 	}
 	return 1;
 }
@@ -724,9 +693,7 @@ void XcpWriteData(uint8_t* data, uint8_t elements, void* location) {
 void XcpStopConnection(void) {
 	close(XcpSocket);
 
-#if (DEBUG == 1)
-	printf("XCP socket closed\n");
-#endif
+	dbg("XCP socket closed\n");
 }
 
 /**************************************************************************************
@@ -749,10 +716,9 @@ uint8_t XcpUserCmd(uint8_t* dataReceived) {
 
 			int res = timer_settime(countDownTimer, 0, &its, NULL);
 			if (res != 0) {
-				fprintf(stderr, "Error timer_settime: %s\n", strerror(errno));
+				err("Error timer_settime: %s\n", strerror(errno));
 			} else if (DEBUG == 1) {
-				fprintf(stderr, "New timeout value received: %d seconds\n",
-						timeout_sec);
+				err("New timeout value received: %d seconds\n", timeout_sec);
 			}
 
 			return 0;
