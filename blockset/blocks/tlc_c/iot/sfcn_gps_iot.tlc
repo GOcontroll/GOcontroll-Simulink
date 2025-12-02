@@ -35,10 +35,18 @@
 	%<LibAddToCommonIncludes("uart_handler.h")>
 	%<LibAddToCommonIncludes("print.h")>
 	%openfile variables
-		osThreadId_t simcom_thread;
+		osThreadId_t simcom_tx_thread;
 
-		const osThreadAttr_t simcom_thread_attributes = {
-			.name = "simcom_thread",
+		const osThreadAttr_t simcom_tx_thread_attributes = {
+			.name = "simcom_tx_thread",
+			.stack_size = 128 * 4,
+			.priority = (osPriority_t) osPriorityAboveNormal,
+		};
+
+		osThreadId_t simcom_rx_thread;
+
+		const osThreadAttr_t simcom_rx_thread_attributes = {
+			.name = "simcom_rx_thread",
 			.stack_size = 128 * 4,
 			.priority = (osPriority_t) osPriorityAboveNormal,
 		};
@@ -58,7 +66,7 @@
 			.cb_size = 0U,
 		};
 
-		struct gps_data gps_data = {0};
+		static struct gps_data gps_data = {0};
 		static osMutexId_t gps_data_lock;
 		struct gps_thread_args gps_thread_args;
 	%closefile variables
@@ -71,7 +79,9 @@
 %%      Code generation for initialization
 %%
 %function GPSStart_iot(block, system) Output
-	simcom_thread = osThreadNew(SimcomThread, NULL, &simcom_thread_attributes);
+	SimcomInit();
+	simcom_rx_thread = osThreadNew(SimcomRxThread, NULL, &simcom_rx_thread_attributes);
+	simcom_tx_thread = osThreadNew(SimcomTxThread, NULL, &simcom_tx_thread_attributes);
 
 	gps_data_lock = osMutexNew(&gps_data_lock_attr);
 	if (gps_data_lock != NULL) {

@@ -5,13 +5,14 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h"
+#include "cmsis_os2.h"
 #include "print.h"
 #include "uart_handler.h"
 
-#define GPS_BUFF_SIZE 128
-
-osMessageQueueId_t uart_rx;
+osEventFlagsId_t gps_events = NULL;
+struct gps_data* gps_data = NULL;
+osMutexId_t gps_data_lock = 0;
+uint8_t gps_state = 0;
 
 void parse_gps(char* buff, struct gps_data* gps_data,
 			   osMutexId_t gps_data_lock) {
@@ -115,47 +116,68 @@ no_msg:
 	}
 }
 
+void HandleGps(char* rx, uint16_t num_bytes) {
+	uint8_t message_ok = 0;
+	if (memcmp(rx + num_bytes - 4, "OK\r\n", 4) == 0) {
+		message_ok = 1;
+	}
+	if (memcmp(rx + GPS_COMMAND_BASE_LEN, "INFO", 4) == 0) {
+		if (message_ok) parse_gps(rx, gps_data, gps_data_lock);
+		return;
+	} else if (memcmp(rx + GPS_COMMAND_BASE_LEN, "=0", 2) == 0) {
+		if (message_ok) gps_state = GPS_STATE_OFF;
+		osEventFlagsSet(gps_events, GPS_STATE_CHANGE);
+	} else if (memcmp(rx + GPS_COMMAND_BASE_LEN, "=1", 2) == 0) {
+		if (message_ok) gps_state = GPS_STATE_ON;
+		osEventFlagsSet(gps_events, GPS_STATE_CHANGE);
+	}
+}
+
 void ReadGpsThread(void* args) {
 	struct gps_thread_args* gps_thread_args = (struct gps_thread_args*)args;
-	osMutexId_t gps_data_lock = gps_thread_args->gps_data_lock;
-	struct gps_data* gps_data = gps_thread_args->gps_data;
-	int ret;
+	gps_data_lock = gps_thread_args->gps_data_lock;
+	gps_data = gps_thread_args->gps_data;
 	uint32_t tick;
-	char buff[GPS_BUFF_SIZE];
+	struct uart_message message;
 
 	dbg("Gps thread start\n");
 
-	uart_rx = osMessageQueueNew(1, sizeof(int), NULL);
+	gps_events = osEventFlagsNew(NULL);
 
 	do {
-		tick = osKernelGetTickCount();
-		ret = at_command("AT\r", 4, buff, GPS_BUFF_SIZE, 500, uart_rx);
-		if (ret) err("test command failed\n");
+		osEventFlagsWait(simcom_events, SIMCOM_STATE_CHANGE, osFlagsWaitAll,
+						 osWaitForever);
+	} while (simcom_state != SIMCOM_READY);
 
-	} while (ret);
-	osDelayUntil(tick += 500);
-
+	message.buff = "AT+CGPS=0\r";
+	message.command_len = 11;
+	message.command_len2 = 0;
 	do {
 		tick = osKernelGetTickCount();
-		ret = at_command("AT+CGPS=0\r", 11, buff, GPS_BUFF_SIZE, 500, uart_rx);
-		if (ret) err("could not disable gps\n");
-	} while (ret);
-	osDelayUntil(tick += 500);
+		osMessageQueuePut(simcom_tx, &message, 0, osWaitForever);
+		osEventFlagsWait(gps_events, GPS_STATE_CHANGE, osFlagsWaitAll,
+						 osWaitForever);
 
+	} while (gps_state != GPS_STATE_OFF);
+
+	message.buff = "AT+CGPS=1\r";
+	message.command_len = 11;
+	message.command_len2 = 0;
 	do {
 		tick = osKernelGetTickCount();
-		ret = at_command("AT+CGPS=1\r", 11, buff, GPS_BUFF_SIZE, 500, uart_rx);
-		if (ret) err("could not enable gps\n");
-	} while (ret);
-	osDelayUntil(tick += 500);
+		osMessageQueuePut(simcom_tx, &message, 0, osWaitForever);
+		osEventFlagsWait(gps_events, GPS_STATE_CHANGE, osFlagsWaitAll,
+						 osWaitForever);
+	} while (gps_state != GPS_STATE_ON);
 
 	tick = osKernelGetTickCount();
+	message.buff = "AT+CGPSINFO\r";
+	message.command_len = 13;
+	message.command_len2 = 0;
 	while (gps_thread_args->thread_run) {
 		tick += 1000;
-		if (!at_command("AT+CGPSINFO\r", 13, buff, GPS_BUFF_SIZE, 900,
-						uart_rx)) {
-			parse_gps(buff, gps_data, gps_data_lock);
-		}
+		osMessageQueuePut(simcom_tx, &message, 0, osWaitForever);
+
 		osDelayUntil(tick);
 	}
 	osThreadExit();

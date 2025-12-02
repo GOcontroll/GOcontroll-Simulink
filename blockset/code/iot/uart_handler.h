@@ -1,16 +1,25 @@
 #include <stdint.h>
 
+#include "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h"
 #include "cmsis_os2.h"
+
+#define SIMCOM_CTS 0b1
+#define SIMCOM_RX 0b10
+#define SIMCOM_STATE_CHANGE 0b100
+
+#define SIMCOM_NOT_READY 0
+#define SIMCOM_READY 1
 
 struct uart_message {
 	char* buff;
-	int num_bytes;
-	int command_len;
-	uint32_t timeout;
-	osMessageQueueId_t rx;
+	int16_t command_len;
+	int16_t command_len2;
 };
 
-void SimcomThread(void* args);
+extern osMessageQueueId_t simcom_tx;
+extern osEventFlagsId_t simcom_events;
+extern uint8_t simcom_state;
 
-int at_command(char* command, int command_len, char* buff, int buff_size,
-			   uint32_t timeout, osMessageQueueId_t rx);
+void SimcomInit(void);
+void SimcomTxThread(void* args);
+void SimcomRxThread(void* args);
