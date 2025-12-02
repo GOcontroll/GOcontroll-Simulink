@@ -71,19 +71,20 @@ and checksum)
  ****************************************************************************************/
 #include "XcpStack.h"
 
-#include <stdlib.h>
-
 #include "XcpTargetSpecific.h"
+#include "print.h"
+
+#if DYNAMICMEMORYALLOCATION == 1
+#include <stdlib.h>
+#endif
 
 #if DYNAMICMEMORYALLOCATIONFREERTOS == 1
-#include "os.h"
+#include "FreeRTOS.h"
 #endif
 
 /****************************************************************************************
  * Macro definitions
  ****************************************************************************************/
-/* switch on debug message if there is a ouput stream available */
-#define DEBUGINFORMATION (0)
 
 /* XCP version definitions (MSB bytes only) */
 #define XCPPROTOCOLLAYERVERSION 0x01
@@ -144,7 +145,7 @@ typedef struct {
 
 typedef struct {
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-	_entry *entry;
+	_entry* entry;
 #else
 	uint32_t entry1Location;
 #endif
@@ -153,7 +154,7 @@ typedef struct {
 
 typedef struct {
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-	_odt *odt;
+	_odt* odt;
 #else
 	uint32_t odt1Location;
 #endif
@@ -165,7 +166,7 @@ typedef struct {
 } __attribute__((packed)) _daq;
 
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-_daq *daq;
+_daq* daq;
 #endif
 
 typedef struct {
@@ -197,7 +198,7 @@ typedef struct {
 _xcpWrite xcpWrite;
 
 #if DYNAMICMEMORYALLOCATION == 0 && DYNAMICMEMORYALLOCATIONFREERTOS == 0
-void *memoryStackPointer;
+void* memoryStackPointer;
 uint8_t xcpMemoryStack[XCPSTATICMEMORY];
 #endif
 
@@ -206,38 +207,38 @@ static uint32_t xcpMemoryUsage;
 /****************************************************************************************
  * Function prototypes
  ****************************************************************************************/
-static void XcpPositiveResponse(uint8_t *dataToSend);
-static void XcpNegativeResponse(uint8_t *dataToSend, uint8_t errorCode);
-static void XcpConnectReply(uint8_t *dataToSend);
-static void XcpDisconnectReply(uint8_t *dataToSend);
-static void XcpStatusReply(uint8_t *dataToSend);
-static void XcpSynchronisation(uint8_t *dataToSend);
-static void xcpCommunicationModeReply(uint8_t *dataToSend);
-static void XcpGetIdReply(uint8_t *dataToSend);
-static void XcpSetMta(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpUploadReply(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpShortUploadReply(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpUserCommand(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpDownload(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpSetDaqPointer(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpWriteDaq(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpSetDaqListMode(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpStartStopDaqList(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpStartStopSynch(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpDaqProcessorInfoReply(uint8_t *dataToSend);
-static void XcpDaqEventInfoReply(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpDaqResolutionInfoReply(uint8_t *dataToSend);
-static void XcpFreeDaq(uint8_t *dataToSend);
-static void XcpAllocDaq(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpAllocOdt(uint8_t *dataReceived, uint8_t *dataToSend);
-static void XcpAllocOdtEntry(uint8_t *dataReceived, uint8_t *dataToSend);
+static void XcpPositiveResponse(uint8_t* dataToSend);
+static void XcpNegativeResponse(uint8_t* dataToSend, uint8_t errorCode);
+static void XcpConnectReply(uint8_t* dataToSend);
+static void XcpDisconnectReply(uint8_t* dataToSend);
+static void XcpStatusReply(uint8_t* dataToSend);
+static void XcpSynchronisation(uint8_t* dataToSend);
+static void xcpCommunicationModeReply(uint8_t* dataToSend);
+static void XcpGetIdReply(uint8_t* dataToSend);
+static void XcpSetMta(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpUploadReply(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpShortUploadReply(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpUserCommand(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpDownload(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpSetDaqPointer(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpWriteDaq(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpSetDaqListMode(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpStartStopDaqList(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpStartStopSynch(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpDaqProcessorInfoReply(uint8_t* dataToSend);
+static void XcpDaqEventInfoReply(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpDaqResolutionInfoReply(uint8_t* dataToSend);
+static void XcpFreeDaq(uint8_t* dataToSend);
+static void XcpAllocDaq(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpAllocOdt(uint8_t* dataReceived, uint8_t* dataToSend);
+static void XcpAllocOdtEntry(uint8_t* dataReceived, uint8_t* dataToSend);
 #if DYNAMICMEMORYALLOCATION == 0 && DYNAMICMEMORYALLOCATIONFREERTOS == 0
-static _daq *XcpGetDaq(uint16_t daqList);
-static _odt *XcpGetOdt(uint16_t daqList, uint8_t odtValue);
-static _entry *XcpGetOdtEntry(uint16_t daqList, uint8_t odtValue,
+static _daq* XcpGetDaq(uint16_t daqList);
+static _odt* XcpGetOdt(uint16_t daqList, uint8_t odtValue);
+static _entry* XcpGetOdtEntry(uint16_t daqList, uint8_t odtValue,
 							  uint8_t odtEntry);
 #endif
-static void XcpCalculateChecksum(uint8_t *dataToSend);
+static void XcpCalculateChecksum(uint8_t* dataToSend);
 static void XcpStopDataTransmission(void);
 
 /****************************************************************************************
@@ -273,8 +274,8 @@ void XcpDynamicConfigurator(uint8_t checksum, uint8_t ctoLength,
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-void XcpCommunicationHandling(uint8_t *dataReceived, uint32_t receivedLength,
-							  uint8_t *dataToSend) {
+void XcpCommunicationHandling(uint8_t* dataReceived, uint32_t receivedLength,
+							  uint8_t* dataToSend) {
 	switch (dataReceived[0])  // Command packet code
 	{
 		/* XCP Master commands */
@@ -384,10 +385,8 @@ void XcpCommunicationHandling(uint8_t *dataReceived, uint32_t receivedLength,
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpPositiveResponse(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP Positive response\n");
-#endif
+static void XcpPositiveResponse(uint8_t* dataToSend) {
+	dbg("XCP Positive response\n");
 
 	dataToSend[0] = 1;	   // length of packet to be send back to the master
 	dataToSend[1] = 0xff;  // packet response ok
@@ -404,10 +403,8 @@ static void XcpPositiveResponse(uint8_t *dataToSend) {
 ** \param	  errorCode The error code to put in the response
 ** \return    none.
 ****************************************************************************************/
-static void XcpNegativeResponse(uint8_t *dataToSend, uint8_t errorCode) {
-#if DEBUGINFORMATION == 1
-	printf("XCP negative response\n");
-#endif
+static void XcpNegativeResponse(uint8_t* dataToSend, uint8_t errorCode) {
+	dbg("XCP negative response\n");
 
 	dataToSend[0] = 2;	   // length of packet to be send back to the master
 	dataToSend[1] = 0xfe;  // packet response NOT ok
@@ -424,10 +421,8 @@ static void XcpNegativeResponse(uint8_t *dataToSend, uint8_t errorCode) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpConnectReply(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP connect reply\n");
-#endif
+static void XcpConnectReply(uint8_t* dataToSend) {
+	dbg("XCP connect reply\n");
 
 	xcpCommunication.status = 0x00;
 
@@ -438,7 +433,7 @@ static void XcpConnectReply(uint8_t *dataToSend) {
 	dataToSend[4] =
 		xcpCommunication
 			.ctoLength;	 // maximum CTO (Command Transfer Objects) size in bytes
-	*(uint16_t *)&dataToSend[5] =
+	*(uint16_t*)&dataToSend[5] =
 		xcpCommunication
 			.dtoLength;	 // maximum DTO (Data Transfer Objects) size in bytes
 	dataToSend[7] =
@@ -458,10 +453,8 @@ static void XcpConnectReply(uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpDisconnectReply(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP disconnected \n");
-#endif
+static void XcpDisconnectReply(uint8_t* dataToSend) {
+	dbg("XCP disconnected \n");
 
 	XcpPositiveResponse(dataToSend);
 }
@@ -474,17 +467,15 @@ static void XcpDisconnectReply(uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpStatusReply(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP status reply\n");
-#endif
+static void XcpStatusReply(uint8_t* dataToSend) {
+	dbg("XCP status reply\n");
 
 	dataToSend[0] = 6;	   // Length of packet to be send back to the master
 	dataToSend[1] = 0xff;  // Packet response ok
 	dataToSend[2] = xcpCommunication.status;  // Current session status HAN
 	dataToSend[3] = 0x00;					  // Resource protection status
 	dataToSend[4] = 0x20;					  // Ignored byte
-	*(uint16_t *)&dataToSend[5] = 0x0000;	  // Session configuration ID
+	*(uint16_t*)&dataToSend[5] = 0x0000;	  // Session configuration ID
 
 	XcpCalculateChecksum(dataToSend);
 	XcpSendData(dataToSend);
@@ -497,10 +488,8 @@ static void XcpStatusReply(uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpSynchronisation(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP synchronize communication\n");
-#endif
+static void XcpSynchronisation(uint8_t* dataToSend) {
+	dbg("XCP synchronize communication\n");
 
 	XcpNegativeResponse(
 		dataToSend,
@@ -514,10 +503,8 @@ static void XcpSynchronisation(uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void xcpCommunicationModeReply(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP communication mode reply\n");
-#endif
+static void xcpCommunicationModeReply(uint8_t* dataToSend) {
+	dbg("XCP communication mode reply\n");
 
 	dataToSend[0] = 8;	   // Length of packet to be send back to the master
 	dataToSend[1] = 0xff;  // Packet response ok
@@ -540,10 +527,8 @@ static void xcpCommunicationModeReply(uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpGetIdReply(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP Get ID reply\n");
-#endif
+static void XcpGetIdReply(uint8_t* dataToSend) {
+	dbg("XCP Get ID reply\n");
 
 	xcpCommunication.idRequest =
 		(uint16_t)uniqueIdLength;  // Store Length of Identifier
@@ -553,7 +538,7 @@ static void XcpGetIdReply(uint8_t *dataToSend) {
 	dataToSend[2] = 0x00;  // Mode
 	dataToSend[3] = 0x00;  // Ignored byte
 	dataToSend[4] = 0x20;  // Ignored byte
-	*(uint32_t *)&dataToSend[5] =
+	*(uint32_t*)&dataToSend[5] =
 		xcpCommunication.idRequest;	 // Length of ID string
 	XcpCalculateChecksum(dataToSend);
 	XcpSendData(dataToSend);
@@ -569,9 +554,9 @@ static void XcpGetIdReply(uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpSetMta(uint8_t *dataReceived, uint8_t *dataToSend) {
+static void XcpSetMta(uint8_t* dataReceived, uint8_t* dataToSend) {
 	xcpWrite.adressExtension = dataReceived[3];
-	xcpWrite.adress = *(uint32_t *)&dataReceived[4];
+	xcpWrite.adress = *(uint32_t*)&dataReceived[4];
 
 	XcpPositiveResponse(dataToSend);
 }
@@ -588,10 +573,8 @@ static void XcpSetMta(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpUploadReply(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP upload reply\n");
-#endif
+static void XcpUploadReply(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP upload reply\n");
 
 	if (xcpCommunication.idRequest !=
 		0)	// upload in case of identifier info request
@@ -647,7 +630,7 @@ static void XcpUploadReply(uint8_t *dataReceived, uint8_t *dataToSend) {
 		for (uint8_t dataPointer = 0; dataPointer < dataReceived[1];
 			 dataPointer++) {
 			XcpReadData(&dataToSend[2 + dataPointer], 1,
-						(uint32_t *)(uintptr_t)xcpWrite.adress++);
+						(uint32_t*)(uintptr_t)xcpWrite.adress++);
 		}
 	}
 
@@ -665,13 +648,11 @@ static void XcpUploadReply(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpShortUploadReply(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP daq event info reply\n");
-#endif
+static void XcpShortUploadReply(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP daq event info reply\n");
 
-	uint32_t *location;
-	location = (uint32_t *)(uintptr_t)*(uint32_t *)&dataReceived[4];
+	uint32_t* location;
+	location = (uint32_t*)(uintptr_t)*(uint32_t*)&dataReceived[4];
 
 	dataToSend[0] =
 		1 + dataReceived[1];  // Length of packet to be send back to the master
@@ -680,25 +661,25 @@ static void XcpShortUploadReply(uint8_t *dataReceived, uint8_t *dataToSend) {
 	for (uint8_t dataPointer = 0; dataPointer < dataReceived[1];
 		 dataPointer++) {
 		XcpReadData(&dataToSend[2 + dataPointer], 1,
-					(uint32_t *)(((uint8_t *)location) + dataPointer));
+					(uint32_t*)(((uint8_t*)location) + dataPointer));
 	}
 
 	XcpCalculateChecksum(dataToSend);
 	XcpSendData(dataToSend);
 }
 
-/************************************************************************************/ /**
-																						** \brief     This command is user defined. It mustn't be used to implement
-																						**			  functionalities done by other services.
-																						** \param	  Pointer to de data array with received data from XCP master
-																						** \param	  Pointer to the data array that is send back to the master with a reply or data
-																						** \return    none.
-																						**
-																						****************************************************************************************/
-static void XcpUserCommand(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP user command\n");
-#endif
+/**************************************************************************************
+ ** \brief     This command is user defined. It mustn't be used to implement
+ **			  functionalities done by other services.
+ ** \param	  Pointer to de data array with received data from XCP master
+ ** \param	  Pointer to the data array that is send back to the master with a
+ * reply or data
+ ** \return    none.
+ **
+ ****************************************************************************************/
+static void XcpUserCommand(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP user command\n");
+
 	// CALL USERCOMMAND, DEFINED IN XcpTargetSpecific.c
 	if (XcpUserCmd(dataReceived) == 0) {
 		XcpPositiveResponse(dataToSend);  // only positive response is required
@@ -718,13 +699,11 @@ static void XcpUserCommand(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpDownload(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP \n");
-#endif
+static void XcpDownload(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP \n");
 
 	XcpWriteData(&dataReceived[2], dataReceived[1],
-				 (void *)(uintptr_t)xcpWrite.adress);
+				 (void*)(uintptr_t)xcpWrite.adress);
 	XcpPositiveResponse(dataToSend);
 }
 
@@ -737,14 +716,12 @@ static void XcpDownload(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpSetDaqPointer(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP set daq, ODT and ODT entry pointers\n");
-#endif
+static void XcpSetDaqPointer(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP set daq, ODT and ODT entry pointers\n");
 
 	// TODO check if incomming data is not exceeding the maximum allowed DAQ
 	// lists. ODT's and entry's
-	xcpCommunication.daqList = *(uint16_t *)&dataReceived[2];
+	xcpCommunication.daqList = *(uint16_t*)&dataReceived[2];
 	xcpCommunication.odt = dataReceived[4];
 	xcpCommunication.odtEntry = dataReceived[5];
 
@@ -760,10 +737,8 @@ static void XcpSetDaqPointer(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpWriteDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP writing the ODT entries\n");
-#endif
+static void XcpWriteDaq(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP writing the ODT entries\n");
 
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
 	daq[xcpCommunication.daqList]
@@ -782,18 +757,18 @@ static void XcpWriteDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
 	daq[xcpCommunication.daqList]
 		.odt[xcpCommunication.odt]
 		.entry[xcpCommunication.odtEntry]
-		.adressOfDaqElement = *(uint32_t *)&dataReceived[4];
+		.adressOfDaqElement = *(uint32_t*)&dataReceived[4];
 #else
-	_daq *daq = (_daq *)&xcpMemoryStack[0] +
+	_daq* daq = (_daq*)&xcpMemoryStack[0] +
 				xcpCommunication.daqList;  // set pointer to the apropriate daq
-	_odt *odt = (_odt *)daq->odt1Location + xcpCommunication.odt;
-	_entry *entry = (_entry *)odt->entry1Location + xcpCommunication.odtEntry;
+	_odt* odt = (_odt*)daq->odt1Location + xcpCommunication.odt;
+	_entry* entry = (_entry*)odt->entry1Location + xcpCommunication.odtEntry;
 
 	entry->bitOffset = dataReceived[1];
 	entry->sizeOfDaqElement = dataReceived[2];
 	entry->adressExtension = dataReceived[3];
 
-	entry->adressOfDaqElement = *(uint32_t *)&dataReceived[4];
+	entry->adressOfDaqElement = *(uint32_t*)&dataReceived[4];
 #endif
 
 	XcpPositiveResponse(dataToSend);
@@ -807,21 +782,19 @@ static void XcpWriteDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpSetDaqListMode(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP set daq list mode\n");
-#endif
+static void XcpSetDaqListMode(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP set daq list mode\n");
 
 	xcpCommunication.daqMode = dataReceived[1];
-	xcpCommunication.daqList = *(uint16_t *)&dataReceived[2];
-	xcpCommunication.eventChannel = *(uint16_t *)&dataReceived[4];
+	xcpCommunication.daqList = *(uint16_t*)&dataReceived[2];
+	xcpCommunication.eventChannel = *(uint16_t*)&dataReceived[4];
 	xcpCommunication.transRatePres = dataReceived[6];
 	xcpCommunication.daqListPriority = dataReceived[7];
 
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-	daq[*(uint16_t *)&dataReceived[2]].prescalerSet = dataReceived[6];
+	daq[*(uint16_t*)&dataReceived[2]].prescalerSet = dataReceived[6];
 #else
-	_daq *daq = (_daq *)&xcpMemoryStack[0] + *(uint16_t *)&dataReceived[2];
+	_daq* daq = (_daq*)&xcpMemoryStack[0] + *(uint16_t*)&dataReceived[2];
 	daq->prescalerSet = dataReceived[6];
 #endif
 	XcpPositiveResponse(dataToSend);
@@ -836,33 +809,31 @@ static void XcpSetDaqListMode(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpStartStopDaqList(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("xcpCommunication.status is: %d\n", xcpCommunication.status);
-#endif
+static void XcpStartStopDaqList(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("xcpCommunication.status is: %d\n", xcpCommunication.status);
 
 	dataToSend[0] = 2;	   // length of packet to be send back to the master
 	dataToSend[1] = 0xff;  // packet response ok
 
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-	dataToSend[2] = daq[*(uint16_t *)&dataReceived[2]]
+	dataToSend[2] = daq[*(uint16_t*)&dataReceived[2]]
 						.odtId;	 // First PID TODO PID dynamically programmed
 #else
-	dataToSend[2] = XcpGetDaq(*(uint16_t *)&dataReceived[2])->odtId;
+	dataToSend[2] = XcpGetDaq(*(uint16_t*)&dataReceived[2])->odtId;
 #endif
 
 	XcpCalculateChecksum(dataToSend);
 	XcpSendData(dataToSend);
 
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-	daq[*(uint16_t *)&dataReceived[2]].listStatus =
+	daq[*(uint16_t*)&dataReceived[2]].listStatus =
 		dataReceived[1];  // Update each daqlist with the received status
 #else
-	_daq *daq = (_daq *)&xcpMemoryStack[0] + *(uint16_t *)&dataReceived[2];
+	_daq* daq = (_daq*)&xcpMemoryStack[0] + *(uint16_t*)&dataReceived[2];
 	daq->listStatus = dataReceived[1];
 #endif
 
-	if (*(uint16_t *)&dataReceived[2] == xcpCommunication.nrOfDaqLists - 1) {
+	if (*(uint16_t*)&dataReceived[2] == xcpCommunication.nrOfDaqLists - 1) {
 		xcpCommunication.status |=
 			(dataReceived[1] << 6) & 0x40;	// update the XCP status flag
 		//	xcpCommunication.daqList 	= *(uint16_t*)&dataReceived[2];	//
@@ -877,18 +848,16 @@ static void XcpStartStopDaqList(uint8_t *dataReceived, uint8_t *dataToSend) {
 ** \return    none.
 ****************************************************************************************/
 // TODO Add MACRO's for XCP daq processor information
-static void XcpDaqProcessorInfoReply(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP daq processor info reply\n");
-#endif
+static void XcpDaqProcessorInfoReply(uint8_t* dataToSend) {
+	dbg("XCP daq processor info reply\n");
 
 	dataToSend[0] = 8;	   // length of packet to be send back to the master
 	dataToSend[1] = 0xff;  // packet response ok
 	dataToSend[2] = 0x53;  // DAQ properties
-	*(uint16_t *)&dataToSend[3] = 0x0000;  // Maximal DAQ 0x0000 = Dynamic
-	*(uint16_t *)&dataToSend[5] = 0x0003;  // Max event channel
-	dataToSend[7] = 0x00;				   // Min DAQ
-	dataToSend[8] = 0x00;				   // DAQ key byte
+	*(uint16_t*)&dataToSend[3] = 0x0000;  // Maximal DAQ 0x0000 = Dynamic
+	*(uint16_t*)&dataToSend[5] = 0x0003;  // Max event channel
+	dataToSend[7] = 0x00;				  // Min DAQ
+	dataToSend[8] = 0x00;				  // DAQ key byte
 
 	XcpCalculateChecksum(dataToSend);
 	XcpSendData(dataToSend);
@@ -903,10 +872,8 @@ static void XcpDaqProcessorInfoReply(uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpDaqEventInfoReply(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP daq event info reply\n");
-#endif
+static void XcpDaqEventInfoReply(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP daq event info reply\n");
 
 	dataToSend[0] = 7;	   // Length of packet to be send back to the master
 	dataToSend[1] = 0xff;  // Packet response ok
@@ -931,10 +898,8 @@ static void XcpDaqEventInfoReply(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpDaqResolutionInfoReply(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP daq resolution info reply\n");
-#endif
+static void XcpDaqResolutionInfoReply(uint8_t* dataToSend) {
+	dbg("XCP daq resolution info reply\n");
 
 	dataToSend[0] = 8;	   // Length of packet to be send back to the master
 	dataToSend[1] = 0xff;  // Packet response ok
@@ -943,7 +908,7 @@ static void XcpDaqResolutionInfoReply(uint8_t *dataToSend) {
 	dataToSend[4] = 0x00;  // Ignored byte
 	dataToSend[5] = 0x00;  // Ignored byte
 	dataToSend[6] = 0x52;  // Timestamp mode
-	*(uint16_t *)&dataToSend[7] = 0x0001;  // Timestamp ticks
+	*(uint16_t*)&dataToSend[7] = 0x0001;  // Timestamp ticks
 
 	XcpCalculateChecksum(dataToSend);
 	XcpSendData(dataToSend);
@@ -958,10 +923,8 @@ static void XcpDaqResolutionInfoReply(uint8_t *dataToSend) {
 ** \return    none.
 ****************************************************************************************/
 // TODO expand daqlist synchronisation functionality
-static void XcpStartStopSynch(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP synchronisation command : %d\n", dataReceived[1]);
-#endif
+static void XcpStartStopSynch(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("XCP synchronisation command : %d\n", dataReceived[1]);
 
 	switch (dataReceived[1]) {
 		case 0x00:
@@ -979,10 +942,8 @@ static void XcpStartStopSynch(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpFreeDaq(uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("XCP free memory command executed.\n");
-#endif
+static void XcpFreeDaq(uint8_t* dataToSend) {
+	dbg("XCP free memory command executed.\n");
 
 	XcpStopDataTransmission();
 
@@ -1040,18 +1001,16 @@ static void XcpFreeDaq(uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpAllocDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("Allocate memory for DAQ list's\n");
-#endif
+static void XcpAllocDaq(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("Allocate memory for DAQ list's\n");
 
 	xcpCommunication.nrOfDaqLists = *(
-		uint16_t *)&dataReceived[2];  // Number of Daq lists for this XCP device
+		uint16_t*)&dataReceived[2];	 // Number of Daq lists for this XCP device
 
 // TODO insert error memory overflow if number of lists exceed the maximum
 // allowed number of lists
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-	if (*(uint16_t *)&dataReceived[2] >
+	if (*(uint16_t*)&dataReceived[2] >
 		0)	// check if there is at least one list to allocate
 	{
 #if DYNAMICMEMORYALLOCATIONFREERTOS == 1
@@ -1063,16 +1022,14 @@ static void XcpAllocDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
 			return;
 		}
 
-		daq = pvPortMalloc(*(uint16_t *)&dataReceived[2] * sizeof(_daq));
+		daq = pvPortMalloc(*(uint16_t*)&dataReceived[2] * sizeof(_daq));
 #else
-#if DEBUGINFORMATION == 1
-		printf("Allocating %d elements\n", xcpCommunication.nrOfDaqLists);
-#endif
-		daq = malloc(*(uint16_t *)&dataReceived[2] * sizeof(_daq));
+		dbg("Allocating %d elements\n", xcpCommunication.nrOfDaqLists);
+
+		daq = malloc(*(uint16_t*)&dataReceived[2] * sizeof(_daq));
 		if (daq == NULL) {
-#if DEBUGINFORMATION == 1
-			fprintf(stderr, " could not allocate daq\n");
-#endif
+			dbg(stderr, " could not allocate daq\n");
+
 			XcpNegativeResponse(dataToSend, XCPERRORMEMORYOVERFLOW);
 			return;
 		}
@@ -1081,7 +1038,7 @@ static void XcpAllocDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
 #else
 	memoryStackPointer = &xcpMemoryStack[0];
 
-	for (uint8_t daqPointer = 0; daqPointer < *(uint16_t *)&dataReceived[2];
+	for (uint8_t daqPointer = 0; daqPointer < *(uint16_t*)&dataReceived[2];
 		 daqPointer++) {
 		/* Check if memory Stackpointer is still in the range of the reserved
 		 * memory */
@@ -1095,7 +1052,7 @@ static void XcpAllocDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
 
 #endif
 
-	xcpMemoryUsage += (*(uint16_t *)&dataReceived[2] * sizeof(_daq));
+	xcpMemoryUsage += (*(uint16_t*)&dataReceived[2] * sizeof(_daq));
 
 	XcpPositiveResponse(dataToSend);
 }
@@ -1108,14 +1065,12 @@ static void XcpAllocDaq(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpAllocOdt(uint8_t *dataReceived, uint8_t *dataToSend) {
-#if DEBUGINFORMATION == 1
-	printf("Allocate memory for the number of ODT's\n");
-#endif
+static void XcpAllocOdt(uint8_t* dataReceived, uint8_t* dataToSend) {
+	dbg("Allocate memory for the number of ODT's\n");
 
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-	daq[*(uint16_t *)&dataReceived[2]].nrOfOdts = dataReceived[4];
-	daq[*(uint16_t *)&dataReceived[2]].prescalerActual = 0;
+	daq[*(uint16_t*)&dataReceived[2]].nrOfOdts = dataReceived[4];
+	daq[*(uint16_t*)&dataReceived[2]].prescalerActual = 0;
 #if DYNAMICMEMORYALLOCATIONFREERTOS == 1
 
 	if (xPortGetFreeHeapSize() <=
@@ -1125,25 +1080,24 @@ static void XcpAllocOdt(uint8_t *dataReceived, uint8_t *dataToSend) {
 		return;
 	}
 
-	daq[*(uint16_t *)&dataReceived[2]].odt =
+	daq[*(uint16_t*)&dataReceived[2]].odt =
 		pvPortMalloc(dataReceived[4] * sizeof(_odt));
 #else
-	daq[*(uint16_t *)&dataReceived[2]].odt =
+	daq[*(uint16_t*)&dataReceived[2]].odt =
 		malloc(dataReceived[4] *
 			   sizeof(_odt));  // Dynamically assign memory to number of odt's
-	if (daq[*(uint16_t *)&dataReceived[2]].odt == NULL) {
-#if DEBUGINFORMATION == 1
-		fprintf(stderr, " could not allocate odt\n");
-#endif
+	if (daq[*(uint16_t*)&dataReceived[2]].odt == NULL) {
+		err(" could not allocate odt\n");
+
 		XcpNegativeResponse(dataToSend, XCPERRORMEMORYOVERFLOW);
 		return;
 	}
 #endif
-	daq[*(uint16_t *)&dataReceived[2]].odtId =
+	daq[*(uint16_t*)&dataReceived[2]].odtId =
 		xcpCommunication.odtIdCounter;	// Assign the ODT ID of the first ODT in
 										// the daq list
 #else
-	_daq *daq = (_daq *)&xcpMemoryStack[0] + *(uint16_t *)&dataReceived[2];
+	_daq* daq = (_daq*)&xcpMemoryStack[0] + *(uint16_t*)&dataReceived[2];
 
 	daq->nrOfOdts = dataReceived[4];
 	daq->odt1Location =
@@ -1185,15 +1139,14 @@ static void XcpAllocOdt(uint8_t *dataReceived, uint8_t *dataToSend) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpAllocOdtEntry(uint8_t *dataReceived, uint8_t *dataToSend) {
-// TODO check if incomming data is not exceeding the maximum allowed DAQ lists.
-// ODT's and entry's
-#if DEBUGINFORMATION == 1
-	printf("allocating ODT entries\n");
-#endif
+static void XcpAllocOdtEntry(uint8_t* dataReceived, uint8_t* dataToSend) {
+	// TODO check if incomming data is not exceeding the maximum allowed DAQ
+	// lists. ODT's and entry's
+
+	dbg("allocating ODT entries\n");
 
 #if DYNAMICMEMORYALLOCATION == 1 || DYNAMICMEMORYALLOCATIONFREERTOS == 1
-	daq[*(uint16_t *)&dataReceived[2]].odt[dataReceived[4]].nrOfOdtEntries =
+	daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].nrOfOdtEntries =
 		dataReceived[5];
 
 #if DYNAMICMEMORYALLOCATIONFREERTOS == 1
@@ -1205,30 +1158,28 @@ static void XcpAllocOdtEntry(uint8_t *dataReceived, uint8_t *dataToSend) {
 		return;
 	}
 
-	daq[*(uint16_t *)&dataReceived[2]].odt[dataReceived[4]].entry =
+	daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].entry =
 		pvPortMalloc(dataReceived[5] * sizeof(_entry));
 #else
-#if DEBUGINFORMATION == 1
-	printf(
-		"allocating %d entries\n",
-		daq[*(uint16_t *)&dataReceived[2]].odt[dataReceived[4]].nrOfOdtEntries);
-#endif
-	daq[*(uint16_t *)&dataReceived[2]].odt[dataReceived[4]].entry =
+
+	dbg("allocating %d entries\n",
+		daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].nrOfOdtEntries);
+
+	daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].entry =
 		malloc(dataReceived[5] * sizeof(_entry));
-	if (daq[*(uint16_t *)&dataReceived[2]].odt[dataReceived[4]].entry == NULL) {
-#if DEBUGINFORMATION == 1
-		fprintf(stderr, " could not allocate odt entry\n");
-#endif
+	if (daq[*(uint16_t*)&dataReceived[2]].odt[dataReceived[4]].entry == NULL) {
+		err(" could not allocate odt entry\n");
+
 		XcpNegativeResponse(dataToSend, XCPERRORMEMORYOVERFLOW);
 		return;
 	}
 #endif
 #else
 
-	_daq *daq =
-		(_daq *)&xcpMemoryStack[0] +
-		*(uint16_t *)&dataReceived[2];	// set pointer to the apropriate daq
-	_odt *odt = (_odt *)daq->odt1Location + dataReceived[4];
+	_daq* daq =
+		(_daq*)&xcpMemoryStack[0] +
+		*(uint16_t*)&dataReceived[2];  // set pointer to the apropriate daq
+	_odt* odt = (_odt*)daq->odt1Location + dataReceived[4];
 
 	odt->nrOfOdtEntries = dataReceived[5];
 	odt->entry1Location =
@@ -1263,8 +1214,8 @@ static void XcpAllocOdtEntry(uint8_t *dataReceived, uint8_t *dataToSend) {
 ** \return    Memory location of the daq structure that is required.
 **
 ****************************************************************************************/
-static _daq *XcpGetDaq(uint16_t daqList) {
-	return (_daq *)&xcpMemoryStack[0] + daqList;
+static _daq* XcpGetDaq(uint16_t daqList) {
+	return (_daq*)&xcpMemoryStack[0] + daqList;
 }
 
 /***************************************************************************************
@@ -1276,9 +1227,9 @@ static _daq *XcpGetDaq(uint16_t daqList) {
 ** \param	  odtValue The ODT number from wich the memory location is required.
 ** \return    Memory location of the ODT structure that is required.
 ****************************************************************************************/
-static _odt *XcpGetOdt(uint16_t daqList, uint8_t odtValue) {
-	_daq *daq = (_daq *)&xcpMemoryStack[0] + daqList;
-	return (_odt *)daq->odt1Location + odtValue;
+static _odt* XcpGetOdt(uint16_t daqList, uint8_t odtValue) {
+	_daq* daq = (_daq*)&xcpMemoryStack[0] + daqList;
+	return (_odt*)daq->odt1Location + odtValue;
 }
 
 /***************************************************************************************
@@ -1294,11 +1245,11 @@ required.
 required.
 ** \return    Memory location of the ODTentry structure that is required.
 ****************************************************************************************/
-static _entry *XcpGetOdtEntry(uint16_t daqList, uint8_t odtValue,
+static _entry* XcpGetOdtEntry(uint16_t daqList, uint8_t odtValue,
 							  uint8_t odtEntry) {
-	_daq *daq = (_daq *)&xcpMemoryStack[0] + daqList;
-	_odt *odt = (_odt *)daq->odt1Location + odtValue;
-	return (_entry *)odt->entry1Location + odtEntry;
+	_daq* daq = (_daq*)&xcpMemoryStack[0] + daqList;
+	_odt* odt = (_odt*)daq->odt1Location + odtValue;
+	return (_entry*)odt->entry1Location + odtEntry;
 }
 #endif
 
@@ -1341,7 +1292,7 @@ void XcpDataTransmission(void) {
 										.odt[odtCount]
 										.entry[odtEntryCount]
 										.sizeOfDaqElement,
-									(uint32_t *)(uintptr_t)daq[daqListCount]
+									(uint32_t*)(uintptr_t)daq[daqListCount]
 										.odt[odtCount]
 										.entry[odtEntryCount]
 										.adressOfDaqElement);
@@ -1369,7 +1320,7 @@ void XcpDataTransmission(void) {
 			}
 
 #else
-			_daq *daq = XcpGetDaq(daqListCount);
+			_daq* daq = XcpGetDaq(daqListCount);
 
 			daq->prescalerActual++;
 
@@ -1380,15 +1331,15 @@ void XcpDataTransmission(void) {
 
 				for (uint8_t odtCount = 0; odtCount < daq->nrOfOdts;
 					 odtCount++) {
-					_odt *odt = XcpGetOdt(daqListCount, odtCount);
+					_odt* odt = XcpGetOdt(daqListCount, odtCount);
 
 					uint8_t dataPointer = 2;
 					for (uint8_t odtEntryCount = 0;
 						 odtEntryCount < odt->nrOfOdtEntries; odtEntryCount++) {
-						_entry *entry = XcpGetOdtEntry(daqListCount, odtCount,
+						_entry* entry = XcpGetOdtEntry(daqListCount, odtCount,
 													   odtEntryCount);
 						XcpReadData(&data[dataPointer], entry->sizeOfDaqElement,
-									(uint32_t *)entry->adressOfDaqElement);
+									(uint32_t*)entry->adressOfDaqElement);
 						dataPointer = dataPointer + entry->sizeOfDaqElement;
 					}
 					data[0] = dataPointer -
@@ -1426,7 +1377,7 @@ static void XcpStopDataTransmission(void) {
 *master with a reply or data
 ** \return    none.
 ****************************************************************************************/
-static void XcpCalculateChecksum(uint8_t *dataToSend) {
+static void XcpCalculateChecksum(uint8_t* dataToSend) {
 	/* if no checksum is required. exit function directly. */
 	if (xcpCommunication.checksum == 0) {
 		return;
