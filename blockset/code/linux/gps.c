@@ -30,7 +30,8 @@ void parse_gps(char* buff, struct gps_data* gps_data,
 	if (token == NULL) goto no_msg;
 	if (strnlen(token, 11) >= 4) {
 		latitude = strtof(token + 2, NULL) / 60;
-		latitude = latitude + (float)(atoi(token) / 100);
+		/* divide by 100 to shift the number right 2 decimal places */
+		latitude = latitude + (float)((atoi(token) / 100));
 	} else {
 		/* incomplete message */
 		goto no_msg;
@@ -43,7 +44,8 @@ void parse_gps(char* buff, struct gps_data* gps_data,
 	if (token == NULL) goto no_msg;
 	if (strnlen(token, 12) >= 5) {
 		longitude = strtof(token + 3, NULL) / 60;
-		longitude = longitude + (float)(atoi(token) / 100);
+		/* divide by 100 to shift the number right 2 decimal places */
+		longitude = longitude + (float)((atoi(token) / 100));
 	}
 	token = strtok_r(NULL, ",", &comma_split);
 	if (token == NULL) goto no_msg;

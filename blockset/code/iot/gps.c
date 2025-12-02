@@ -14,8 +14,8 @@ struct gps_data* gps_data = NULL;
 osMutexId_t gps_data_lock = 0;
 uint8_t gps_state = 0;
 
-void parse_gps(char* buff, struct gps_data* gps_data,
-			   osMutexId_t gps_data_lock) {
+void ParseGps(char* buff, struct gps_data* gps_data,
+			  osMutexId_t gps_data_lock) {
 	char* first_split = NULL;
 	char* newline_split = NULL;
 	char* comma_split = NULL;
@@ -36,7 +36,8 @@ void parse_gps(char* buff, struct gps_data* gps_data,
 	if (token == NULL) goto no_msg;
 	if (strnlen(token, 11) >= 4) {
 		latitude = strtof(token + 2, NULL) / 60;
-		latitude = latitude + (float)(atoi(token) / 100);
+		/* divide by 100 to shift the number right 2 decimal places */
+		latitude = latitude + (float)((atoi(token) / 100));
 	} else {
 		/* incomplete message */
 		goto no_msg;
@@ -49,7 +50,8 @@ void parse_gps(char* buff, struct gps_data* gps_data,
 	if (token == NULL) goto no_msg;
 	if (strnlen(token, 12) >= 5) {
 		longitude = strtof(token + 3, NULL) / 60;
-		longitude = longitude + (float)(atoi(token) / 100);
+		/* divide by 100 to shift the number right 2 decimal places */
+		longitude = longitude + (float)((atoi(token) / 100));
 	}
 	token = strtok_r(NULL, ",", &comma_split);
 	if (token == NULL) goto no_msg;
@@ -122,7 +124,7 @@ void HandleGps(char* rx, uint16_t num_bytes) {
 		message_ok = 1;
 	}
 	if (memcmp(rx + GPS_COMMAND_BASE_LEN, "INFO", 4) == 0) {
-		if (message_ok) parse_gps(rx, gps_data, gps_data_lock);
+		if (message_ok) ParseGps(rx, gps_data, gps_data_lock);
 		return;
 	} else if (memcmp(rx + GPS_COMMAND_BASE_LEN, "=0", 2) == 0) {
 		if (message_ok) gps_state = GPS_STATE_OFF;
