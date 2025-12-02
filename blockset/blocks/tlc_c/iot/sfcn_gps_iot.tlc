@@ -39,7 +39,7 @@
 
 		const osThreadAttr_t simcom_tx_thread_attributes = {
 			.name = "simcom_tx_thread",
-			.stack_size = 128 * 4,
+			.stack_size = 128 * 2,
 			.priority = (osPriority_t) osPriorityAboveNormal,
 		};
 
@@ -47,7 +47,7 @@
 
 		const osThreadAttr_t simcom_rx_thread_attributes = {
 			.name = "simcom_rx_thread",
-			.stack_size = 128 * 4,
+			.stack_size = 128 * 8,
 			.priority = (osPriority_t) osPriorityAboveNormal,
 		};
 
@@ -55,7 +55,7 @@
 
 		const osThreadAttr_t gps_thread_attributes = {
 			.name = "gps_thread",
-			.stack_size = 128 * 8,
+			.stack_size = 128 * 2,
 			.priority = (osPriority_t) osPriorityNormal,
 		};
 
