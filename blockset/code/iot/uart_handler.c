@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h"
 #include "cmsis_os2.h"
 #include "gpio.h"
 #include "gps.h"
