@@ -44,10 +44,6 @@ void SimcomInit(void) {
 
 void SimcomTxThread(void* args) {
 	struct uart_message msg;
-	// osEventFlagsWait(simcom_events, SIMCOM_CTS, osFlagsWaitAll,
-	// osWaitForever);
-	/* disable echo, it is nice for manual control but not automated */
-	// HAL_UART_Transmit_DMA(&huart3, (uint8_t*)"ATE0\r", 5);
 	while (1) {
 		osEventFlagsWait(simcom_events, SIMCOM_CTS, osFlagsWaitAll,
 						 osWaitForever);
