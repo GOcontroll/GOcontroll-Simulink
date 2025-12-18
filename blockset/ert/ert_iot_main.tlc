@@ -46,7 +46,6 @@
 	#define DEBUG 0
 
 	void SystemClock_Config(void);
-	void MX_FREERTOS_Init(void);
 %endfunction
 
 
