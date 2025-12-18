@@ -87,7 +87,7 @@ int GocontrollProcessorboardSupply_ReadAdc(uint8_t supply, uint16_t* value) {
 	}
 
 	*value =
-		(uint16_t)(float)(((HAL_ADC_GetValue(&hadc1) * 0.805) / 1500) * 11700);
+		(uint16_t)(float)(((HAL_ADC_GetValue(&hadc1) * 0.805) / 1200) * 11400);
 	return 0;
 }
 
