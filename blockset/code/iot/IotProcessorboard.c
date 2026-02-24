@@ -85,45 +85,6 @@ int8_t GocontrollProcessorboard_ResetStateModule(uint8_t module,
 
 /****************************************************************************************/
 
-int GocontrollProcessorboard_LedInitialize(void) {
-	
-	GocontrollProcessorboard_LedControl(1, LED_COLOR_RED, 0);
-	GocontrollProcessorboard_LedControl(1, LED_COLOR_GREEN, 0);
-	GocontrollProcessorboard_LedControl(1, LED_COLOR_BLUE, 0);
-	/* Initialize the PWM controller */
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-
-	return 0;
-}
-
-/****************************************************************************************/
-
-int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color,
-										uint8_t value) {
-	
-	if (led != 1) {
-		return -1;
-	}
-
-	/* H5 IoT: TIM3 CH1=LED_B(PC6), CH2=LED_R(PC7), CH3=LED_G(PC8) */
-	switch (color) {
-		case LED_COLOR_RED:
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2,(uint32_t)value);
-			break;
-		case LED_COLOR_GREEN:
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,(uint32_t)value);
-			break;
-		case LED_COLOR_BLUE:
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, (uint32_t)value);
-			break;
-	}
-	return 0;
-}
-
-/****************************************************************************************/
-
 int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,
 												  uint8_t* dataTx,
 												  uint8_t* dataRx) {

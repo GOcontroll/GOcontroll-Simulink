@@ -32,24 +32,13 @@
 
 %implements  sfcn_gocontroll_status_led "C"
 
-%addincludepath "./linux"
-%addincludepath "./iot"
-%include "go_platform.tlc"
-%include "sfcn_gocontroll_status_led_linux.tlc"
-%include "sfcn_gocontroll_status_led_iot.tlc"
-
 %% Function: BlockTypeSetup ==========================================================
 %%
 %% Purpose:
 %%      Code generation for configuration
 %%
 %function BlockTypeSetup(block, system) void
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<StatusLedBlockTypeSetup_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<StatusLedBlockTypeSetup_iot(block, system)>
-	%endif
+	%<LibAddToCommonIncludes("GOcontrollStatusLeds.h")>
 %endfunction
 
 %% Function: Start ==========================================================
@@ -58,41 +47,38 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<StatusLedStart_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<StatusLedStart_iot(block, system)>
+	%if EXISTS(::processorboard_hw) == 0
+		%assign ::processorboard_hw = 1
+		%openfile tmpBuf
+		GocontrollProcessorboard_GetHardwareVersion();
+		%closefile tmpBuf
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
+	%endif
+	%if EXISTS(::led_init) == 0
+		%assign ::led_init = 1
+		%openfile tmpBuf
+		GOcontrollStatusLeds_Initialize();
+		%closefile tmpBuf
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
 	%endif
 %endfunction
 
-%% Function: Output ==========================================================
+%% Function: Outputs ==========================================================
 %%
 %% Purpose:
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<StatusLedOutputs_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<StatusLedOutputs_iot(block, system)>
-	%endif
+	GOcontrollStatusLeds_LedControl((uint8_t)%<block.RTWdata.led>, (_ledColor)%<block.RTWdata.color>, (uint8_t)%<LibBlockInputSignal(0, "", "", 0)>);
 %endfunction
-
 
 %% Function: Terminate ==========================================================
 %%
 %% Purpose:
-%%      Code generation for signal output
+%%      Code generation for termination
 %%
-%function Terminate (block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<StatusLedTerminate_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<StatusLedTerminate_iot(block, system)>
-	%endif
+%function Terminate(block, system) Output
+	GOcontrollStatusLeds_LedControl((uint8_t)%<block.RTWdata.led>, (_ledColor)%<block.RTWdata.color>, 0);
 %endfunction
 
 %%******************************* end of sfcn_gocontroll_status_led.tlc ********************
