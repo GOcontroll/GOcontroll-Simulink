@@ -94,8 +94,7 @@ int GocontrollProcessorboard_LedInitialize(void) {
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-	
-	SEGGER_RTT_printf(0, "Led initialize\n");
+
 	return 0;
 }
 
@@ -103,8 +102,6 @@ int GocontrollProcessorboard_LedInitialize(void) {
 
 int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color,
 										uint8_t value) {
-	SEGGER_RTT_printf(0, "Led Control\n");
-	SEGGER_RTT_printf(0, "Value: %d Led: %d\n", value, led);
 	
 	if (led != 1) {
 		return -1;

@@ -56,6 +56,12 @@ extern uint32_t SystemCoreClock;
 #define CMSIS_device_header "stm32h5xx.h"
 #endif /* CMSIS_device_header */
 
+/* Tick type width constants required by ARM_CM33_NTZ port (V10.6.2 portmacrocommon.h) */
+#define TICK_TYPE_WIDTH_16_BITS    0
+#define TICK_TYPE_WIDTH_32_BITS    1
+#define TICK_TYPE_WIDTH_64_BITS    2
+#define configTICK_TYPE_WIDTH_IN_BITS    TICK_TYPE_WIDTH_32_BITS
+
 /*-------------------- STM32H5 specific defines -------------------*/
 #define configENABLE_TRUSTZONE                   0
 #define configRUN_FREERTOS_SECURE_ONLY           0

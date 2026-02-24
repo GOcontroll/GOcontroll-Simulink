@@ -40,6 +40,8 @@
 #include "adc.h"
 #include "cmsis_os.h"
 
+#include "SEGGER_RTT.h"
+
 /****************************************************************************************
  * Data declarations to store supply voltages
  ****************************************************************************************/
@@ -55,10 +57,12 @@ uint32_t channels[2] = {ADC_CHANNEL_9, ADC_CHANNEL_10};
 int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t* value) {
 	switch (supply) {
 		case 1: {
+			SEGGER_RTT_printf(0, "K30: %d\n",controllerSupply.batteryVoltage);
 			*value = controllerSupply.batteryVoltage;
 			break;
 		}
 		case 2: {
+			SEGGER_RTT_printf(0, "K30: %d\n",controllerSupply.k15aVoltage);
 			*value = controllerSupply.k15aVoltage;
 			break;
 		}
