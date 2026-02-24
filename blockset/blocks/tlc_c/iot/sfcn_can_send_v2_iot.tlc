@@ -60,8 +60,8 @@
 %% Function: Start =============================================================
 %function CANsendv2Start_iot(block, system) Output
 	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-	%assign hcan = "hcan%<module_id_par>"
-	%<StartCanTx_iot(module_id_par, hcan)>
+	%assign hfdcan = "hfdcan%<module_id_par>"
+	%<StartCanTx_iot(module_id_par, hfdcan)>
 %endfunction
 
 %% Function: Outputs ===========================================================

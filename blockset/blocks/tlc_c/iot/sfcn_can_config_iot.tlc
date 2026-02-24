@@ -23,13 +23,13 @@
 		%assign %<can_tx_buff> = block.RTWdata.canTxBuff
 		%assign %<can_rx_buff> = block.RTWdata.canRxBuff
 		%openfile assignBuf
-			hcan%<canNum>.Instance = CAN%<canNum>;
+			hfdcan%<canNum>.Instance = FDCAN%<canNum>;
 		%closefile assignBuf
 
 		%<LibMdlStartCustomCode(assignBuf, "declaration")>
 
 		%openfile initBuf
-			init_can(&hcan%<canNum>, %<baudrate>, %<autort>);
+			init_can(&hfdcan%<canNum>, %<baudrate>, %<autort>);
 		%closefile initBuf
 
 		%<LibMdlStartCustomCode(initBuf, "execution")>

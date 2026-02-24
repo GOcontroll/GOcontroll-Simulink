@@ -45,6 +45,7 @@
 %% Adopted for use by GOcontroll 2024		http://www.gocontroll.com		All right reserved
 %% File : sfcn_can_receive_v2.tlc
 %% Brief : tlc file for generating code to receive CAN messages on the Moduline Controllers
+%% Updated for STM32H5 FDCAN
 
 %include "can_common_iot.tlc"
 
@@ -75,10 +76,10 @@
 	%<LibSetSourceFileSection(srcFile, "Definitions", queue)>
 
 	%openfile callback
-		void can%<module_id_par>_rx_pending(CAN_HandleTypeDef *hcan) {
-			CAN_RxHeaderTypeDef header;
+		void can%<module_id_par>_rx_pending(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
+			FDCAN_RxHeaderTypeDef header;
 			struct can_frame message;
-			while (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &header, message.data) == HAL_OK) {
+			while (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &header, message.data) == HAL_OK) {
 				can_pack_header(&message, &header);
 				osMessageQueuePut(can%<module_id_par>_rx_queue, &message, 0, 0);
 			}
@@ -91,41 +92,27 @@
 %% Function: Start =============================================================
 %function CANrecvv2Start_iot(block, system) Output
 	%assign module_id_par = LibBlockParameterValue(module_id, 0)
-	%assign hcan = "hcan%<module_id_par>"
+	%assign hfdcan = "hfdcan%<module_id_par>"
 	%assign can_rx_buf = "::can_%<module_id_par>_rx"
 	%assign can_rx_buff = %<can_rx_buf>
 	{
-		CAN_FilterTypeDef filter = {0};
 		can%<module_id_par>_rx_queue = osMessageQueueNew(%<can_rx_buff>, sizeof(struct can_frame), NULL);
 
-		filter.FilterIdHigh = 0x0000;
-		filter.FilterIdLow = 0x0000;
-		filter.FilterMaskIdHigh = 0x0000;
-		filter.FilterMaskIdLow = 0x0000;
-		filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-		filter.FilterMode = CAN_FILTERMODE_IDMASK;
+		%% FDCAN GFC reset value (0x0) routes all non-matching frames to RX FIFO0 by default.
+		%% XCP block (if present) uses filter element 0 to route its specific ID to FIFO1.
 		%if ISEQUAL(%<module_id_par>, 1)
-			filter.FilterBank = 1;
-			HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 10, 0);
-			HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+			HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 10, 0);
+			HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
 		%else
-			filter.FilterBank = 15;
-			HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 10, 0);
-			HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
+			HAL_NVIC_SetPriority(FDCAN2_IT0_IRQn, 10, 0);
+			HAL_NVIC_EnableIRQ(FDCAN2_IT0_IRQn);
 		%endif
-		filter.FilterScale = CAN_FILTERSCALE_32BIT;
-		filter.FilterActivation = CAN_FILTER_ENABLE;
-		filter.SlaveStartFilterBank = 14;
-		HAL_CAN_Stop(&%<hcan>);
-		if(HAL_CAN_ConfigFilter(&%<hcan>, &filter) != HAL_OK)
-			err("Could not config filter: 0x%x\n", %<hcan>.ErrorCode);
-		if(HAL_CAN_RegisterCallback(&%<hcan>,
-								 HAL_CAN_RX_FIFO0_MSG_PENDING_CB_ID,
-								 can%<module_id_par>_rx_pending) != HAL_OK)
-			err("Could not register callback: 0x%x\n", %<hcan>.ErrorCode);
-		if(HAL_CAN_ActivateNotification(&%<hcan>, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
-			err("Could not activate notification: 0x%x\n", %<hcan>.ErrorCode);
-		HAL_CAN_Start(&%<hcan>);
+		if (HAL_FDCAN_RegisterRxFifo0Callback(&%<hfdcan>,
+				can%<module_id_par>_rx_pending) != HAL_OK)
+			err("Could not register rx callback: 0x%x\n", %<hfdcan>.ErrorCode);
+		if (HAL_FDCAN_ActivateNotification(&%<hfdcan>,
+				FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+			err("Could not activate notification: 0x%x\n", %<hfdcan>.ErrorCode);
 	}
 %endfunction
 
@@ -133,7 +120,7 @@
 %function CANrecvv2Outputs_iot(block, system) Output
 	%if !SLibCodeGenForSim()
 		%assign module_id_par = LibBlockParameterValue(module_id, 0)
-		%% message will be of the type CAN_MESSAGE, run this command in the matlab console to find the definition: 
+		%% message will be of the type CAN_MESSAGE, run this command in the matlab console to find the definition:
 		%% edit(fullfile(matlabroot, 'toolbox','shared','can','src','scanutil','can_message.h'));
 		%assign message = LibBlockOutputSignal(1, "", "", 1)
 

@@ -45,6 +45,7 @@
 %% Adopted for use by GOcontroll 2024		http://www.gocontroll.com		All right reserved
 %% File : can_common_iot.tlc
 %% Brief : help functions for the can tlcs
+%% Updated for STM32H5 FDCAN
 
 %% Function: CANCommonBlockTypeSetup ========================================
 %% 	Declares and initializes all common variables and constants.
@@ -52,7 +53,7 @@
 %function CANCommonBlockTypeSetup_iot() void
 	%if !SLibCodeGenForSim()
 		%<LibAddToCommonIncludes("can_message.h")>
-	%<LibAddToCommonIncludes("can.h")>
+	%<LibAddToCommonIncludes("fdcan.h")>
 	%endif
 %endfunction
 
@@ -64,7 +65,7 @@
 	%endif
 %endfunction
 
-%function StartCanTx_iot(module_id_par, hcan) Output
+%function StartCanTx_iot(module_id_par, hfdcan) Output
 	%assign can_socket = "::can_tx_%<module_id_par>_init"
 	%if EXISTS(%<can_socket>) == 0
 		%assign %<can_socket> = 1
@@ -84,7 +85,7 @@
 			osThreadId_t can%<module_id_par>_tx_thread;
 		%closefile queue
 
-		
+
 		%<LibSetSourceFileSection(srcFile, "Definitions", queue)>
 
 		%openfile decls
@@ -98,16 +99,13 @@
 		%<LibSetSourceFileSection(srcFile, "Declarations", decls)>
 
 		%openfile callback
-			void can%<module_id_par>_tx_empty(CAN_HandleTypeDef *hcan){
+			void can%<module_id_par>_tx_empty(FDCAN_HandleTypeDef *hfdcan){
 				osEventFlagsSet(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
 			}
 
-			void can%<module_id_par>_err(CAN_HandleTypeDef *hcan) {
-				if (hcan->ErrorCode | HAL_CAN_ERROR_TX_TERR0 || hcan->ErrorCode | HAL_CAN_ERROR_TX_ALST0) {
-					hcan->ErrorCode &= ~(HAL_CAN_ERROR_TX_TERR0 | HAL_CAN_ERROR_TX_ALST0 | HAL_CAN_ERROR_TX_TERR1 | HAL_CAN_ERROR_TX_ALST1 | HAL_CAN_ERROR_TX_TERR2 | HAL_CAN_ERROR_TX_ALST2);
-					if (HAL_CAN_GetTxMailboxesFreeLevel(&%<hcan>))
-						osEventFlagsSet(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
-				}
+			void can%<module_id_par>_err(FDCAN_HandleTypeDef *hfdcan) {
+				if (HAL_FDCAN_GetTxFifoFreeLevel(hfdcan))
+					osEventFlagsSet(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
 			}
 		%closefile callback
 
@@ -115,35 +113,38 @@
 
 		%openfile task
 			void can%<module_id_par>TxThread(void* args) {
-				CAN_TxHeaderTypeDef header = {0};
+				FDCAN_TxHeaderTypeDef header = {0};
 				struct can_frame message;
-				uint32_t dummy;
 
 				osEventFlagsSet(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
 
 				while (1) {
-					while(HAL_CAN_GetTxMailboxesFreeLevel(&%<hcan>)) {
+					while(HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan%<module_id_par>)) {
 						osMessageQueueGet(can%<module_id_par>_tx_queue, &message, 0 , osWaitForever);
 						%% Transmit CAN_MESSAGE
-						header.DLC = can_packed_dlc(&message);
+						header.DataLength = (uint32_t)can_packed_dlc(&message) << 16;
 
 						%%Set ID and flags
 						if (can_packed_is_ExtId(&message)) {
-							header.ExtId = message.id;
-							header.IDE = CAN_ID_EXT;
+							header.Identifier = message.id;
+							header.IdType = FDCAN_EXTENDED_ID;
 						} else {
-							header.StdId = message.id;
-							header.IDE = CAN_ID_STD;
+							header.Identifier = message.id;
+							header.IdType = FDCAN_STANDARD_ID;
 						}
-						if (can_packed_is_RTR(&message))
-							header.RTR = CAN_RTR_REMOTE;
+						header.TxFrameType = can_packed_is_RTR(&message) ? FDCAN_REMOTE_FRAME : FDCAN_DATA_FRAME;
+						header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+						header.BitRateSwitch = FDCAN_BRS_OFF;
+						header.FDFormat = FDCAN_CLASSIC_CAN;
+						header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+						header.MessageMarker = 0;
 						dbg("can tx stack free: %d\n", osThreadGetStackSpace(osThreadGetId()));
-						dbg("sending CAN message, dlc: %d, id: %x\ndata: [", header.DLC, message.id);
-						for (int i = 0; i < header.DLC; i++) {
+						dbg("sending CAN message, dlc: %d, id: %x\ndata: [", can_packed_dlc(&message), message.id);
+						for (int i = 0; i < can_packed_dlc(&message); i++) {
 							dbg("%02x,", message.data[i]);
 						}
 						dbg("]\n");
-						HAL_CAN_AddTxMessage(&hcan%<module_id_par>, &header, message.data,&dummy);
+						HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan%<module_id_par>, &header, message.data);
 					}
 					osEventFlagsClear(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK);
 					osEventFlagsWait(can%<module_id_par>_tx_free, CAN%<module_id_par>_TX_FREE_MASK,osFlagsWaitAny | osFlagsNoClear, osWaitForever);
@@ -160,22 +161,18 @@
 		%<LibMdlStartCustomCode(initBuf, "execution")>
 
 
-		HAL_NVIC_SetPriority(CAN%<module_id_par>_TX_IRQn, 10, 0);
-		HAL_NVIC_EnableIRQ(CAN%<module_id_par>_TX_IRQn);
-		if (%<hcan>.State == HAL_CAN_STATE_LISTENING)
-			HAL_CAN_Stop(&%<hcan>);
-		if(HAL_CAN_RegisterCallback(&%<hcan>,
-								 HAL_CAN_TX_MAILBOX0_COMPLETE_CB_ID,
+		HAL_NVIC_SetPriority(FDCAN%<module_id_par>_IT0_IRQn, 10, 0);
+		HAL_NVIC_EnableIRQ(FDCAN%<module_id_par>_IT0_IRQn);
+		if(HAL_FDCAN_RegisterCallback(&%<hfdcan>,
+								 HAL_FDCAN_TX_FIFO_EMPTY_CB_ID,
 								 can%<module_id_par>_tx_empty) != HAL_OK)
-			err("Could not register mbox callback: 0x%x\n", %<hcan>.ErrorCode);
-		if(HAL_CAN_RegisterCallback(&%<hcan>,
-								 HAL_CAN_ERROR_CB_ID,
+			err("Could not register tx empty callback: 0x%x\n", %<hfdcan>.ErrorCode);
+		if(HAL_FDCAN_RegisterCallback(&%<hfdcan>,
+								 HAL_FDCAN_ERROR_CALLBACK_CB_ID,
 								 can%<module_id_par>_err) != HAL_OK)
-			err("Could not register error callback: 0x%x\n", %<hcan>.ErrorCode);
-		if (HAL_CAN_ActivateNotification(&%<hcan>, CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK)
-			err("Could not activate notification: 0x%x\n", %<hcan>.ErrorCode);
-		if (%<hcan>.State != HAL_CAN_STATE_LISTENING)
-			HAL_CAN_Start(&%<hcan>);
+			err("Could not register error callback: 0x%x\n", %<hfdcan>.ErrorCode);
+		if (HAL_FDCAN_ActivateNotification(&%<hfdcan>, FDCAN_IT_TX_FIFO_EMPTY, 0) != HAL_OK)
+			err("Could not activate notification: 0x%x\n", %<hfdcan>.ErrorCode);
 		can%<module_id_par>_tx_thread = osThreadNew(can%<module_id_par>TxThread, NULL, &can%<module_id_par>_tx_thread_attributes);
 	%endif
 %endfunction

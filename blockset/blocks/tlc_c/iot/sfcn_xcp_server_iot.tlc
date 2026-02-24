@@ -29,6 +29,7 @@
 %% endinternal
 %%
 %%***************************************************************************************
+%% Updated for STM32H5 FDCAN
 
 %include "can_common_iot.tlc"
 
@@ -39,7 +40,7 @@
 	%if EXISTS(::xcp_socket) == 0
 		%if ISEQUAL(%<block.RTWdata.server_type>, 3)
 			%assign module_id_par = %<CAST("Number", block.RTWdata.can_if) + 1>
-			%assign hcan = "hcan%<module_id_par>"
+			%assign hfdcan = "hfdcan%<module_id_par>"
 			%openfile tmpBufDecls
 				osThreadId_t xcp_thread;
 
@@ -61,22 +62,18 @@
 
 %function XcpStart_iot(block, system) Output
 	%assign module_id_par = %<CAST("Number", block.RTWdata.can_if) + 1>
-	%assign hcan = "hcan%<module_id_par>"
+	%assign hfdcan = "hfdcan%<module_id_par>"
 	%switch (%<block.RTWdata.server_type>)
 		%case 3
-			%<StartCanTx_iot(module_id_par, hcan)>
-			if (%<hcan>.State == HAL_CAN_STATE_LISTENING)
-				HAL_CAN_Stop(&%<hcan>);
+			%<StartCanTx_iot(module_id_par, hfdcan)>
 			XcpInit_can(
-					&%<hcan>,
+					&%<hfdcan>,
 					can%<module_id_par>_tx_queue,
 					%<block.RTWdata.send_id>,
 					%<block.RTWdata.receive_id>,
 					%<block.RTWdata.send_id_ext>,
 					%<block.RTWdata.receive_id_ext>
 			);
-			if (%<hcan>.State != HAL_CAN_STATE_LISTENING)
-				HAL_CAN_Start(&%<hcan>);
 			xcp_thread = osThreadNew(XcpThread_can, NULL, &xcp_thread_attributes);
 			%break
 		%default
