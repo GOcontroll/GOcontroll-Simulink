@@ -24,10 +24,10 @@ _eventChannel eventChannel[3] = {
 	{"EvChnl3"},
 };
 
-void XcpCanHandler(CAN_HandleTypeDef* hcan) {
-	CAN_RxHeaderTypeDef header;
+void XcpCanHandler(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo1ITs) {
+	FDCAN_RxHeaderTypeDef header;
 	struct can_frame message;
-	while (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &header, message.data) ==
+	while (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO1, &header, message.data) ==
 		   HAL_OK) {
 		can_pack_header(&message, &header);
 		osMessageQueuePut(xcp_received, &message, 0, 0);
@@ -35,11 +35,11 @@ void XcpCanHandler(CAN_HandleTypeDef* hcan) {
 	return;
 }
 
-void XcpInit_can(CAN_HandleTypeDef* can_channel, osMessageQueueId_t tx_queue,
+void XcpInit_can(FDCAN_HandleTypeDef* can_channel, osMessageQueueId_t tx_queue,
 				 uint32_t xcp_send_id, uint32_t xcp_receive_id,
 				 uint8_t xcp_send_id_extended,
 				 uint8_t xcp_receive_id_extended) {
-	CAN_FilterTypeDef filter = {0};
+	FDCAN_FilterTypeDef filter = {0};
 	xcpTransmissionBus = XCPCAN;
 	xcpDtoId = xcp_send_id;
 	xcpDtoIdExt = xcp_send_id_extended;
@@ -47,39 +47,35 @@ void XcpInit_can(CAN_HandleTypeDef* can_channel, osMessageQueueId_t tx_queue,
 	can_tx_queue = tx_queue;
 	XcpDynamicConfigurator(0, 8, 8);
 
+	/* Configure filter to route XCP receive ID to FIFO1 */
+	filter.FilterIndex = 0;
+	filter.FilterConfig = FDCAN_FILTER_TO_RXFIFO1;
+	filter.FilterType = FDCAN_FILTER_DUAL;
 	if (xcp_receive_id_extended) {
-		filter.FilterIdHigh = (xcp_receive_id >> 13) & 0xffff;
-		filter.FilterIdLow = ((xcp_receive_id << 3) & 0xffff) | 0b100;
+		filter.IdType = FDCAN_EXTENDED_ID;
 	} else {
-		filter.FilterIdHigh = (xcp_receive_id << 5) & 0xffff;
-		filter.FilterIdLow = 0x0000;
+		filter.IdType = FDCAN_STANDARD_ID;
 	}
+	filter.FilterID1 = xcp_receive_id;
+	filter.FilterID2 = xcp_receive_id;
 
-	filter.FilterMaskIdHigh = 0x0000;
-	filter.FilterMaskIdLow = 0x0000;
-	// send all xcp data to fifo1, other data will go to fifo0
-	filter.FilterFIFOAssignment = CAN_FILTER_FIFO1;
-	filter.FilterMode = CAN_FILTERMODE_IDLIST;
-	if (can_channel->Instance == CAN1) {
-		filter.FilterBank = 0;
-		HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 10, 0);
-		HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
+	if (can_channel->Instance == FDCAN1) {
+		HAL_NVIC_SetPriority(FDCAN1_IT1_IRQn, 10, 0);
+		HAL_NVIC_EnableIRQ(FDCAN1_IT1_IRQn);
+		HAL_FDCAN_ConfigInterruptLines(can_channel, FDCAN_IT_RX_FIFO1_NEW_MESSAGE,
+									   FDCAN_INTERRUPT_LINE1);
 	} else {
-		filter.FilterBank = 14;
-		HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 10, 0);
-		HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
+		HAL_NVIC_SetPriority(FDCAN2_IT1_IRQn, 10, 0);
+		HAL_NVIC_EnableIRQ(FDCAN2_IT1_IRQn);
+		HAL_FDCAN_ConfigInterruptLines(can_channel, FDCAN_IT_RX_FIFO1_NEW_MESSAGE,
+									   FDCAN_INTERRUPT_LINE1);
 	}
-	filter.FilterScale = CAN_FILTERSCALE_32BIT;
-	filter.FilterActivation = CAN_FILTER_ENABLE;
-	filter.SlaveStartFilterBank = 14;
-	if (HAL_CAN_ConfigFilter(can_channel, &filter) != HAL_OK)
+	if (HAL_FDCAN_ConfigFilter(can_channel, &filter) != HAL_OK)
 		err("Could not config filter: 0x%x\n", can_channel->ErrorCode);
-	if (HAL_CAN_RegisterCallback(can_channel,
-								 HAL_CAN_RX_FIFO1_MSG_PENDING_CB_ID,
-								 XcpCanHandler) != HAL_OK)
-		err("Could not register callback0: 0x%x\n", can_channel->ErrorCode);
-	if (HAL_CAN_ActivateNotification(can_channel,
-									 CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
+	if (HAL_FDCAN_RegisterRxFifo1Callback(can_channel, XcpCanHandler) != HAL_OK)
+		err("Could not register callback: 0x%x\n", can_channel->ErrorCode);
+	if (HAL_FDCAN_ActivateNotification(can_channel,
+									   FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0) != HAL_OK)
 		err("Could not activate notification: 0x%x\n", can_channel->ErrorCode);
 
 	xcp_received = osMessageQueueNew(1, sizeof(struct can_frame), NULL);

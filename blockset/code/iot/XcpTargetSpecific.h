@@ -127,7 +127,7 @@ typedef struct {
  * Function prototypes
  ****************************************************************************************/
 
-void XcpInit_can(CAN_HandleTypeDef* can_channel, osMessageQueueId_t tx_queue,
+void XcpInit_can(FDCAN_HandleTypeDef* can_channel, osMessageQueueId_t tx_queue,
 				 uint32_t xcp_send_id, uint32_t xcp_receive_id,
 				 uint8_t xcp_send_id_extended, uint8_t xcp_receive_id_extended);
 

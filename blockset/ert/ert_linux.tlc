@@ -64,43 +64,43 @@
   rtwoptions(1).callback      = '';
   rtwoptions(1).makevariable  = '';
 
-  rtwoptions(2).prompt        = 'Linux RT priority';
-  rtwoptions(2).type          = 'Edit';
-  rtwoptions(2).default       = '40';
-  rtwoptions(2).tlcvariable   = 'tlcLinuxPriority';
-  rtwoptions(2).tooltip       = ['Here you can set the priority of this task'];
+  rtwoptions(2).prompt        = 'Target';
+  rtwoptions(2).type          = 'Popup';
+  rtwoptions(2).default       = 'i.MX8';
+  rtwoptions(2).popupstrings  = 'i.MX8|IOT';
+  rtwoptions(2).tlcvariable   = 'tlcLinuxTarget';
+  rtwoptions(2).tooltip       = ['Select the Target you want to build the project for'];
 
-  rtwoptions(3).prompt        = 'Upload address';
+  rtwoptions(3).prompt        = 'Linux RT priority';
   rtwoptions(3).type          = 'Edit';
-  rtwoptions(3).default       = '192.168.19.85';
-  rtwoptions(3).tlcvariable   = 'tlcXcpTcpAddress';
-  rtwoptions(3).tooltip       = ['Choose the address to which to upload the model to'];
+  rtwoptions(3).default       = '40';
+  rtwoptions(3).tlcvariable   = 'tlcLinuxPriority';
+  rtwoptions(3).tooltip       = ['Here you can set the priority of this task'];
 
-  rtwoptions(4).prompt        = 'Upload port';
+  rtwoptions(4).prompt        = 'Upload address';
   rtwoptions(4).type          = 'Edit';
-  rtwoptions(4).default       = '8001';
-  rtwoptions(4).tlcvariable   = 'tlcUploadPort';
-  rtwoptions(4).tooltip       = ['Choose the port to which to upload the model to'];
+  rtwoptions(4).default       = '192.168.19.85';
+  rtwoptions(4).tlcvariable   = 'tlcXcpTcpAddress';
+  rtwoptions(4).tooltip       = ['Choose the address to which to upload the model to'];
 
-  rtwoptions(5).prompt        = 'XCP TCP port';
+  rtwoptions(5).prompt        = 'Upload port';
   rtwoptions(5).type          = 'Edit';
-  rtwoptions(5).default       = '50002';
-  rtwoptions(5).tlcvariable   = 'tlcXcpTcpPort';
-  rtwoptions(5).tooltip       = ['Choose the port to use with XCP'];
+  rtwoptions(5).default       = '8001';
+  rtwoptions(5).tlcvariable   = 'tlcUploadPort';
+  rtwoptions(5).tooltip       = ['Choose the port to which to upload the model to'];
 
-  rtwoptions(6).prompt        = 'Auto upload';
-  rtwoptions(6).type          = 'Popup';
-  rtwoptions(6).default       = 'Auto upload';
-  rtwoptions(6).popupstrings  = 'Auto upload|Do not upload';
-  rtwoptions(6).tlcvariable   = 'tlcAutoUpload';
-  rtwoptions(6).tooltip       = ['Select this option to upload model automatically after succesfull build'];
+  rtwoptions(6).prompt        = 'XCP TCP port';
+  rtwoptions(6).type          = 'Edit';
+  rtwoptions(6).default       = '50002';
+  rtwoptions(6).tlcvariable   = 'tlcXcpTcpPort';
+  rtwoptions(6).tooltip       = ['Choose the port to use with XCP'];
 
-  rtwoptions(7).prompt        = 'Target';
+  rtwoptions(7).prompt        = 'Auto upload';
   rtwoptions(7).type          = 'Popup';
-  rtwoptions(7).default       = 'i.MX8';
-  rtwoptions(7).popupstrings  = 'i.MX8|IOT';
-  rtwoptions(7).tlcvariable   = 'tlcLinuxTarget';
-  rtwoptions(7).tooltip       = ['Select the Target you want to build the project for'];
+  rtwoptions(7).default       = 'Auto upload';
+  rtwoptions(7).popupstrings  = 'Auto upload|Do not upload';
+  rtwoptions(7).tlcvariable   = 'tlcAutoUpload';
+  rtwoptions(7).tooltip       = ['Select this option to upload model automatically after succesfull build'];
 
   rtwoptions(8).prompt        = 'Compiler';
   rtwoptions(8).type          = 'Popup';

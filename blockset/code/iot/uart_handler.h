@@ -1,6 +1,5 @@
 #include <stdint.h>
 
-#include "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h"
 #include "cmsis_os2.h"
 
 #define SIMCOM_CTS 0b1

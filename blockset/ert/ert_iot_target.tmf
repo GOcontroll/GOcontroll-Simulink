@@ -148,7 +148,7 @@ BIN_PATH     = $(RELATIVE_PATH_TO_ANCHOR)
 #|---------------------------------------------------------------------------------------|
 #| Compiler binaries                                                                     |
 #|---------------------------------------------------------------------------------------|
-# cortex m4
+# cortex m33 (STM32H5xx)
 CC = |>CC<|
 AS = |>AS<|
 AR = |>AR<|
@@ -185,6 +185,8 @@ CC_INCLUDES = -I. -I$(RELATIVE_PATH_TO_ANCHOR) $(ADD_INCLUDES) \
 # MATLAB settings flags
 # additional compiler flags
 CC_FLAGS        += $(OPTS) $(CPP_REQ_DEFINES) $(OTHER) $(OTHER_FLAGS)
+CC_FLAGS        += -mcpu=cortex-m33 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard
+CC_FLAGS        += -DSTM32H573xx
 CC_FLAGS        += -O3 -ffunction-sections -fdata-sections -Wall -Wno-main -c -fmessage-length=0 -fno-zero-initialized-in-bss
 CC_FLAGS        += -Wno-unused-but-set-variable -D_GNU_SOURCE
 
@@ -194,6 +196,8 @@ AS_FLAGS        +=
 existing or insert new file(s) into the archive
 AR_FLAGS        += -cr
 # additional linker flags
+LINKER_FLAGS     += -mcpu=cortex-m33 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard
+LINKER_FLAGS     += -Wl,--gc-sections --specs=nano.specs
 LINKER_FLAGS     += $(ADD_FLAGS)
 # additional object copy flags
 OC_FLAGS         = -O srec

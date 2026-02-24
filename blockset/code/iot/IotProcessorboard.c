@@ -44,8 +44,10 @@
 #include "cmsis_os.h"
 #include "gpio.h"
 #include "spi.h"
-#include "stm32f4xx_hal.h"
+#include "stm32h5xx_hal.h"
 #include "tim.h"
+
+#include "SEGGER_RTT.h"
 
 /****************************************************************************************
  * Macro definitions
@@ -84,13 +86,16 @@ int8_t GocontrollProcessorboard_ResetStateModule(uint8_t module,
 /****************************************************************************************/
 
 int GocontrollProcessorboard_LedInitialize(void) {
+	
 	GocontrollProcessorboard_LedControl(1, LED_COLOR_RED, 0);
 	GocontrollProcessorboard_LedControl(1, LED_COLOR_GREEN, 0);
 	GocontrollProcessorboard_LedControl(1, LED_COLOR_BLUE, 0);
 	/* Initialize the PWM controller */
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+	
+	SEGGER_RTT_printf(0, "Led initialize\n");
 	return 0;
 }
 
@@ -98,19 +103,23 @@ int GocontrollProcessorboard_LedInitialize(void) {
 
 int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color,
 										uint8_t value) {
+	SEGGER_RTT_printf(0, "Led Control\n");
+	SEGGER_RTT_printf(0, "Value: %d Led: %d\n", value, led);
+	
 	if (led != 1) {
 		return -1;
 	}
 
+	/* H5 IoT: TIM3 CH1=LED_B(PC6), CH2=LED_R(PC7), CH3=LED_G(PC8) */
 	switch (color) {
 		case LED_COLOR_RED:
-			__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, (uint32_t)value);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2,(uint32_t)value);
 			break;
 		case LED_COLOR_GREEN:
-			__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, (uint32_t)value);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,(uint32_t)value);
 			break;
 		case LED_COLOR_BLUE:
-			__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, (uint32_t)value);
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, (uint32_t)value);
 			break;
 	}
 	return 0;
@@ -136,7 +145,7 @@ int GocontrollProcessorboard_EscapeFromBootloader(uint8_t module,
 						  GPIO_PIN_RESET);
 	}
 
-	HAL_SPI_TransmitReceive(&hspi4, &dataTx[0], &dataRx[0],
+	HAL_SPI_TransmitReceive(&hspi1, &dataTx[0], &dataRx[0],
 							BOOTMESSAGELENGTHCHECK, 500);
 
 	if (module == 0) {
@@ -179,7 +188,7 @@ int GocontrollProcessorboard_SendSpi(uint8_t command, uint8_t dataLength,
 	}
 	// round delay in us up to ms
 	GocontrollProcessorboard_Delay1ms(delay / 1000 + (delay % 1000 != 0));
-	HAL_SPI_Transmit(&hspi4, &dataTx[0], dataLength + MESSAGEOVERLENGTH, 500);
+	HAL_SPI_Transmit(&hspi1, &dataTx[0], dataLength + MESSAGEOVERLENGTH, 500);
 
 	if (module == 0) {
 		HAL_GPIO_WritePin(SPI_MOD1_CS_GPIO_Port, SPI_MOD1_CS_Pin, GPIO_PIN_SET);
@@ -214,7 +223,7 @@ int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
 						  GPIO_PIN_RESET);
 	}
 
-	HAL_SPI_TransmitReceive(&hspi4, &dataTx[0], &dataRx[0],
+	HAL_SPI_TransmitReceive(&hspi1, &dataTx[0], &dataRx[0],
 							dataLength + MESSAGEOVERLENGTH, 500);
 
 	if (module == 0) {

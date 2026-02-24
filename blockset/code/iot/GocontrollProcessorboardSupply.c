@@ -45,8 +45,8 @@
  ****************************************************************************************/
 
 _controllerSupply controllerSupply;
-
-uint32_t channels[2] = {ADC_CHANNEL_15, ADC_CHANNEL_14};
+/* KL15 is channel 9 K30 is channel 10 */
+uint32_t channels[2] = {ADC_CHANNEL_9, ADC_CHANNEL_10};
 
 /****************************************************************************************
  * Function prototypes
@@ -73,12 +73,16 @@ int GocontrollProcessorboardSupply_Voltage(uint8_t supply, uint16_t* value) {
 /****************************************************************************************/
 
 int GocontrollProcessorboardSupply_ReadAdc(uint8_t supply, uint16_t* value) {
-	ADC_ChannelConfTypeDef ADCChannelConfiguration;
+	ADC_ChannelConfTypeDef ADCChannelConfiguration = {0};
 
 	HAL_ADC_Stop(&hadc1);
 	ADCChannelConfiguration.Channel = channels[supply];
-	ADCChannelConfiguration.Rank = 1;
-	ADCChannelConfiguration.SamplingTime = ADC_SAMPLETIME_56CYCLES;
+	ADCChannelConfiguration.Rank = ADC_REGULAR_RANK_1;
+	ADCChannelConfiguration.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+	ADCChannelConfiguration.SingleDiff   = ADC_SINGLE_ENDED;
+    ADCChannelConfiguration.OffsetNumber = ADC_OFFSET_NONE;
+    ADCChannelConfiguration.Offset       = 0u;
+	
 	HAL_ADC_ConfigChannel(&hadc1, &ADCChannelConfiguration);
 	HAL_ADC_Start(&hadc1);
 
