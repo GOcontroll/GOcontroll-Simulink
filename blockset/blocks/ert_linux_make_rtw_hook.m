@@ -266,7 +266,7 @@ switch hookMethod
 				fullfile(rtospath, 'CMSIS_RTOS_V2'),
 				fullfile(rtospath, 'include'),
 				fullfile(rtospath, 'portable', 'MemMang'),
-				fullfile(rtospath, 'portable', 'GCC', 'ARM_CM4F'),
+				fullfile(rtospath, 'portable', 'GCC', 'ARM_CM33_NTZ', 'non_secure'),
 				fullfile(seggerpath, 'Inc'),
 			});
 			addSourceFiles(buildInfo, '*.c', codepath);
@@ -277,7 +277,7 @@ switch hookMethod
 			addSourceFiles(buildInfo, '*.c', rtospath);
 			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'CMSIS_RTOS_V2'));
 			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'MemMang'));
-			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'GCC', 'ARM_CM4F'));
+			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'GCC', 'ARM_CM33_NTZ', 'non_secure'));
 			addSourceFiles(buildInfo, '*.c', fullfile(seggerpath, 'Src'));
 			addSourceFiles(buildInfo, '*.s', fullfile(corepath, 'Startup'));
 			addLinkFlags(buildInfo, ['-T' fullfile(iotpath, 'STM32H573RITX_FLASH.ld')])
