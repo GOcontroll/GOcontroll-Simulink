@@ -240,8 +240,8 @@ switch hookMethod
 				addTMFTokens(buildInfo, '|>OC<|', ['"' fullfile(gccpath,'arm-none-eabi-objcopy') '"'],'LINK_INFO');
 				addTMFTokens(buildInfo, '|>OD<|', ['"' fullfile(gccpath,'arm-none-eabi-objdump') '"'],'LINK_INFO');
 				addTMFTokens(buildInfo, '|>SZ<|', ['"' fullfile(gccpath,'arm-none-eabi-size') '"'],'LINK_INFO');
-				addCompileFlags(buildInfo, '-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wall -Wno-maybe-uninitialized -g');
-				addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map -Wl,--gc-sections -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb')
+				addCompileFlags(buildInfo, '-mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wall -Wno-maybe-uninitialized -g');
+				addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map -Wl,--gc-sections -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb')
 			elseif (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'Zig'))
 				error("not implemented (yet?) switch to gcc compiler");
 			else
@@ -260,9 +260,9 @@ switch hookMethod
 				iotpath,
 				fullfile(corepath, 'Inc'),
 				fullfile(driverspath, 'CMSIS', 'Include'),
-				fullfile(driverspath, 'CMSIS', 'Device', 'ST', 'STM32F4xx', 'Include'),
-				fullfile(driverspath, 'STM32F4xx_HAL_Driver', 'Inc'),
-				fullfile(driverspath, 'STM32F4xx_HAL_Driver', 'Inc','Legacy'),
+				fullfile(driverspath, 'CMSIS', 'Device', 'ST', 'STM32H5xx', 'Include'),
+				fullfile(driverspath, 'STM32H5xx_HAL_Driver', 'Inc'),
+				fullfile(driverspath, 'STM32H5xx_HAL_Driver', 'Inc','Legacy'),
 				fullfile(rtospath, 'CMSIS_RTOS_V2'),
 				fullfile(rtospath, 'include'),
 				fullfile(rtospath, 'portable', 'MemMang'),
@@ -273,14 +273,14 @@ switch hookMethod
 			addSourceFiles(buildInfo, '*.c', iotpath);
 			addSourceFiles(buildInfo, '*.c', fullfile(corepath, 'Src'));
 			removeSourceFiles(buildInfo, 'main.c');
-			addSourceFiles(buildInfo, '*.c', fullfile(driverspath, 'STM32F4xx_HAL_Driver', 'Src'));
+			addSourceFiles(buildInfo, '*.c', fullfile(driverspath, 'STM32H5xx_HAL_Driver', 'Src'));
 			addSourceFiles(buildInfo, '*.c', rtospath);
 			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'CMSIS_RTOS_V2'));
 			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'MemMang'));
 			addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'GCC', 'ARM_CM4F'));
 			addSourceFiles(buildInfo, '*.c', fullfile(seggerpath, 'Src'));
-			addSourceFiles(buildInfo, '*.s', iotpath);
-			addLinkFlags(buildInfo, ['-T' fullfile(iotpath, 'STM32F437XX_FLASH.ld')])
+			addSourceFiles(buildInfo, '*.s', fullfile(corepath, 'Startup'));
+			addLinkFlags(buildInfo, ['-T' fullfile(iotpath, 'STM32H573RITX_FLASH.ld')])
 
 		else
 			error("No valid target selected");
@@ -341,9 +341,9 @@ switch hookMethod
 			catch err
 				if (~strcmp(err.identifier, 'MATLAB:MOVEFILE:SourceAndDestinationSame'))
 					rethrow(err)
+				end
 			end
 		end
-	end
 
 
 	case 'exit'
