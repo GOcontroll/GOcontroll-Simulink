@@ -32,25 +32,8 @@
 %function GPSBlockTypeSetup_iot(block, system) void
 	%<LibAddToCommonIncludes("cmsis_os2.h")>
 	%<LibAddToCommonIncludes("gps.h")>
-	%<LibAddToCommonIncludes("uart_handler.h")>
 	%<LibAddToCommonIncludes("print.h")>
 	%openfile variables
-		osThreadId_t simcom_tx_thread;
-
-		const osThreadAttr_t simcom_tx_thread_attributes = {
-			.name = "simcom_tx_thread",
-			.stack_size = 128 * 2,
-			.priority = (osPriority_t) osPriorityAboveNormal,
-		};
-
-		osThreadId_t simcom_rx_thread;
-
-		const osThreadAttr_t simcom_rx_thread_attributes = {
-			.name = "simcom_rx_thread",
-			.stack_size = 128 * 8,
-			.priority = (osPriority_t) osPriorityAboveNormal,
-		};
-
 		osThreadId_t gps_thread;
 
 		const osThreadAttr_t gps_thread_attributes = {
@@ -79,10 +62,6 @@
 %%      Code generation for initialization
 %%
 %function GPSStart_iot(block, system) Output
-	SimcomInit();
-	simcom_rx_thread = osThreadNew(SimcomRxThread, NULL, &simcom_rx_thread_attributes);
-	simcom_tx_thread = osThreadNew(SimcomTxThread, NULL, &simcom_tx_thread_attributes);
-
 	gps_data_lock = osMutexNew(&gps_data_lock_attr);
 	if (gps_data_lock != NULL) {
 		gps_thread_args.gps_data = &gps_data;

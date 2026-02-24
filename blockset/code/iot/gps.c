@@ -7,7 +7,6 @@
 
 #include "cmsis_os2.h"
 #include "print.h"
-#include "uart_handler.h"
 
 osEventFlagsId_t gps_events = NULL;
 struct gps_data* gps_data = NULL;
@@ -136,51 +135,6 @@ void HandleGps(char* rx, uint16_t num_bytes) {
 }
 
 void ReadGpsThread(void* args) {
-	struct gps_thread_args* gps_thread_args = (struct gps_thread_args*)args;
-	gps_data_lock = gps_thread_args->gps_data_lock;
-	gps_data = gps_thread_args->gps_data;
-	uint32_t tick;
-	struct uart_message message;
-
-	dbg("Gps thread start\n");
-
-	gps_events = osEventFlagsNew(NULL);
-
-	do {
-		osEventFlagsWait(simcom_events, SIMCOM_STATE_CHANGE, osFlagsWaitAll,
-						 osWaitForever);
-	} while (simcom_state != SIMCOM_READY);
-
-	message.buff = "AT+CGPS=0\r";
-	message.command_len = 11;
-	message.command_len2 = 0;
-	do {
-		tick = osKernelGetTickCount();
-		osMessageQueuePut(simcom_tx, &message, 0, osWaitForever);
-		osEventFlagsWait(gps_events, GPS_STATE_CHANGE, osFlagsWaitAll,
-						 osWaitForever);
-
-	} while (gps_state != GPS_STATE_OFF);
-
-	message.buff = "AT+CGPS=1\r";
-	message.command_len = 11;
-	message.command_len2 = 0;
-	do {
-		tick = osKernelGetTickCount();
-		osMessageQueuePut(simcom_tx, &message, 0, osWaitForever);
-		osEventFlagsWait(gps_events, GPS_STATE_CHANGE, osFlagsWaitAll,
-						 osWaitForever);
-	} while (gps_state != GPS_STATE_ON);
-
-	tick = osKernelGetTickCount();
-	message.buff = "AT+CGPSINFO\r";
-	message.command_len = 13;
-	message.command_len2 = 0;
-	while (gps_thread_args->thread_run) {
-		tick += 1000;
-		osMessageQueuePut(simcom_tx, &message, 0, osWaitForever);
-
-		osDelayUntil(tick);
-	}
+	(void)args;
 	osThreadExit();
 }
