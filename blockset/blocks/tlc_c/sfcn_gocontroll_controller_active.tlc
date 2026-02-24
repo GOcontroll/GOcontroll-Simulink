@@ -28,10 +28,17 @@
 %% DEALINGS IN THE SOFTWARE.
 %%
 %%***************************************************************************************
-%implements  sfcn_gocontroll_controller_active "C"
 
-%% add required include files
-%<LibAddToCommonIncludes("GocontrollProcessorboard.h")>
+%implements sfcn_gocontroll_controller_active "C"
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Purpose:
+%%      Code generation for configuration
+%%
+%function BlockTypeSetup(block, system) void
+	%<LibAddToCommonIncludes("GOcontrollControllerPower.h")>
+%endfunction
 
 %% Function: Start ==========================================================
 %%
@@ -47,7 +54,7 @@
 %%      Code generation for signal input
 %%
 %function Update(block, system) Output
-	GocontrollProcessorboard_ControllerActive (%<LibBlockInputSignal(0, "", "", 0)>);
+	GOcontrollControllerPower_ControllerActive(%<LibBlockInputSignal(0, "", "", 0)>);
 %endfunction
 
 %%******************************* end of sfcn_gocontroll_controller_active.tlc ***************************

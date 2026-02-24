@@ -201,14 +201,6 @@ int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
 
 /****************************************************************************************/
 
-int GocontrollProcessorboard_ControllerActive(uint8_t state) {
-	HAL_GPIO_WritePin(KL15_CONTROLLER_UCO_GPIO_Port, KL15_CONTROLLER_UCO_Pin,
-					  (GPIO_PinState)state);
-	return 0;
-}
-
-/****************************************************************************************/
-
 float GocontrollProcessorboard_ControllerTemperature(void) { return 0; }
 
 /****************************************************************************************/

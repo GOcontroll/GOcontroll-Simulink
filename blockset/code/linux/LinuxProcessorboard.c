@@ -270,31 +270,6 @@ int GocontrollProcessorboard_SendReceiveSpi(uint8_t command, uint8_t dataLength,
 
 /****************************************************************************************/
 
-int GocontrollProcessorboard_ControllerActive(uint8_t state) {
-	static int controllerActive = 0;
-
-	if (controllerActive == 0) {
-		char path[45];
-		snprintf(path, 41, "/sys/class/leds/power-active/brightness");
-		controllerActive = open(path, O_WRONLY);
-
-		if (-1 == controllerActive) {
-			fprintf(stderr, "Error GPIO write controller active!\n");
-			return (-1);
-		}
-	}
-
-	static const char s_values_str[] = "01";
-
-	if (1 != write(controllerActive, &s_values_str[LOW == state ? 0 : 1], 1)) {
-		fprintf(stderr, "Error GPIO write controller active!\n");
-		return (-1);
-	}
-	return (0);
-}
-
-/****************************************************************************************/
-
 float GocontrollProcessorboard_ControllerTemperature(void) {
 	int fileId = 0;
 

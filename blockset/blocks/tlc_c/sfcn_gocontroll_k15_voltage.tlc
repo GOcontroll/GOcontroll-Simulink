@@ -29,20 +29,21 @@
 %%
 %%***************************************************************************************
 
-%implements  sfcn_gocontroll_k15_voltage "C"
+%implements sfcn_gocontroll_k15_voltage "C"
 
-%addincludepath "./linux"
-%addincludepath "./iot"
-%include "go_platform.tlc"
-%include "sfcn_gocontroll_k15_voltage_linux.tlc"
-%include "sfcn_gocontroll_k15_voltage_iot.tlc"
-
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Purpose:
+%%      Include required headers and track the lowest sample time across all ADC blocks.
+%%
 %function BlockInstanceSetup(block, system) void
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<k15BlockInstanceSetup_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<k15BlockInstanceSetup_iot(block, system)>
+	%<LibAddToCommonIncludes("GOcontrollControllerPower.h")>
+	%if EXISTS(::lowest_adc_sample_time)
+		%if %<block.ParamSettings.sample_time> < %<::lowest_adc_sample_time>
+			%assign ::lowest_adc_sample_time = %<block.ParamSettings.sample_time>
+		%endif
+	%else
+		%assign ::lowest_adc_sample_time = %<block.ParamSettings.sample_time>
 	%endif
 %endfunction
 
@@ -52,11 +53,16 @@
 %%      Code generation for initialization
 %%
 %function Start(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<k15Start_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<k15Start_iot(block, system)>
+	%if EXISTS("adc_thread") == 0
+		%assign ::adc_thread = 1
+		%if EXISTS(::processorboard_hw) == 0
+			%assign ::processorboard_hw = 1
+			%openfile tmpBuf
+			GocontrollProcessorboard_GetHardwareVersion();
+			%closefile tmpBuf
+			%<LibMdlStartCustomCode(tmpBuf, "execution")>
+		%endif
+		GOcontrollControllerPower_StartAdcThread(%<::lowest_adc_sample_time*1000>);
 	%endif
 %endfunction
 
@@ -66,20 +72,18 @@
 %%      Code generation for signal output
 %%
 %function Outputs(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<k15Outputs_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<k15Outputs_iot(block, system)>
-	%endif
+	GOcontrollControllerPower_Voltage(%<block.ParamSettings.k15pin> + 1, %<LibBlockOutputSignalAddr(0, "", "", 0)>);
 %endfunction
 
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for termination
+%%
 %function Terminate(block, system) Output
-	%assign platform = get_platform()
-	%if ISEQUAL(platform, "i.MX8")
-		%<k15Terminate_linux(block, system)>
-	%elseif ISEQUAL(platform, "IOT")
-		%<k15Terminate_iot(block, system)>
+	%if EXISTS("terminate_adc_thread") == 0
+		%assign ::terminate_adc_thread = 1
+		GOcontrollControllerPower_StopAdcThread();
 	%endif
 %endfunction
 

@@ -127,14 +127,6 @@ typedef struct {
 int GocontrollProcessorboard_LedControl(uint8_t led, _ledColor color,
 										uint8_t value);
 
-/**************************************************************************************
-** \brief     Function that controls the controller supply active state. This
-*function is *			  needed to switch of the controller when
-*required by the system
-** \param     state The state the supply needs to be in. 1=on 0=off
-** \return    0 if ok -1 if  failed
-****************************************************************************************/
-int GocontrollProcessorboard_ControllerActive(uint8_t state);
 
 /***************************************************************************************
 ** \brief	function that gets the cpu temperature
