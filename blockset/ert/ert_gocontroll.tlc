@@ -1,0 +1,180 @@
+%% SYSTLC: GOcontroll Embedded Coder \
+%%    MAKE: make_rtw EXTMODE: no_ext_comm
+%%
+%% Copyright 1994-2011 The MathWorks, Inc.
+%% Adapted by Jason van Kolfschoten, 2017
+%% Adapted by GOcontroll, 2026
+%% Abstract: Embedded real-time system target file for GOcontroll Targets.
+%%
+%selectfile NULL_FILE
+
+%%----------------------------
+%% TLC Configuration Variables Section
+%%----------------------------
+%% Assign code format, language, target type.
+%%
+%assign CodeFormat = "Embedded-C"
+%assign Language   = "C"
+%assign TargetType = "RT"
+
+%assign RateBasedStepFcn = 1 	/% Generate only rate-based step functions %/
+
+%% The model_SetEventsForThisBaseRate function is not required for the
+%% VxWorks environment, i.e., when using an operating system.
+%assign SuppressSetEventsForThisBaseRateFcn = (TargetOS == "VxWorksExample")
+%if !EXISTS("InlineSetEventsForThisBaseRateFcn")
+  %assign InlineSetEventsForThisBaseRateFcn  = TLC_TRUE
+%endif
+%if !EXISTS("SuppressMultiTaskScheduler")
+  %assign SuppressMultiTaskScheduler = TLC_TRUE
+%endif
+
+%assign TargetRegistMutexOp   = 1
+%assign TargetRegistSynchroOp = 1
+%assign PreCodeGenExecCompliant = 1
+
+%%----------------------------
+%% TLC Program Entry Point
+%%----------------------------
+%% Call entry point function.
+%include "codegenentry.tlc"
+
+%%----------------------------
+%% RTW_OPTIONS Section
+%%----------------------------
+%
+  BEGIN_RTW_OPTIONS
+
+  os = computer();
+
+  % -----------------------------------------------------------------------
+  % Category header - GOcontroll options
+  % default = number of rtwoptions entries that follow (excluding this one)
+  % -----------------------------------------------------------------------
+  rtwoptions(1).prompt        = 'GOcontroll options';
+  rtwoptions(1).type          = 'Category';
+  rtwoptions(1).enable        = 'on';
+  rtwoptions(1).default       = 8;   % items 2..9
+  rtwoptions(1).popupstrings  = '';
+  rtwoptions(1).tlcvariable   = '';
+  rtwoptions(1).tooltip       = '';
+  rtwoptions(1).callback      = '';
+  rtwoptions(1).makevariable  = '';
+
+  % -----------------------------------------------------------------------
+  % (2) Target selector
+  % Changing this popup fires goc_target_changed_callback which
+  % shows/hides the target-specific options below.
+  % tlcvariable matches what ert_linux_make_rtw_hook.m reads via
+  % get_param(model,'tlcGOcontrollTarget').
+  % -----------------------------------------------------------------------
+  rtwoptions(2).prompt        = 'Target';
+  rtwoptions(2).type          = 'Popup';
+  rtwoptions(2).default       = 'GOcontroll Moduline IV';
+  rtwoptions(2).popupstrings  = 'GOcontroll Moduline IV|GOcontroll Moduline Mini|GOcontroll Moduline Display|GOcontroll Moduline IoT';
+  rtwoptions(2).tlcvariable   = 'tlcGOcontrollTarget';
+  rtwoptions(2).tooltip       = 'Select the target hardware to build for';
+  rtwoptions(2).callback      = 'goc_target_changed_callback(hDlg, hSrc)';
+
+  % -----------------------------------------------------------------------
+  % (3) Upload method - IoT targets (Bluetooth / CAN)
+  %     Visible only when Target == GOcontroll Moduline IoT
+  % -----------------------------------------------------------------------
+  rtwoptions(3).prompt        = 'IoT upload method';
+  rtwoptions(3).type          = 'Popup';
+  rtwoptions(3).default       = 'Do not upload';
+  rtwoptions(3).popupstrings  = 'Do not upload|Auto upload over Bluetooth|Auto upload over CAN';
+  rtwoptions(3).tlcvariable   = 'tlcIoTUpload';
+  rtwoptions(3).tooltip       = 'Select how to upload the model to the IoT controller after a successful build';
+
+  % -----------------------------------------------------------------------
+  % (4) Upload method - Linux targets (WiFi / Ethernet)
+  %     Visible only when Target != GOcontroll Moduline IoT
+  % -----------------------------------------------------------------------
+  rtwoptions(4).prompt        = 'Linux upload method';
+  rtwoptions(4).type          = 'Popup';
+  rtwoptions(4).default       = 'Do not upload';
+  rtwoptions(4).popupstrings  = 'Do not upload|Auto upload over WiFi|Auto upload over Ethernet';
+  rtwoptions(4).tlcvariable   = 'tlcLinuxUpload';
+  rtwoptions(4).tooltip       = 'Select how to upload the model to the Linux controller after a successful build';
+
+  % -----------------------------------------------------------------------
+  % (5) Linux RT priority  [Linux only]
+  % -----------------------------------------------------------------------
+  rtwoptions(5).prompt        = 'Linux RT priority';
+  rtwoptions(5).type          = 'Edit';
+  rtwoptions(5).default       = '40';
+  rtwoptions(5).tlcvariable   = 'tlcLinuxPriority';
+  rtwoptions(5).tooltip       = 'Real-time task priority of the model process on the Linux target';
+
+  % -----------------------------------------------------------------------
+  % (6) Upload address (IP)  [Linux only]
+  % -----------------------------------------------------------------------
+  rtwoptions(6).prompt        = 'Upload address';
+  rtwoptions(6).type          = 'Edit';
+  rtwoptions(6).default       = '192.168.19.85';
+  rtwoptions(6).tlcvariable   = 'tlcXcpTcpAddress';
+  rtwoptions(6).tooltip       = 'IP address of the Linux target for model upload';
+
+  % -----------------------------------------------------------------------
+  % (7) Upload port  [Linux only]
+  % -----------------------------------------------------------------------
+  rtwoptions(7).prompt        = 'Upload port';
+  rtwoptions(7).type          = 'Edit';
+  rtwoptions(7).default       = '8001';
+  rtwoptions(7).tlcvariable   = 'tlcUploadPort';
+  rtwoptions(7).tooltip       = 'Port used for uploading the model to the Linux target';
+
+  % -----------------------------------------------------------------------
+  % (8) XCP TCP port  [Linux only]
+  % -----------------------------------------------------------------------
+  rtwoptions(8).prompt        = 'XCP TCP port';
+  rtwoptions(8).type          = 'Edit';
+  rtwoptions(8).default       = '50002';
+  rtwoptions(8).tlcvariable   = 'tlcXcpTcpPort';
+  rtwoptions(8).tooltip       = 'TCP port used for XCP communication with the Linux target';
+
+  % -----------------------------------------------------------------------
+  % (9) Compiler  [always visible, options depend on host OS]
+  % -----------------------------------------------------------------------
+  rtwoptions(9).prompt        = 'Compiler';
+  rtwoptions(9).type          = 'Popup';
+  rtwoptions(9).tlcvariable   = 'tlcLinuxCompiler';
+  rtwoptions(9).tooltip       = 'Compiler to use when building the model';
+
+  if (strcmp(os, 'GLNXA64') || strcmp(os, 'PCWIN64'))
+      rtwoptions(9).default      = 'GCC';
+      rtwoptions(9).popupstrings = 'GCC|Zig';
+  else
+      rtwoptions(9).default      = 'Zig';
+      rtwoptions(9).popupstrings = 'Zig';
+  end
+
+  %----------------------------------------%
+  % Select template makefile and file       %
+  % process TLC based on the stored target. %
+  % This runs at build time (TLC phase).    %
+  %----------------------------------------%
+  if strcmp(get_param(model, 'tlcGOcontrollTarget'), 'GOcontroll Moduline IoT')
+      set_param(model, 'TemplateMakefile',    'ert_stm32_target_32.tmf');
+      set_param(model, 'ERTCustomFileTemplate','ert_iot_file_process.tlc');
+  else
+      set_param(model, 'TemplateMakefile',    'ert_linux_target_64.tmf');
+      set_param(model, 'ERTCustomFileTemplate','ert_linux_file_process.tlc');
+  end
+
+  %% Callback fired when the Code Generation panel is shown.
+  %% Applies default solver settings and updates option visibility.
+  rtwgensettings.SelectCallback    = 'ert_gocontroll_select_callback_handler(hDlg, hSrc)';
+  %% Callback fired after the user presses Apply.
+  rtwgensettings.PostApplyCallback = 'ert_gocontroll_postapply_callback_handler(hDlg, hSrc)';
+
+  %%----------------------------
+  %% rtwgensettings Structure
+  %%----------------------------
+  rtwgensettings.DerivedFrom    = 'ert.tlc';
+  rtwgensettings.BuildDirSuffix = '_generated_code';
+  rtwgensettings.Version        = '1';
+
+  END_RTW_OPTIONS
+ %

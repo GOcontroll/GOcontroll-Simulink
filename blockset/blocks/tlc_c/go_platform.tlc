@@ -3,7 +3,12 @@
 		%return ::gocontroll_platform
 	%else
 		%assign modelname = CompiledModel.Name
-		%assign ::gocontroll_platform = FEVAL("get_param", modelname , "tlcLinuxTarget")
+		%assign target = FEVAL("get_param", modelname, "tlcGOcontrollTarget")
+		%if ISEQUAL(target, "GOcontroll Moduline IoT")
+			%assign ::gocontroll_platform = "IOT"
+		%else
+			%assign ::gocontroll_platform = "i.MX8"
+		%endif
 		%return ::gocontroll_platform
 	%endif
 %endfunction

@@ -184,8 +184,8 @@ switch hookMethod
 		[path, ~, ~] = fileparts(mfilePath);
 		
 		%set the compiler path in the tmf
-		target = get_param(modelName, 'tlcLinuxTarget');
-		if (strcmp(target, 'i.MX8'))
+		target = get_param(modelName, 'tlcGOcontrollTarget');
+		if (~strcmp(target, 'GOcontroll Moduline IoT'))
 			if (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'GCC'))
 				gccpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('aarch64-none-linux-gnu-gcc');
 				gccpath = fullfile(gccpath, 'bin');
@@ -229,7 +229,7 @@ switch hookMethod
 			addLinkObjects(buildInfo, fullfile(iiopath, 'libiio.so.0'), '', 1000,true, true);
 
 
-		elseif (strcmp(target, 'IOT'))
+		elseif (strcmp(target, 'GOcontroll Moduline IoT'))
 			if (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'GCC'))
 				gccpath = GOcontroll_Simulink_2023b_dev.getInstallationLocation('arm-none-eabi-gcc');
 				gccpath = fullfile(gccpath, 'bin');
@@ -302,8 +302,13 @@ switch hookMethod
 			XCPport = get_param(modelName,'tlcXcpTcpPort');
 			% Get XCP address
 			XCPaddress = get_param(modelName,'tlcXcpTcpAddress');
-			% Get the Linux target from the model parameters tab
-			LinuxTarget = get_param(modelName,'tlcLinuxTarget');
+			% Get the target and translate to legacy short-form for create_asap2
+			gocTarget = get_param(modelName,'tlcGOcontrollTarget');
+			if strcmp(gocTarget, 'GOcontroll Moduline IoT')
+				LinuxTarget = 'IOT';
+			else
+				LinuxTarget = 'i.MX8';
+			end
 			
 			xcp_server = find_system(modelName, 'RegExp', 'on', 'MaskType', 'XCP Server');
 	
@@ -357,11 +362,18 @@ switch hookMethod
 		isNotModelRefTarget = strcmp(mdlRefTargetType, 'NONE'); % NONE, SIM, or RTW
 		
 		if isNotModelRefTarget
-			AutoUpload = get_param(modelName,'tlcAutoUpload');
-			%Only upload file when Auto upload setting is switched on
-			if (strcmp(AutoUpload,'Auto upload'))
-				disp('### Starting automatic flash procedure');
-				ManualUpload(['..' filesep modelName], get_param(modelName,'tlcXcpTcpAddress'), port=num2str(get_param(modelName,'tlcUploadPort')));
+			exitTarget = get_param(modelName,'tlcGOcontrollTarget');
+			if strcmp(exitTarget, 'GOcontroll Moduline IoT')
+				AutoUpload = get_param(modelName,'tlcIoTUpload');
+				if (~strcmp(AutoUpload, 'Do not upload'))
+					disp('### IoT automatic upload not yet implemented');
+				end
+			else
+				AutoUpload = get_param(modelName,'tlcLinuxUpload');
+				if (~strcmp(AutoUpload, 'Do not upload'))
+					disp('### Starting automatic upload procedure');
+					ManualUpload(['..' filesep modelName], get_param(modelName,'tlcXcpTcpAddress'), port=num2str(get_param(modelName,'tlcUploadPort')));
+				end
 			end
 		end
 	end
