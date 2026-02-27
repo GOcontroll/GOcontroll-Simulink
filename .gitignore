@@ -4,11 +4,8 @@
 /builds/*
 /blockset/blocks/*.mex*
 ~*
-*.elf
-*.a2l
 *.slx.autosave
 *.map
-/*.mdl
 /*.m
 !GOcontroll_Simulink_version.m
 *.zip

@@ -150,19 +150,6 @@
       rtwoptions(9).popupstrings = 'Zig';
   end
 
-  %----------------------------------------%
-  % Select template makefile and file       %
-  % process TLC based on the stored target. %
-  % This runs at build time (TLC phase).    %
-  %----------------------------------------%
-  if strcmp(get_param(model, 'tlcGOcontrollTarget'), 'GOcontroll Moduline IoT')
-      set_param(model, 'TemplateMakefile',    'ert_stm32_target_32.tmf');
-      set_param(model, 'ERTCustomFileTemplate','ert_iot_file_process.tlc');
-  else
-      set_param(model, 'TemplateMakefile',    'ert_linux_target_64.tmf');
-      set_param(model, 'ERTCustomFileTemplate','ert_linux_file_process.tlc');
-  end
-
   %% Callback fired when the Code Generation panel is shown.
   %% Applies default solver settings and updates option visibility.
   rtwgensettings.SelectCallback    = 'ert_gocontroll_select_callback_handler(hDlg, hSrc)';
