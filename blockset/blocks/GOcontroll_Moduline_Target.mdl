@@ -1542,6 +1542,9 @@ In case the ground connection of the module is poor, the power ground is shifted
 Module supply voltage
 The measured supply voltage of the module in mV. This output only works for hardware version 7 and above, gives off 0 otherwise.
 
+Module error code
+If the module encounters an error, the relevant fault bit will be set here. See the software manual on the website: https://gocontroll.com/downloads/
+
 Channel current
 The current from each channel is measured and given in mA. If the ouput is configured as high side, the result will be positive. If the ouput is configured as low side, the value will be negative
 
@@ -9706,6 +9709,9 @@ In case the ground connection of the module is poor, the power ground is shifted
 
 Module supply voltage
 The measured supply voltage of the module in mV. This output only works for hardware version 7 and above, gives off 0 otherwise.
+
+Module error code
+If the module encounters an error, the relevant fault bit will be set here. See the software manual on the website: https://gocontroll.com/downloads/
 
 Channel current
 The current from each channel is measured and given in mA. If the ouput is configured as high side, the result will be positive. If the ouput is configured as low side, the value will be negative
