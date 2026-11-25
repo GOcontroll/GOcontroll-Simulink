@@ -2,7 +2,13 @@
 /blockset_*
 /slprj/*
 /builds/*
-/blockset/blocks/*.mex*
+# MEX files: the Windows builds (.mexw64) are in the repository, so the blockset works
+# without a host C compiler. They include gocontroll_mex_version.mexw64, which holds the
+# blockset version: after a version change run compile_gocontroll_mex('force') and commit
+# all .mexw64 files. Other platforms compile their own when the library is first loaded.
+/blockset/blocks/**/*.mexa64
+/blockset/blocks/**/*.mexmaci64
+/blockset/blocks/**/*.mexmaca64
 ~*
 *.slx.autosave
 *.map
