@@ -75,7 +75,7 @@ In a project that carries this repository as a submodule:
 
 ```
 git submodule update --remote GOcontroll-Simulink
-git submodule update --init --recursive
+git -C GOcontroll-Simulink submodule update --init --recursive
 ```
 
 The first command fetches the newest blockset; the second puts the code base inside it on the
