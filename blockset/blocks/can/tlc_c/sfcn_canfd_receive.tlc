@@ -1,0 +1,103 @@
+%% GOcontroll 2026 http://www.gocontroll.com All rights reserved
+%% File : sfcn_canfd_receive.tlc
+%% Brief : TLC for the CAN FD receive block - Linux (SocketCAN) only.
+%%         Every frame on the bus, classic CAN or CAN FD, is passed on as a
+%%         CAN_FD_MESSAGE_BUS and triggers the function call output.
+
+%implements sfcn_canfd_receive "C"
+
+%include "go_platform.tlc"
+%include "can_common.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%if ISEQUAL(get_platform(), "Linux")
+		%<LibAddToCommonIncludes("GO_communication_can.h")>
+	%endif
+%endfunction
+
+%% Function: BlockInstanceSetup ================================================
+%function BlockInstanceSetup(block, system) void
+	%if !ISEQUAL(get_platform(), "Linux")
+		%<LibBlockReportError(block, "The CAN FD Receive block is for the Linux controllers (Moduline M1, L4, HMI1) only.")>
+	%endif
+	%assign module_id_par = CanKey(block)
+	%% Only one receive block is allowed per CAN bus
+	%assign can_recv_socket = "::can_%<module_id_par>_recv"
+	%if EXISTS(%<can_recv_socket>) == 1
+		%assign error = "2 or more CAN receive blocks are listening on CAN bus %<module_id_par>, this is not allowed"
+		%<LibBlockReportError(block, error)>
+	%else
+		%assign %<can_recv_socket> = 1
+	%endif
+	%<ClaimCanMode(block, module_id_par, "fd")>
+	%<CreateCanSocket(module_id_par)>
+%endfunction
+
+%% Function: Start =============================================================
+%function Start(block, system) Output
+	%assign module_id_par = CanKey(block)
+	%<InitCanSocket(module_id_par, CanIfName(block))>
+	%<EnableCanFd(module_id_par)>
+%endfunction
+
+%% Function: Outputs ===========================================================
+%function Outputs(block, system) Output
+	%if !SLibCodeGenForSim()
+		%assign module_id_par = CanKey(block)
+		%assign message = LibBlockOutputSignal(1, "", "", 0)
+		{
+			/* Payload lengths a CAN FD frame can have, by DLC */
+			static const uint8_T canfd_len[16] = {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 12U, 16U, 20U, 24U, 32U, 48U, 64U};
+			struct canfd_frame fd_frame;
+			int ret;
+			while ((ret = recv(can_%<module_id_par>, &fd_frame, sizeof(fd_frame), 0)) > 0) {
+				uint8_T is_fd;
+				uint8_T len;
+				uint8_T dlc = 0U;
+				if (ret == (int)sizeof(struct canfd_frame)) {
+					is_fd = 1U;
+				} else if (ret == (int)sizeof(struct can_frame)) {
+					is_fd = 0U;
+				} else {
+					continue;
+				}
+				len = fd_frame.len;
+				if (is_fd == 0U && len > 8U) {
+					len = 8U;
+				}
+				if (len > 64U) {
+					len = 64U;
+				}
+				while (dlc < 15U && canfd_len[dlc] < len) {
+					dlc++;
+				}
+				%<message>.ProtocolMode = is_fd;
+				%<message>.Extended = (fd_frame.can_id & CAN_EFF_FLAG) ? 1U : 0U;
+				%<message>.Length = len;
+				%<message>.Remote = (is_fd == 0U && (fd_frame.can_id & CAN_RTR_FLAG)) ? 1U : 0U;
+				%<message>.Error = (fd_frame.can_id & CAN_ERR_FLAG) ? 1U : 0U;
+				%<message>.BRS = (is_fd != 0U && (fd_frame.flags & CANFD_BRS)) ? 1U : 0U;
+				%<message>.ESI = (is_fd != 0U && (fd_frame.flags & CANFD_ESI)) ? 1U : 0U;
+				%<message>.DLC = dlc;
+				%<message>.ID = fd_frame.can_id & ((fd_frame.can_id & CAN_EFF_FLAG) ? CAN_EFF_MASK : CAN_SFF_MASK);
+				%<message>.Reserved = 0U;
+				%<message>.Timestamp = 0.0;
+				memset(&%<message>.Data[0], 0, 64U);
+				memcpy(&%<message>.Data[0], &fd_frame.data[0], len);
+				%foreach callIdx = NumSFcnSysOutputCalls
+					%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+						%continue
+					%endif
+					%<LibBlockExecuteFcnCall(block, callIdx)>\
+				%endforeach
+			}
+		}
+	%endif
+%endfunction
+
+%% Function: Terminate =========================================================
+%function Terminate(block, system) Output
+	%assign module_id_par = CanKey(block)
+	%<CloseCanSocket(module_id_par)>
+%endfunction

@@ -1,0 +1,190 @@
+%%***************************************************************************************
+%% file         sfcn_can_receive.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2013 (c) by HAN Automotive     http://www.han.nl     All rights reserved
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% This file is part of the HANcoder Target Matlab/Simulink Blockset environment. For the
+%% licensing terms, please contact HAN Automotive.
+%%
+%% This software has been carefully tested, but is not guaranteed for any particular
+%% purpose. HAN Automotive does not offer any warranties and does not guarantee the
+%% accuracy, adequacy, or completeness of the software and is not responsible for any
+%% errors or omissions or the results obtained from use of the software.
+%%
+%%***************************************************************************************
+
+%implements  sfcn_can_receive "C"
+
+%include "go_platform.tlc"
+%include "can_common.tlc"
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Purpose:
+%%      Code generation for configuration
+%%
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%<LibAddToCommonIncludes("GO_communication_can.h")>
+	%elseif ISEQUAL(platform, "STM")
+		%if !SLibCodeGenForSim()
+			%<LibAddToCommonIncludes("GO_communication_can.h")>
+			%<LibAddToCommonIncludes("fdcan.h")>
+		%endif
+	%endif
+%endfunction
+
+
+%% Function: BlockInstanceSetup =====================================================
+%%
+%% Purpose:
+%%      Generate the per-bus FIFO0 and error-status callback functions (STM only, once
+%%      per bus). Multiple legacy receive blocks on the same bus share one callback.
+%%
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%assign canBusIdx = CAST("Number", block.RTWdata.canBus)
+		%assign fdcanN    = canBusIdx + 1
+		%assign guard     = "::can_legacy_%<fdcanN>_callbacks"
+		%if EXISTS(%<guard>) == 0
+			%assign %<guard> = 1
+			%assign srcFile  = LibGetModelDotCFile()
+			%openfile rxCallbackBuf
+				static void can%<fdcanN>_legacy_rx_pending(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
+					if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) {
+						FDCAN_RxHeaderTypeDef header;
+						struct can_frame frame;
+						while (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &header, frame.data) == HAL_OK) {
+							GO_communication_can_pack_header(&frame, &header);
+							GO_communication_can_rx_push(%<canBusIdx>, &frame);
+						}
+					}
+				}
+			%closefile rxCallbackBuf
+			%<LibSetSourceFileSection(srcFile, "Functions", rxCallbackBuf)>
+			%openfile errCallbackBuf
+				static void can%<fdcanN>_legacy_error_callback(FDCAN_HandleTypeDef *hfdcan,
+				                                               uint32_t ErrorStatusITs) {
+					GO_communication_can_bus_off_recovery(hfdcan, ErrorStatusITs);
+				}
+			%closefile errCallbackBuf
+			%<LibSetSourceFileSection(srcFile, "Functions", errCallbackBuf)>
+		%endif
+	%endif
+%endfunction
+
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization
+%%
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		GO_communication_can_socket(%<block.RTWdata.canBus>); /* Initialize CAN socket */
+		%if EXISTS("::canZero") == 0
+			%openfile tmpBuf
+			extern struct CANbuffer_t CANbuffer[4][CANBUFSIZE];
+			extern struct can_filter CANfilter[4][CANBUFSIZE];
+			%closefile tmpBuf
+
+			%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", tmpBuf)>
+			/* set everything to zero */
+			memset(&CANbuffer, 0, sizeof(struct CANbuffer_t)*4*CANBUFSIZE);
+			memset(&CANfilter, 0, sizeof(struct can_filter)*4*CANBUFSIZE);
+
+			%assign ::canZero = 1
+		%endif
+	%elseif ISEQUAL(platform, "STM")
+		%assign canBusIdx = CAST("Number", block.RTWdata.canBus)
+		%assign fdcanN    = canBusIdx + 1
+		%assign setupGuard = "::can_legacy_%<fdcanN>_setup"
+		%if EXISTS(%<setupGuard>) == 0
+			%assign %<setupGuard> = 1
+			%openfile setupBuf
+				if (HAL_FDCAN_RegisterRxFifo0Callback(&hfdcan%<fdcanN>,
+						can%<fdcanN>_legacy_rx_pending) != HAL_OK)
+					err("Could not register rx callback: 0x%x\n", hfdcan%<fdcanN>.ErrorCode);
+				if (HAL_FDCAN_RegisterErrorStatusCallback(&hfdcan%<fdcanN>,
+						can%<fdcanN>_legacy_error_callback) != HAL_OK)
+					err("Could not register error callback: 0x%x\n", hfdcan%<fdcanN>.ErrorCode);
+				if (HAL_FDCAN_ActivateNotification(&hfdcan%<fdcanN>,
+						FDCAN_IT_RX_FIFO0_NEW_MESSAGE | FDCAN_IT_BUS_OFF, 0) != HAL_OK)
+					err("Could not activate notifications: 0x%x\n", hfdcan%<fdcanN>.ErrorCode);
+				HAL_FDCAN_ConfigGlobalFilter(&hfdcan%<fdcanN>, FDCAN_ACCEPT_IN_RX_FIFO0,
+						FDCAN_ACCEPT_IN_RX_FIFO0, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE);
+			%closefile setupBuf
+			%<LibMdlStartCustomCode(setupBuf, "execution")>
+		%endif
+	%else
+		%<LibBlockReportWarning(block, "This block is not implemented on this target")>
+	%endif
+%endfunction
+
+
+%% Function: Outputs ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+%%
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		{
+			bool newFlag;
+			struct can_frame *msg;
+			static canid_t oldCANid = 0;
+
+			/* Check if ID has changed, if so adapt ID in the receive filter */
+			if(%<LibBlockInputSignal(0, "", "", 0)> != oldCANid){
+				GO_communication_can_update_receive_filter(oldCANid,%<block.RTWdata.canBus>,(canid_t)%<LibBlockInputSignal(0, "", "", 0)>);
+				GO_communication_can_update_receive_buffer(oldCANid,%<block.RTWdata.canBus>,(canid_t)%<LibBlockInputSignal(0, "", "", 0)>);
+				oldCANid = %<LibBlockInputSignal(0, "", "", 0)>;
+			}
+			/* Get can_frame from buffer */
+			GO_communication_can_get_buffer((canid_t)%<LibBlockInputSignal(0, "", "", 0)>,%<block.RTWdata.canBus>, &msg, &newFlag);
+			/* Write data to outputs */
+			%foreach counter = block.RTWdata.outputNumber
+			%<LibBlockOutputSignal(counter + 1, "", "", 0)> = msg->data[%<counter>];
+			%endforeach
+			/* Update the new flag output */
+			%<LibBlockOutputSignal(0, "", "", 0)> = newFlag;
+		}
+	%elseif ISEQUAL(platform, "STM")
+		{
+			bool newFlag;
+			struct can_frame frame_out;
+			static uint32_t oldCANid = 0;
+			uint32_t currentId = (uint32_t)%<LibBlockInputSignal(0, "", "", 0)>;
+
+			/* Check if ID has changed, update the receive buffer slot */
+			if (currentId != oldCANid) {
+				GO_communication_can_rx_update_id(%<block.RTWdata.canBus>, oldCANid, currentId);
+				oldCANid = currentId;
+			}
+			/* Retrieve the frame for this CAN ID */
+			GO_communication_can_rx_get(%<block.RTWdata.canBus>, currentId, &frame_out, &newFlag);
+			/* Write data to outputs */
+			%foreach counter = block.RTWdata.outputNumber
+			%<LibBlockOutputSignal(counter + 1, "", "", 0)> = frame_out.data[%<counter>];
+			%endforeach
+			/* Update the new flag output */
+			%<LibBlockOutputSignal(0, "", "", 0)> = newFlag;
+		}
+	%endif
+%endfunction
+
+
+%%******************************* end of sfcn_can_receive.tlc ***************************

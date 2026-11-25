@@ -1,0 +1,109 @@
+
+%assign ::numSampleTimes = CompiledModel.NumSynchronousSampleTimes
+
+%% parse sample times and offsets
+%assign j = 0
+%foreach i = CompiledModel.NumSampleTimes
+	%if CompiledModel.SampleTime[i].Asynchronous == "no"
+		%assign ::sampleTime%<j> = CompiledModel.SampleTime[i].PeriodAndOffset[0]
+		%assign ::offset%<j> = CompiledModel.SampleTime[i].PeriodAndOffset[1]
+		%assign j = j+1
+	%endif
+%endforeach
+
+
+
+%% GENERATEDECLARATIONS
+%%  This function generates main function declarations.
+%%
+%function generateDeclarations() Output
+	#include "GO_stm_initialize.h"
+	#include "GO_communication_esp.h"
+	#include "cmsis_os2.h"
+	#include "FreeRTOS.h"
+	#include "task.h"
+	#include "rtwtypes.h"
+	#include "print.h"
+
+	#include "%<modelName>.h"
+
+	osThreadId_t model_step_thread;
+	osThreadAttr_t model_step_thread_attributes = { 0 };
+	uint32_t main_thread_stack = 4096;
+
+	#define MODEL %<modelName>
+	#define DEBUG 0
+%endfunction
+
+
+
+%% GENERATEMAIN
+%%  This function generates code of the main function function.
+%%
+%function generateMain() Output
+
+/* Model has %<numSampleTimes> */
+/* CompiledModel information: %<CompiledModel.SampleTime> */
+
+/****************************************************************************************
+** \brief     Model step thread function, here the thread for model execution starts
+** \param     arg a pointer to a argument
+** \return    pointer to the return argument
+**
+****************************************************************************************/
+void model_step(void *arg)
+{
+	static uint16_t espCyclicStep = 0;
+	static uint8_t startupStage = 1u; /* 1=send static_info, 2=send app_config, 0=done */
+	uint32_t nextWakeTick = osKernelGetTickCount();
+
+	for (;;) {
+		nextWakeTick += %<CompiledModel.SampleTime[0].ClockTickStepSize*1000>;
+		%<modelName>_step();
+		/* Send cyclic info to the ESP every 200 ms */
+		if (++espCyclicStep > (uint16_t)((float)0.2 / %<CompiledModel.SampleTime[0].ClockTickStepSize>))
+		{
+			/* Startup one-shots: split across two consecutive 200 ms ticks so the
+			 * first frame has time to finish transmitting (HAL_UART_Transmit_IT is
+			 * non-blocking — calling both back-to-back causes app_config to be
+			 * silently dropped because s_tx_busy is still set). */
+			if (startupStage == 1u)
+			{
+				GO_communication_esp_send_static_info();
+				startupStage = 2u;
+			}
+			else if (startupStage == 2u)
+			{
+				GO_communication_esp_send_app_config();
+				startupStage = 0u;
+			}
+
+			GO_communication_esp_send_cyclic_info();
+			espCyclicStep = 0;
+		}
+		osDelayUntil(nextWakeTick);
+	}
+	osThreadExit();
+}
+
+/****************************************************************************************
+** \brief     Main function
+** \param     argc number of arguments
+** \param     argv pointer to the array of arguments
+** \return    int
+**
+****************************************************************************************/
+void main(void){
+	GO_stm_initialize();
+	%<modelName>_initialize();
+	model_step_thread_attributes.name = "model_step_thread";
+	model_step_thread_attributes.stack_size = main_thread_stack;
+	model_step_thread_attributes.priority = (osPriority_t) osPriorityRealtime;
+
+	model_step_thread = osThreadNew(model_step, NULL, &model_step_thread_attributes);
+	osKernelStart();
+	/* should never get here */
+}
+
+
+%endfunction

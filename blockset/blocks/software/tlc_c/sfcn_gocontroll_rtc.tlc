@@ -1,0 +1,84 @@
+%%***************************************************************************************
+%% file         sfcn_gocontroll_rtc.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%% Copyright 2025 (c) by GOcontroll http://www.gocontroll.com All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%%
+%%***************************************************************************************
+
+%implements sfcn_gocontroll_rtc "C"
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Purpose:
+%%      Add the controller info header to the generated code includes.
+%%
+%function BlockTypeSetup(block, system) void
+	%<LibAddToCommonIncludes("GO_controller_info.h")>
+%endfunction
+
+%% Function: BlockInstanceSetup ======================================================
+%%
+%% Purpose:
+%%      Enforce that only one RTC block is present in the model.
+%%
+%function BlockInstanceSetup(block, system) void
+	%if EXISTS(::rtc)
+		%<LibBlockReportError(block, "Only one RTC block can be in the model")>
+	%else
+		%assign ::rtc = 1
+	%endif
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization.
+%%
+%function Start(block, system) Output
+	%openfile tmpBuf
+	_rtcTime rtc_time;
+	%closefile tmpBuf
+	%assign srcFile = LibGetModelDotCFile()
+	%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
+%endfunction
+
+%% Function: Outputs ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output.
+%%
+%function Outputs(block, system) Output
+	GO_controller_info_get_rtc_time(&rtc_time);
+	%<LibBlockOutputSignal(0, "", "", 0)> = rtc_time.year;
+	%<LibBlockOutputSignal(1, "", "", 0)> = rtc_time.month;
+	%<LibBlockOutputSignal(2, "", "", 0)> = rtc_time.day;
+	%<LibBlockOutputSignal(3, "", "", 0)> = rtc_time.hour;
+	%<LibBlockOutputSignal(4, "", "", 0)> = rtc_time.minute;
+	%<LibBlockOutputSignal(5, "", "", 0)> = rtc_time.second;
+%endfunction
+
+%%******************************* end of sfcn_gocontroll_rtc.tlc ***************************

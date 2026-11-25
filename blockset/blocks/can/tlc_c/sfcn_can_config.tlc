@@ -1,0 +1,64 @@
+%% GOcontroll 2025 http://www.gocontroll.com All rights reserved
+%% File : sfcn_can_config.tlc
+%% Brief : TLC for the CAN configuration block (STM / STM32H5 FDCAN only).
+%%         Emits GO_communication_can_initialize() to the execution section and GO_communication_can_start() to the
+%%         trailer - the config block is the sole owner of CAN init and start.
+
+%implements sfcn_can_config "C"
+
+%include "go_platform.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%<RequirePlatform(block, "STM")>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%if !SLibCodeGenForSim()
+			%<LibAddToCommonIncludes("can_message.h")>
+			%<LibAddToCommonIncludes("GO_communication_can.h")>
+			%<LibAddToCommonIncludes("fdcan.h")>
+		%endif
+	%endif
+%endfunction
+
+%% Function: BlockInstanceSetup ================================================
+%% Stores bus parameters in global TLC vars for duplicate-block detection.
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%assign canNum   = block.RTWdata.canBus
+		%assign can_socket = "::can_%<canNum>"
+		%if EXISTS(%<can_socket>) == 0
+			%assign %<can_socket>              = 1
+			%assign ::can_%<canNum>_tx         = block.RTWdata.canTxBuff
+			%assign ::can_%<canNum>_rx         = block.RTWdata.canRxBuff
+			%assign ::can_%<canNum>_baud       = block.RTWdata.baudrate
+			%assign ::can_%<canNum>_autort     = block.RTWdata.autort
+		%else
+			%assign error = "2 or more CAN config blocks are configuring CAN %<canNum>, this is not allowed"
+			%<LibBlockReportError(block, error)>
+		%endif
+	%endif
+%endfunction
+
+%% Function: Start =============================================================
+%% Emits GO_communication_can_initialize() to the execution section and GO_communication_can_start() to the trailer.
+%% The config block is the sole owner of CAN initialisation and start.
+
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%assign canNum   = block.RTWdata.canBus
+		%assign baudrate = block.RTWdata.baudrate
+		%assign autort   = block.RTWdata.autort
+		%openfile initBuf
+			hfdcan%<canNum>.Instance = FDCAN%<canNum>;
+			GO_communication_can_initialize(&hfdcan%<canNum>, %<baudrate>, %<autort>);
+		%closefile initBuf
+		%<LibMdlStartCustomCode(initBuf, "execution")>
+		%openfile startBuf
+			GO_communication_can_start(&hfdcan%<canNum>);
+		%closefile startBuf
+		%<LibMdlStartCustomCode(startBuf, "trailer")>
+	%endif
+%endfunction

@@ -1,0 +1,14 @@
+%function mem_emu_type_setup() void
+	%<LibAddToCommonIncludes("GO_memory.h")>
+%endfunction
+
+%function mem_emu_start() Output
+	%if EXISTS(::memory_emu_init) == 0
+		%assign ::memory_emu_init = 1
+		%openfile tmpBuf
+		GO_memory_emulation_initialize();
+		%closefile tmpBuf
+
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
+	%endif
+%endfunction

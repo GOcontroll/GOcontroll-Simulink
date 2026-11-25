@@ -1,0 +1,133 @@
+%% GOcontroll 2025 http://www.gocontroll.com All rights reserved
+%% File : can_common.tlc
+%% Brief : Shared TLC utility functions for all CAN blocks.
+%%         Linux section : SocketCAN helpers (socket create/init/close).
+
+%% --- Shared -------------------------------------------------------------------
+
+%function SLibCodeGenForSim() void
+	%if (CompiledModel.TargetStyle == "SimulationTarget")
+		%return 1
+	%else
+		%return 0
+	%endif
+%endfunction
+
+%% --- Linux (SocketCAN) -------------------------------------------------------
+
+%% Creates the global int can_<N> socket variable (once per bus).
+%function CreateCanSocket(CanNum) void
+	%assign can_socket = "::can_%<CanNum>"
+	%if EXISTS(%<can_socket>) == 0
+		%assign %<can_socket> = 1
+		%openfile tmpBuf
+			int can_%<CanNum>;
+		%closefile tmpBuf
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "UserTop", tmpBuf)>
+	%endif
+%endfunction
+
+%% The name a bus has in the generated code. On Linux it comes from the mask
+%% (go_can_bus_setup): "1".."4" for a CAN bus of the controller, "mb_can1" or
+%% "mb7_can2" for a bus of a Multibus Module. On the S1 it is the bus number.
+%% A block whose mask did not fill canKey and ifname (the library was still loaded
+%% from before these fields existed) falls back on the bus number of the controller.
+%function CanKey(block) void
+	%if ISEQUAL(get_platform(), "Linux") && ISFIELD(block.RTWdata, "canKey")
+		%return block.RTWdata.canKey
+	%else
+		%return block.RTWdata.canBus
+	%endif
+%endfunction
+
+%% The Linux interface of the bus of a block, for example can0 or mb_can1.
+%function CanIfName(block) void
+	%if ISFIELD(block.RTWdata, "ifname")
+		%return block.RTWdata.ifname
+	%else
+		%assign idx = CAST("Number", block.RTWdata.canBus) - 1
+		%return "can%<idx>"
+	%endif
+%endfunction
+
+%% Opens and binds the SocketCAN socket (once per bus). IfName is the Linux
+%% interface, for example can0 or mb_can1. An interface that does not exist -
+%% a Multibus Module that is not fitted - leaves the socket at -1: sending and
+%% receiving on it then do nothing and the rest of the model keeps running.
+%function InitCanSocket(CanNum, IfName) Output
+	%assign can_socket = "::can_%<CanNum>_init"
+	%if EXISTS(%<can_socket>) == 0
+		%assign %<can_socket> = 1
+		{
+			struct sockaddr_can addr;
+			struct ifreq ifr;
+			const char* ifname = "%<IfName>";
+
+			memset(&addr, 0, sizeof(addr));
+			memset(&ifr, 0, sizeof(ifr));
+			addr.can_family = AF_CAN;
+			strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
+			can_%<CanNum> = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+			if (can_%<CanNum> == -1) {
+				printf("CAN %s: socket create error.\n", ifname);
+			} else if (ioctl(can_%<CanNum>, SIOCGIFINDEX, &ifr) < 0) {
+				printf("CAN %s: interface not found, this bus is not used.\n", ifname);
+				close(can_%<CanNum>);
+				can_%<CanNum> = -1;
+			} else {
+				if (fcntl(can_%<CanNum>, F_SETFL, O_NONBLOCK) < 0) {
+					printf("CAN %s: set O_NONBLOCK error.\n", ifname);
+				}
+				addr.can_ifindex = ifr.ifr_ifindex;
+				if (bind(can_%<CanNum>, (struct sockaddr *)(void*)&addr, sizeof(addr)) < 0) {
+					printf("CAN %s: bind error.\n", ifname);
+					close(can_%<CanNum>);
+					can_%<CanNum> = -1;
+				} else {
+					printf("opening %s\n", ifname);
+				}
+			}
+		}
+	%endif
+%endfunction
+
+%% Closes the SocketCAN socket (once per bus).
+%function CloseCanSocket(CanNum) Output
+	%assign can_socket = "::can_%<CanNum>_term"
+	%if EXISTS(%<can_socket>) == 0
+		%assign %<can_socket> = 1
+		if (can_%<CanNum> != -1) {
+			close(can_%<CanNum>);
+		}
+	%endif
+%endfunction
+
+%% --- Classic CAN and CAN FD on one bus ----------------------------------------
+
+%% A bus is used either by the CAN -msg blocks (classic frames only) or by the
+%% CAN FD blocks, not by both: the blocks of one bus share one socket and it is
+%% opened in one mode. Mode is "classic" or "fd".
+%function ClaimCanMode(block, CanNum, Mode) void
+	%assign can_mode = "::can_%<CanNum>_mode"
+	%if EXISTS(%<can_mode>) == 0
+		%assign %<can_mode> = Mode
+	%elseif !ISEQUAL(%<can_mode>, Mode)
+		%assign error = "CAN bus %<CanNum> is used by CAN blocks and by CAN FD blocks. Use the CAN FD blocks for every block on this bus: they also send and receive classic CAN frames."
+		%<LibBlockReportError(block, error)>
+	%endif
+%endfunction
+
+%% Lets the socket of a bus carry CAN FD frames (once per bus). Call it directly
+%% after InitCanSocket.
+%function EnableCanFd(CanNum) Output
+	%assign can_fd = "::can_%<CanNum>_fdopt"
+	%if EXISTS(%<can_fd>) == 0
+		%assign %<can_fd> = 1
+		if (can_%<CanNum> != -1) {
+			int canfd_on = 1;
+			if (setsockopt(can_%<CanNum>, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_on, sizeof(canfd_on)) < 0) {
+				printf("CAN bus %<CanNum>: CAN FD frames could not be switched on.\n");
+			}
+		}
+	%endif
+%endfunction

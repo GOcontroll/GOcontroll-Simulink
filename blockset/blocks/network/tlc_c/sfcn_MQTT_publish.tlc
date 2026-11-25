@@ -1,0 +1,99 @@
+%%***************************************************************************************
+%% file         sfcn_MQTT_publish.tlc
+%% brief        Target Language Compiler file for the MQTT Publish block.
+%%              STM target only (STM32H5 + ESP32 via EspInterface over UART).
+%%
+%%              Generated code (model Output):
+%%                GO_communication_esp_mqtt_publish(topic, payload_ptr, payload_len, qos, retain)
+%%
+%%              Input port 0 (topic)  : cast to const char *, runtime-variable uint8 array.
+%%              Input port 1 (payload): cast to const uint8_t *, size determined by length source.
+%%              Input port 2 (length, optional): uint16 scalar with the actual byte count.
+%%                When present (len_source = "1"): the port value is used as payload length.
+%%                When absent  (len_source = "0"): sizeof(type)*width is used.
+%%
+%%              Note: requires the MQTT Broker block to be present in the model so
+%%              that EspInterface_Init, GO_communication_esp_set_mqtt_config and
+%%              GO_communication_esp_enable_mqtt are generated.
+%%
+%%              Mask RTWdata fields expected (set by the mask initialisation callback):
+%%                qos    : QoS level - 0, 1 or 2
+%%                retain : retain flag - 0 = no retain, 1 = broker retains for new subscribers
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2025 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%% endinternal
+%%***************************************************************************************
+
+%implements sfcn_MQTT_publish "C"
+
+%include "go_platform.tlc"
+
+%% Function: BlockTypeSetup ============================================================
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%<LibAddToCommonIncludes("GO_communication_esp.h")>
+		%<LibAddToCommonIncludes("string.h")>
+	%endif
+%endfunction
+
+%% Function: Outputs ===================================================================
+%% Port 0: topic string   -> copied to a null-terminated local buffer before use.
+%%         The Simulink signal is a raw uint8 array with no guaranteed null terminator.
+%%         Concatenation bugs occur when string functions read past the end into
+%%         adjacent signal memory. A local buffer with explicit null-termination prevents this.
+%% Port 1: payload signal -> raw bytes
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%if !ISEQUAL(platform, "STM")
+		%<LibBlockReportError(block, "The MQTT Publish block is only supported on the Moduline S1 target.")>
+	%endif
+
+	%assign qos         = block.RTWdata.qos
+	%assign retain      = block.RTWdata.retain
+	%assign dtype       = LibBlockInputSignalDataTypeName(1, "")
+	%assign width       = LibBlockInputSignalWidth(1)
+	%assign topic_width = LibBlockInputSignalWidth(0)
+	%if topic_width > 64
+		%assign topic_width = 64
+	%endif
+
+    {
+        char mqtt_pub_topic[65];
+        memcpy(mqtt_pub_topic, %<LibBlockInputSignalAddr(0, "", "", 0)>, (size_t)%<topic_width>);
+        mqtt_pub_topic[%<topic_width>] = '\0';
+        GO_communication_esp_mqtt_publish(
+            mqtt_pub_topic,
+            (const uint8_t *)%<LibBlockInputSignalAddr(1, "", "", 0)>,
+		%if ISEQUAL(block.RTWdata.len_source, "2")
+            (uint16_t)%<LibBlockInputSignal(2, "", "", 0)>,
+		%else
+            (uint16_t)(sizeof(%<dtype>) * %<width>),
+		%endif
+            (uint8_t)%<qos>,
+            (uint8_t)%<retain>
+        );
+    }
+%endfunction

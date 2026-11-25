@@ -1,0 +1,53 @@
+%function module_instance_setup(block, module_type, module_slot) void
+	%<LibAddToCommonIncludes("print.h")>
+	%%check if slot is already occupied
+	%assign slot = "::slot%<module_slot>"
+	%if EXISTS(%<slot>) == 0
+		%assign %<slot> = module_type
+	%else
+		%assign module = %<slot>
+		%assign error = "Module slot %<module_slot> is already occupied by a %<module>"
+		%<LibBlockReportError(block, error)>
+	%endif
+%endfunction
+
+%function module_start(block, module_type, module_slot) Output
+	%if EXISTS(::processorboard_hw) == 0
+		%assign ::processorboard_hw = 1
+		%<LibAddToCommonIncludes("GO_controller_info.h")>
+		%openfile tmpBuf
+		GO_board_get_hardware_version();
+		%closefile tmpBuf
+
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
+	%endif
+	{
+	dbg("initializing module %d\n", %<module_slot>);
+	if (GO_communication_modules_initialize(%<module_slot> - 1))
+		err("Could not register a module in slot %d\n", %<module_slot>);
+	
+	}
+%endfunction
+
+%function module_monitor_start(block, module_type, module_slot) void
+	%assign slot = "::slot%<module_slot>"
+	%assign slotmon = "::slot%<module_slot>mon"
+	%if EXISTS(%<slot>) == 0
+		%assign error = " No corresponding %<module_type> block found in the same slot"
+		%<LibBlockReportError(block, error)>
+	%else
+		%assign module = %<slot>
+		%assign type = module_type
+		%if ISEQUAL(module, type)
+			%if EXISTS(%<slotmon>) == 0
+				%assign %<slotmon> = type
+			%else
+				%assign warning = "Module slot %<module_slot> is already being monitored, if that is your intention you can ignore this warning"
+				%<LibBlockReportWarning(block, warning)>
+			%endif
+		%else
+			%assign error = "The corresponding slot is configured as a %<module>, not a %<module_type>"
+			%<LibBlockReportError(block, error)>
+		%endif
+	%endif
+%endfunction

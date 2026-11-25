@@ -1,0 +1,171 @@
+%% SYSTLC: GOcontroll Embedded Coder \
+%%    MAKE: make_rtw EXTMODE: no_ext_comm
+%%
+%% Copyright 1994-2011 The MathWorks, Inc.
+%% Adapted by Jason van Kolfschoten, 2017
+%% Adapted by GOcontroll, 2026
+%% Abstract: Embedded real-time system target file for GOcontroll Targets.
+%%
+%selectfile NULL_FILE
+
+%%----------------------------
+%% TLC Configuration Variables Section
+%%----------------------------
+%% Assign code format, language, target type.
+%%
+%assign CodeFormat = "Embedded-C"
+%assign Language   = "C"
+%assign TargetType = "RT"
+
+%assign RateBasedStepFcn = 1 	/% Generate only rate-based step functions %/
+
+%% The model_SetEventsForThisBaseRate function is not required for the
+%% VxWorks environment, i.e., when using an operating system.
+%assign SuppressSetEventsForThisBaseRateFcn = (TargetOS == "VxWorksExample")
+%if !EXISTS("InlineSetEventsForThisBaseRateFcn")
+  %assign InlineSetEventsForThisBaseRateFcn  = TLC_TRUE
+%endif
+%if !EXISTS("SuppressMultiTaskScheduler")
+  %assign SuppressMultiTaskScheduler = TLC_TRUE
+%endif
+
+%assign TargetRegistMutexOp   = 1
+%assign TargetRegistSynchroOp = 1
+%assign PreCodeGenExecCompliant = 1
+
+%%----------------------------
+%% TLC Program Entry Point
+%%----------------------------
+%% Call entry point function.
+%include "codegenentry.tlc"
+
+%%----------------------------
+%% RTW_OPTIONS Section
+%%----------------------------
+/%
+  BEGIN_RTW_OPTIONS
+
+  os = computer();
+
+  % -----------------------------------------------------------------------
+  % Category header - GOcontroll options
+  % default = number of rtwoptions entries that follow (excluding this one)
+  % -----------------------------------------------------------------------
+  rtwoptions(1).prompt        = 'GOcontroll options';
+  rtwoptions(1).type          = 'Category';
+  rtwoptions(1).enable        = 'on';
+  rtwoptions(1).default       = 8;   % items 2..9
+  rtwoptions(1).popupstrings  = '';
+  rtwoptions(1).tlcvariable   = '';
+  rtwoptions(1).tooltip       = '';
+  rtwoptions(1).callback      = '';
+  rtwoptions(1).makevariable  = '';
+
+  % -----------------------------------------------------------------------
+  % (2) Target selector
+  % Changing this popup fires ert_gocontroll_target_changed_callback_handler which
+  % shows/hides the target-specific options below.
+  % tlcvariable matches what ert_linux_make_rtw_hook.m reads via
+  % get_param(model,'tlcGOcontrollTarget').
+  % -----------------------------------------------------------------------
+  rtwoptions(2).prompt        = 'Target';
+  rtwoptions(2).type          = 'Popup';
+  rtwoptions(2).default       = 'Moduline S1';
+  rtwoptions(2).popupstrings  = 'Moduline S1|Moduline M1|Moduline L4|Moduline HMI1';
+  rtwoptions(2).tlcvariable   = 'tlcGOcontrollTarget';
+  rtwoptions(2).tooltip       = ['Select the target hardware to build for. ' ...
+                                 'Moduline S1 builds for the STM32H5 (STM platform), ' ...
+                                 'Moduline M1 / L4 / HMI1 build for embedded Linux.'];
+  rtwoptions(2).callback      = 'ert_gocontroll_target_changed_callback_handler(hDlg, hSrc)';
+
+  % -----------------------------------------------------------------------
+  % (3) Linux RT priority  [Linux only]
+  % -----------------------------------------------------------------------
+  rtwoptions(3).prompt        = 'Linux RT priority';
+  rtwoptions(3).type          = 'Edit';
+  rtwoptions(3).default       = '40';
+  rtwoptions(3).tlcvariable   = 'tlcLinuxPriority';
+  rtwoptions(3).tooltip       = 'Real-time task priority of the model process on the Linux target';
+
+  % -----------------------------------------------------------------------
+  % (4) XCP address (IP)  [Linux only]
+  % -----------------------------------------------------------------------
+  rtwoptions(4).prompt        = 'XCP address';
+  rtwoptions(4).type          = 'Edit';
+  rtwoptions(4).default       = '192.168.19.85';
+  rtwoptions(4).tlcvariable   = 'tlcXcpTcpAddress';
+  rtwoptions(4).tooltip       = 'IP address of the Linux target, written into the generated a2l file';
+
+  % -----------------------------------------------------------------------
+  % (5) XCP TCP port  [Linux only]
+  % -----------------------------------------------------------------------
+  rtwoptions(5).prompt        = 'XCP TCP port';
+  rtwoptions(5).type          = 'Edit';
+  rtwoptions(5).default       = '50002';
+  rtwoptions(5).tlcvariable   = 'tlcXcpTcpPort';
+  rtwoptions(5).tooltip       = 'TCP port used for XCP communication with the Linux target';
+
+  % -----------------------------------------------------------------------
+  % (6) Compiler  [always visible, options depend on host OS]
+  % -----------------------------------------------------------------------
+  rtwoptions(6).prompt        = 'Compiler';
+  rtwoptions(6).type          = 'Popup';
+  rtwoptions(6).tlcvariable   = 'tlcLinuxCompiler';
+  rtwoptions(6).tooltip       = 'Compiler to use when building the model';
+
+  if (strcmp(os, 'GLNXA64') || strcmp(os, 'PCWIN64'))
+      rtwoptions(6).default      = 'GCC';
+      rtwoptions(6).popupstrings = 'GCC|Zig';
+  else
+      rtwoptions(6).default      = 'Zig';
+      rtwoptions(6).popupstrings = 'Zig';
+  end
+
+  % -----------------------------------------------------------------------
+  % (7) Use precompiled binary  [always visible]
+  % -----------------------------------------------------------------------
+  rtwoptions(7).prompt        = 'Use precompiled binary';
+  rtwoptions(7).type          = 'Popup';
+  rtwoptions(7).default       = 'Use precompiled binary';
+  rtwoptions(7).popupstrings  = 'Use precompiled binary|Always recompile';
+  rtwoptions(7).tlcvariable   = 'tlcUsePrecompiledLib';
+  rtwoptions(7).tooltip       = 'STM target: use the cached libGOcontroll_CodeBase.a when available, or recompile the CodeBase on every build';
+
+  % -----------------------------------------------------------------------
+  % (8) Delete build files  [always visible]
+  % -----------------------------------------------------------------------
+  rtwoptions(8).prompt        = 'Delete build files';
+  rtwoptions(8).type          = 'Popup';
+  rtwoptions(8).default       = 'Keep build files';
+  rtwoptions(8).popupstrings  = 'Keep build files|Delete build files after build';
+  rtwoptions(8).tlcvariable   = 'tlcDeleteBuildFiles';
+  rtwoptions(8).tooltip       = 'Remove slprj/, <model>_generated_code/ and <model>.slxc after a successful build';
+
+  % -----------------------------------------------------------------------
+  % (9) Platform lock  [not shown in the dialog]
+  % Empty: every Target can be selected. 'Linux' or 'STM': the model belongs to
+  % that platform; the Target callback refuses a Target of the other platform and
+  % the build stops on one (go_platform_lock_check). The model templates set it.
+  % -----------------------------------------------------------------------
+  rtwoptions(9).prompt        = 'Platform lock';
+  rtwoptions(9).type          = 'NonUI';
+  rtwoptions(9).default       = '';
+  rtwoptions(9).tlcvariable   = 'tlcGOcontrollPlatformLock';
+  rtwoptions(9).makevariable  = '';
+
+  %% Callback fired when the Code Generation panel is shown.
+  %% Applies default solver settings and updates option visibility.
+  rtwgensettings.SelectCallback    = 'ert_gocontroll_select_callback_handler(hDlg, hSrc)';
+  %% Callback fired after the user presses Apply.
+  rtwgensettings.PostApplyCallback = 'ert_gocontroll_postapply_callback_handler(hDlg, hSrc)';
+
+  %%----------------------------
+  %% rtwgensettings Structure
+  %%----------------------------
+  rtwgensettings.TargetType     = 'RT';
+  rtwgensettings.DerivedFrom    = 'ert.tlc';
+  rtwgensettings.BuildDirSuffix = '_generated_code';
+  rtwgensettings.Version        = '1';
+
+  END_RTW_OPTIONS
+ %/

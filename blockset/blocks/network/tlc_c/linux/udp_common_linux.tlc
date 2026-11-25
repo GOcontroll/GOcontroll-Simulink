@@ -1,0 +1,12 @@
+%function UdpCommonBlockTypeSetup() void
+	%if EXISTS(::_udp_common_setup) == 0
+		%assign ::_udp_common_setup = 1
+		%<LibAddToCommonIncludes("sys/socket.h")>
+		%<LibAddToCommonIncludes("arpa/inet.h")>
+		%<LibAddToCommonIncludes("stdint.h")>
+		%<LibAddToCommonIncludes("stddef.h")>
+		%<LibAddToCommonIncludes("stdlib.h")>
+		%<LibAddToCommonIncludes("unistd.h")>
+		%<LibAddToCommonIncludes("stdio.h")>
+	%endif
+%endfunction

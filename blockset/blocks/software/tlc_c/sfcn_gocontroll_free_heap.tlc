@@ -1,0 +1,23 @@
+%% GOcontroll 2025 http://www.gocontroll.com All rights reserved
+%% File : sfcn_gocontroll_free_heap.tlc
+%% Brief : Returns the current FreeRTOS free heap size in bytes.
+%%         STM only - outputs 0 on Linux and in simulation.
+
+%implements sfcn_gocontroll_free_heap "C"
+
+%include "go_platform.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%<LibAddToCommonIncludes("GO_controller_info.h")>
+%endfunction
+
+%% Function: Outputs ===========================================================
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%<LibBlockOutputSignal(0, "", "", 0)> = GO_controller_info_get_free_heap();
+	%else
+		%<LibBlockOutputSignal(0, "", "", 0)> = 0U;
+	%endif
+%endfunction

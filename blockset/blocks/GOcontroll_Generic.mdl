@@ -7628,7 +7628,7 @@ port_label(&apos;output&apos;, 1, &apos;Physical&apos;);
 port_label(&apos;output&apos;, 2, &apos;RAW&apos;);
 port_label(&apos;input&apos;, 1, &apos;RAW input&apos;);
 
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 </Display>
       <Description>This block helps with setting up a sensor, it integrates a lookup table, sensor overrides for XCP and the possibility to simulate the signal.
 
@@ -7749,7 +7749,7 @@ port_label(&apos;output&apos;, 1, &apos;Physical&apos;);
 port_label(&apos;output&apos;, 2, &apos;RAW&apos;);
 port_label(&apos;input&apos;, 1, &apos;RAW input&apos;);
 
-text(2, 6, ert_linux_target_version());
+text(2, 6, GOcontroll_Simulink_version());
 </Display>
       <Description>This block helps with setting up a sensor, it integrates a relay for hysteresis, sensor overrides for XCP and the possibility to simulate the signal.
 

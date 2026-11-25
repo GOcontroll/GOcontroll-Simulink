@@ -4,11 +4,9 @@
 /builds/*
 /blockset/blocks/*.mex*
 ~*
-*.elf
-*.a2l
 *.slx.autosave
-/*.mdl
-/*.m
+*.map
+!GOcontroll_Simulink_version.m
 *.zip
 crank_files/
 *.slxc
@@ -17,3 +15,4 @@ crank_files/
 .vscode/*
 !.vscode/*shared.json
 !.vscode/extensions.json
+/build/

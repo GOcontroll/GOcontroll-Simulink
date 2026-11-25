@@ -1,0 +1,173 @@
+%%***************************************************************************************
+%% file         sfcn_xcp_server.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2024 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%% endinternal
+%%
+%%***************************************************************************************
+
+%implements sfcn_xcp_server "C"
+
+%include "go_platform.tlc"
+%include "can_common.tlc"
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Runs once for the block type, no matter how many blocks are present in the model
+
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%<LibAddToCommonIncludes("pthread.h")>
+	%endif
+	%<LibAddToCommonIncludes("XcpStack.h")>
+	%<LibAddToCommonIncludes("GO_xcp.h")>
+%endfunction
+
+%% Function: BlockInstanceSetup ==========================================================
+%%
+%% Runs once for every instance of the block in the model
+
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%if EXISTS(::xcp_socket) == 0
+		%if ISEQUAL(platform, "Linux")
+			%openfile tmpBufDecls
+				pthread_t xcp_thread;
+				%if ISEQUAL(%<block.RTWdata.server_type>, 3)
+					_XCP_CAN_Args xcp_args = {
+						"can%<block.RTWdata.can_if>",
+						%if ISEQUAL(%<block.RTWdata.send_id_ext>, 1)
+							%<block.RTWdata.send_id> | CAN_EFF_FLAG,
+						%else
+							%<block.RTWdata.send_id>,
+						%endif
+						%if ISEQUAL(%<block.RTWdata.receive_id_ext>, 1)
+							%<block.RTWdata.receive_id> | CAN_EFF_FLAG,
+						%else
+							%<block.RTWdata.receive_id>,
+						%endif
+					};
+				%endif
+			%closefile tmpBufDecls
+			%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+		%elseif ISEQUAL(platform, "STM")
+			%if ISEQUAL(%<block.RTWdata.server_type>, 3) || ISEQUAL(%<block.RTWdata.server_type>, 4)
+				%openfile tmpBufDecls
+					osThreadId_t xcp_thread;
+
+					const osThreadAttr_t xcp_thread_attributes = {
+						.name = "xcp_thread",
+						.stack_size = 1024 * 4,
+						.priority = (osPriority_t) osPriorityAboveNormal,
+					};
+				%closefile tmpBufDecls
+				%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", tmpBufDecls)>
+			%endif
+		%endif
+		%assign ::xcp_socket = 1
+	%else
+		%<LibBlockReportError(block, "Multiple xcp server blocks exist in the model, this is not allowed")>
+	%endif
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      initialize the xcp connection
+
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%switch (%<block.RTWdata.server_type>)
+			%case 1
+				pthread_create(&xcp_thread, NULL, &GO_xcp_initialize_tcp, NULL);
+				%break
+			%case 2
+				pthread_create(&xcp_thread, NULL, &GO_xcp_initialize_udp, NULL);
+				%break
+			%case 3
+				pthread_create(&xcp_thread, NULL, &GO_xcp_initialize_can, &xcp_args);
+				%break
+			%default
+				%<LibBlockReportError(block, "Invalid XCP server type selected, XCP over Bluetooth is only available on the Moduline S1")>
+		%endswitch
+	%elseif ISEQUAL(platform, "STM")
+		%assign module_id_par = %<CAST("Number", block.RTWdata.can_if) + 1>
+		%assign hfdcan = "hfdcan%<module_id_par>"
+		%switch (%<block.RTWdata.server_type>)
+			%case 3
+				GO_xcp_init_can(
+						&%<hfdcan>,
+						%<block.RTWdata.send_id>,
+						%<block.RTWdata.receive_id>,
+						%<block.RTWdata.send_id_ext>,
+						%<block.RTWdata.receive_id_ext>
+				);
+				xcp_thread = osThreadNew(GO_xcp_thread_can, NULL, &xcp_thread_attributes);
+				%break
+			%case 4
+				GO_xcp_init_esp();
+				xcp_thread = osThreadNew(GO_xcp_thread_esp, NULL, &xcp_thread_attributes);
+				%break
+			%default
+				%<LibBlockReportError(block, "Invalid XCP server type selected, the Moduline S1 supports xcp over CAN or Bluetooth")>
+		%endswitch
+	%endif
+%endfunction
+
+%% Function: Outputs ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output
+
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%openfile tmpBuf
+	%if ISEQUAL(platform, "STM")
+	GO_xcp_trigger_daq();
+	%else
+	XcpDataTransmission();
+	%endif
+	%closefile tmpBuf
+
+	%<LibSystemUpdateCustomCode(system, tmpBuf, "trailer")>
+%endfunction
+
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for model termination
+
+%function Terminate(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		pthread_cancel(xcp_thread);
+		pthread_join(xcp_thread, NULL);
+	%endif
+	GO_xcp_stop_connection();
+%endfunction

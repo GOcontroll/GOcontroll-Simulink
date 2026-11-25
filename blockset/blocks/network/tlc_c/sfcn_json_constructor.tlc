@@ -1,0 +1,150 @@
+%%***************************************************************************************
+%% file         sfcn_json_constructor.tlc
+%% brief        TLC for the JSON Constructor block.
+%%              Generates inline C code that builds a JSON object string from N scalar
+%%              input signals and writes the result into the output byte array.
+%%
+%%              Generated code uses snprintf for each field with a datatype-appropriate
+%%              format specifier (%%g for floating-point, %%d for signed int, %%u for
+%%              unsigned/boolean).  The output buffer size comes from block.RTWdata.buf_size.
+%%
+%%              RTWdata fields expected (set by the mask Initialization callback):
+%%                num_signals  - number of signals (string "1".."8")
+%%                buf_size     - output buffer capacity in bytes (string, e.g. "256")
+%%                key_0 .. key_(N-1) - JSON key name strings (0-indexed)
+%%
+%%              STM target only.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2025 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%%
+%%***************************************************************************************
+
+%implements sfcn_json_constructor "C"
+
+%include "go_platform.tlc"
+
+%% Function: BlockTypeSetup ============================================================
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%<LibAddToCommonIncludes("stdio.h")>
+		%<LibAddToCommonIncludes("string.h")>
+	%endif
+%endfunction
+
+%% Function: Outputs ===================================================================
+%% Generates a scoped block that builds a JSON object string using snprintf.
+%%
+%% Format specifiers are built via FEVAL so they are never emitted as literal %%x
+%% sequences in TLC output - this avoids the "missing terminating character" error
+%% that occurs when TLC line-wraps a long output line and the resulting %%x at the
+%% start of the new line is mistakenly treated as a TLC comment.
+%%
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%if !ISEQUAL(platform, "STM")
+		%<LibBlockReportError(block, "The JSON Constructor block is only supported on the Moduline S1 target.")>
+	%endif
+
+	%assign num_signals = CAST("Number", block.RTWdata.num_signals)
+	%assign buf_size    = block.RTWdata.buf_size
+
+	%% Build format specifier strings via FEVAL to avoid %% escaping issues in output.
+	%% FEVAL("sprintf", "%%g") calls MATLAB sprintf("%%g") which returns "%g".
+	%assign fmt_float    = FEVAL("sprintf", "%%g")
+	%assign fmt_signed   = FEVAL("sprintf", "%%d")
+	%assign fmt_unsigned = FEVAL("sprintf", "%%u")
+
+    {
+        char json_buf[%<buf_size>];
+        int  json_pos;
+        memset(json_buf, 0, sizeof(json_buf));
+        json_pos = snprintf(json_buf, sizeof(json_buf), "{");
+        if (json_pos < 0) json_pos = 0;
+
+		%foreach idx = num_signals
+			%% Resolve the key for this signal index (0-indexed RTWdata fields)
+			%if idx == 0
+				%assign key = block.RTWdata.key_0
+			%elseif idx == 1
+				%assign key = block.RTWdata.key_1
+			%elseif idx == 2
+				%assign key = block.RTWdata.key_2
+			%elseif idx == 3
+				%assign key = block.RTWdata.key_3
+			%elseif idx == 4
+				%assign key = block.RTWdata.key_4
+			%elseif idx == 5
+				%assign key = block.RTWdata.key_5
+			%elseif idx == 6
+				%assign key = block.RTWdata.key_6
+			%elseif idx == 7
+				%assign key = block.RTWdata.key_7
+			%endif
+
+			%% Comma separator: first field has none, subsequent fields get ","
+			%if idx == 0
+				%assign comma = ""
+			%else
+				%assign comma = ","
+			%endif
+
+			%assign dtype = LibBlockInputSignalDataTypeName(idx, "")
+
+			%% Choose format specifier and cast based on datatype
+			%if ISEQUAL(dtype, "real_T") || ISEQUAL(dtype, "real32_T")
+				%assign fmt  = fmt_float
+				%assign cast = "(double)"
+			%elseif ISEQUAL(dtype, "int8_T") || ISEQUAL(dtype, "int16_T") || ISEQUAL(dtype, "int32_T")
+				%assign fmt  = fmt_signed
+				%assign cast = "(int)"
+			%else
+				%assign fmt  = fmt_unsigned
+				%assign cast = "(unsigned int)"
+			%endif
+
+        if (json_pos < (int)sizeof(json_buf) - 1) {
+            int _n = snprintf(
+                json_buf + json_pos,
+                sizeof(json_buf) - (size_t)json_pos,
+                "%<comma>\"%<key>\":%<fmt>",
+                %<cast>%<LibBlockInputSignal(idx, "", "", 0)>);
+            if (_n > 0) json_pos += _n;
+        }
+		%endforeach
+
+        if (json_pos < (int)sizeof(json_buf) - 1) {
+            json_buf[json_pos++] = '}';
+        }
+        if (json_pos > (int)sizeof(json_buf) - 1) json_pos = (int)sizeof(json_buf) - 1;
+        /* json_buf[json_pos] is '\0' because the buffer was zero-initialised above.
+         * Copy json_pos+1 bytes so the null terminator lands in the output signal -
+         * MQTT Publish uses strnlen on uint8 payloads to detect the actual length. */
+        memcpy(%<LibBlockOutputSignalAddr(0, "", "", 0)>, json_buf, (size_t)(json_pos + 1));
+        %<LibBlockOutputSignal(1, "", "", 0)> = (uint16_T)json_pos;
+    }
+%endfunction
+
+%%**************************** end of sfcn_json_constructor.tlc ************************

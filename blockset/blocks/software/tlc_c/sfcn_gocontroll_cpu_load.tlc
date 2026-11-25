@@ -1,0 +1,24 @@
+%% GOcontroll 2025 http://www.gocontroll.com All rights reserved
+%% File : sfcn_gocontroll_cpu_load.tlc
+%% Brief : Returns the CPU load as a percentage (0-100).
+%%         Computed as 100% minus the FreeRTOS IDLE task share over ~1 s.
+%%         STM only - outputs 0 on Linux and in simulation.
+
+%implements sfcn_gocontroll_cpu_load "C"
+
+%include "go_platform.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%<LibAddToCommonIncludes("GO_controller_info.h")>
+%endfunction
+
+%% Function: Outputs ===========================================================
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%<LibBlockOutputSignal(0, "", "", 0)> = GO_controller_info_get_cpu_load();
+	%else
+		%<LibBlockOutputSignal(0, "", "", 0)> = 0U;
+	%endif
+%endfunction

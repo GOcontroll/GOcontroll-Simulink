@@ -13,22 +13,27 @@ function compile_gocontroll_mex(force)
 	%if gocontroll_mex_version doesn't exist or the result of it is false, recompile the mex files
 	if ~(exist('gocontroll_mex_version', "file") == 3) || ~gocontroll_mex_version() || ~isempty(force)
 		disp("Compiling c mex functions...");
-		version = ['-DVERSION="' ert_linux_target_version() '"'];
+		version = ['-DVERSION="' GOcontroll_Simulink_version() '"'];
 		include_scanutil = ['-I' fullfile(matlabroot,'toolbox','shared','can','src','scanutil')];
 		include_can_data = ['-I' fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes')];
 		can_msg = fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes', 'can_msg.c');
 		can_util = fullfile(matlabroot, 'toolbox', 'rtw', 'targets', 'common', 'can', 'datatypes', 'sfun_can_util.c');
-		% compile mex files
-		d = dir(fullfile(path, '..', 'blocks'));
-		files = {d.name};
-		for idx = 1:length(files)
-			name = char(files(1,idx));
-			if contains(name, ".c") && contains(name, "sfcn")
-				[~, fname, ~] = fileparts(name);
-				%compile the level 2 S functions
-				fprintf("\nCompiling %s\n", fname);
-				mex(include_scanutil, include_can_data, fullfile(path, '..', 'blocks', [fname '.c']), can_msg, can_util, '-outdir', fullfile(path, '..', 'blocks'));
-				fprintf("Compiled %s\n", fname);
+		% compile mex files - search category subdirectories for sfcn_*.c files
+		blocks_root = fullfile(path, '..', 'blocks');
+		subdirs = {'can', 'network'};
+		for s = 1:length(subdirs)
+			d = dir(fullfile(blocks_root, subdirs{s}));
+			files = {d.name};
+			for idx = 1:length(files)
+				name = char(files(1,idx));
+				if contains(name, ".c") && contains(name, "sfcn")
+					[~, fname, ~] = fileparts(name);
+					src = fullfile(blocks_root, subdirs{s}, [fname '.c']);
+					outdir = fullfile(blocks_root, subdirs{s});
+					fprintf("\nCompiling %s\n", fname);
+					mex(include_scanutil, include_can_data, src, can_msg, can_util, '-outdir', outdir);
+					fprintf("Compiled %s\n", fname);
+				end
 			end
 		end
 		% compile version mex last so on failure it doesnt exist and prevent recompilation

@@ -1,0 +1,103 @@
+%%***************************************************************************************
+%% file         sfcn_mqtt_subscribe.tlc
+%% brief        TLC for the MQTT Subscribe block. STM target only.
+%%
+%%              All subscription logic lives in GOcontrollEspCommunication.c.
+%%              TLC only:
+%%                BlockInstanceSetup - allocates static storage (topic buf, payload buf,
+%%                                     EspInterface_MqttSubData_t struct) per instance.
+%%                Start              - copies topic from input port, inits struct,
+%%                                     registers with the driver, sends subscribe frame.
+%%                Outputs            - polls struct each step, clears new_flag.
+%%
+%%              Variable names use block.Identifier which is a Simulink-generated unique
+%%              C identifier per block instance (e.g. sfcn_MQTT_subscribe,
+%%              sfcn_MQTT_subscribe1, ...).
+%%
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2025 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%  MIT licence - see repository root for full text.
+%%***************************************************************************************
+
+%implements sfcn_MQTT_subscribe "C"
+
+%include "go_platform.tlc"
+
+%% BlockTypeSetup: include the driver header once per model.
+%function BlockTypeSetup(block, system) void
+	%<RequirePlatform(block, "STM")>
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%<LibAddToCommonIncludes("GO_communication_esp.h")>
+		%<LibAddToCommonIncludes("string.h")>
+	%endif
+%endfunction
+
+%% BlockInstanceSetup: allocate compile-time static storage for this block instance.
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%if ISFIELD(block.RTWdata, "payload_size")
+			%assign payload_size = block.RTWdata.payload_size
+		%else
+			%assign payload_size = 128
+		%endif
+		%assign id      = block.Identifier
+		%assign srcFile = LibGetModelDotCFile()
+
+		%openfile defs
+static char                       mqtt_sub_%<id>_topic[65];
+static uint8_t                    mqtt_sub_%<id>_buf[%<payload_size>];
+static EspInterface_MqttSubData_t mqtt_sub_%<id>_data;
+		%closefile defs
+		%<LibSetSourceFileSection(srcFile, "Definitions", defs)>
+	%endif
+%endfunction
+
+%% Start: init struct and register with the driver once at model initialisation.
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%if ISFIELD(block.RTWdata, "payload_size")
+			%assign payload_size = block.RTWdata.payload_size
+		%else
+			%assign payload_size = 128
+		%endif
+		%if ISFIELD(block.RTWdata, "qos")
+			%assign qos = block.RTWdata.qos
+		%else
+			%assign qos = 0
+		%endif
+		%assign id = block.Identifier
+
+    strncpy(mqtt_sub_%<id>_topic,
+            (const char *)%<LibBlockInputSignalAddr(0, "", "", 0)>, 64u);
+    mqtt_sub_%<id>_topic[64]         = '\0';
+    mqtt_sub_%<id>_data.topic        = mqtt_sub_%<id>_topic;
+    mqtt_sub_%<id>_data.payload      = mqtt_sub_%<id>_buf;
+    mqtt_sub_%<id>_data.payload_size = (uint16_t)%<payload_size>;
+    mqtt_sub_%<id>_data.length       = 0u;
+    mqtt_sub_%<id>_data.new_flag     = 0u;
+    GO_communication_esp_mqtt_sub_register(&mqtt_sub_%<id>_data);
+    GO_communication_esp_mqtt_subscribe(mqtt_sub_%<id>_topic, (uint8_t)%<qos>);
+	%endif
+%endfunction
+
+%% Outputs: poll the data struct each model step and clear the flag.
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%if ISFIELD(block.RTWdata, "payload_size")
+			%assign payload_size = block.RTWdata.payload_size
+		%else
+			%assign payload_size = 128
+		%endif
+		%assign id = block.Identifier
+
+    %<LibBlockOutputSignal(0, "", "", 0)> = mqtt_sub_%<id>_data.new_flag;
+    mqtt_sub_%<id>_data.new_flag = 0u;
+    %<LibBlockOutputSignal(1, "", "", 0)> = (uint16_t)mqtt_sub_%<id>_data.length;
+    memcpy(%<LibBlockOutputSignalAddr(2, "", "", 0)>,
+           mqtt_sub_%<id>_buf, (size_t)%<payload_size>);
+	%endif
+%endfunction

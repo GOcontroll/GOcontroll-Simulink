@@ -1,0 +1,163 @@
+%% GOcontroll 2025 http://www.gocontroll.com All rights reserved
+%% File : sfcn_can_receive_v2.tlc
+%% Brief : TLC for the CAN receive block - both Linux (SocketCAN) and STM (FDCAN).
+
+%implements sfcn_can_receive_v2 "C"
+
+%include "go_platform.tlc"
+%include "can_common.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%<LibAddToCommonIncludes("GO_communication_can.h")>
+		%if !SLibCodeGenForSim()
+			%<LibAddToCommonIncludes("can_message.h")>
+		%endif
+	%elseif ISEQUAL(platform, "STM")
+		%if !SLibCodeGenForSim()
+			%<LibAddToCommonIncludes("can_message.h")>
+			%<LibAddToCommonIncludes("GO_communication_can.h")>
+			%<LibAddToCommonIncludes("fdcan.h")>
+			%<LibAddToCommonIncludes("cmsis_os2.h")>
+			%<LibAddToCommonIncludes("print.h")>
+		%endif
+	%endif
+%endfunction
+
+%% Function: BlockInstanceSetup ================================================
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%assign module_id_par = CanKey(block)
+	%% Only one receive block is allowed per CAN bus
+	%assign can_recv_socket = "::can_%<module_id_par>_recv"
+	%if EXISTS(%<can_recv_socket>) == 1
+		%assign error = "2 or more CAN receive blocks are listening on CAN%<module_id_par>, this is not allowed"
+		%<LibBlockReportError(block, error)>
+	%else
+		%assign %<can_recv_socket> = 1
+	%endif
+	%if ISEQUAL(platform, "Linux")
+		%<ClaimCanMode(block, module_id_par, "classic")>
+		%<CreateCanSocket(module_id_par)>
+	%elseif ISEQUAL(platform, "STM")
+		%assign srcFile = LibGetModelDotCFile()
+		%openfile queue
+			osMessageQueueId_t can%<module_id_par>_rx_queue;
+		%closefile queue
+		%<LibSetSourceFileSection(srcFile, "Definitions", queue)>
+		%openfile callback
+			void can%<module_id_par>_rx_pending(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
+				if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) {
+					FDCAN_RxHeaderTypeDef header;
+					struct can_frame message;
+					while (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &header, message.data) == HAL_OK) {
+						GO_communication_can_pack_header(&message, &header);
+						can_busload_count_frame(%<module_id_par>u, message.flags & CAN_PACKED_DLC, (message.flags & CAN_PACKED_EXTID) != 0u);
+						osMessageQueuePut(can%<module_id_par>_rx_queue, &message, 0, 0);
+					}
+				}
+			}
+		%closefile callback
+		%<LibSetSourceFileSection(srcFile, "Functions", callback)>
+		%openfile errCallback
+			static void can%<module_id_par>_error_callback(FDCAN_HandleTypeDef *hfdcan,
+			                                               uint32_t ErrorStatusITs) {
+				GO_communication_can_bus_off_recovery(hfdcan, ErrorStatusITs);
+			}
+		%closefile errCallback
+		%<LibSetSourceFileSection(srcFile, "Functions", errCallback)>
+	%endif
+%endfunction
+
+%% Function: Start =============================================================
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%assign module_id_par = CanKey(block)
+	%if ISEQUAL(platform, "Linux")
+		%<InitCanSocket(module_id_par, CanIfName(block))>
+	%elseif ISEQUAL(platform, "STM")
+		%assign hfdcan = "hfdcan%<module_id_par>"
+		%assign can_rx_buf = "::can_%<module_id_par>_rx"
+		%assign can_rx_buff = %<can_rx_buf>
+		%% Callbacks and notifications must be registered while FDCAN is in READY
+		%% state (after init_can, before start_can). CAN init/start is owned by
+		%% the CAN config block - no EnsureCanInitialized/EnsureCanStarted here.
+		%% NVIC is already configured by CubeMX MspInit (IT0 + IT1, priority 5).
+		%openfile rxSetupBuf
+			can%<module_id_par>_rx_queue = osMessageQueueNew(%<can_rx_buff>, sizeof(struct can_frame), NULL);
+			if (HAL_FDCAN_RegisterRxFifo0Callback(&%<hfdcan>,
+					can%<module_id_par>_rx_pending) != HAL_OK)
+				err("Could not register rx callback: 0x%x\n", %<hfdcan>.ErrorCode);
+			if (HAL_FDCAN_RegisterErrorStatusCallback(&%<hfdcan>,
+					can%<module_id_par>_error_callback) != HAL_OK)
+				err("Could not register error callback: 0x%x\n", %<hfdcan>.ErrorCode);
+			if (HAL_FDCAN_ActivateNotification(&%<hfdcan>,
+					FDCAN_IT_RX_FIFO0_NEW_MESSAGE | FDCAN_IT_BUS_OFF, 0) != HAL_OK)
+				err("Could not activate notifications: 0x%x\n", %<hfdcan>.ErrorCode);
+		%closefile rxSetupBuf
+		%<LibMdlStartCustomCode(rxSetupBuf, "execution")>
+	%endif
+%endfunction
+
+%% Function: Outputs ===========================================================
+%function Outputs(block, system) Output
+	%if !SLibCodeGenForSim()
+		%assign platform = get_platform()
+		%assign module_id_par = CanKey(block)
+		%assign message = LibBlockOutputSignal(1, "", "", 1)
+		%if ISEQUAL(platform, "Linux")
+			{
+				struct can_frame sc_frame;
+				int ret;
+				int dlc;
+				while ((ret = recv(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0)) > 0) {
+					if (ret < sizeof(sc_frame)) {
+						continue;
+					}
+					dlc = sc_frame.can_dlc;
+					if (dlc > 8)
+						dlc = 8;
+					%<message>.Length = dlc;
+					%<message>.ID = sc_frame.can_id & CAN_EFF_MASK;
+					%<message>.Extended = sc_frame.can_id & CAN_EFF_FLAG ? 1 : 0;
+					%<message>.Remote = sc_frame.can_id & CAN_RTR_FLAG ? 1 : 0;
+					*(uint64_t *)&%<message>.Data[0] = *(uint64_t *)&sc_frame.data[0];
+					%foreach callIdx = NumSFcnSysOutputCalls
+						%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+							%continue
+						%endif
+						%<LibBlockExecuteFcnCall(block, callIdx)>\
+					%endforeach
+				}
+			}
+		%elseif ISEQUAL(platform, "STM")
+			{
+				struct can_frame sc_frame;
+				while (!osMessageQueueGet(can%<module_id_par>_rx_queue, &sc_frame, 0, 0)) {
+					%<message>.Length = GO_communication_can_packed_dlc(&sc_frame);
+					%<message>.ID = sc_frame.id;
+					%<message>.Extended = GO_communication_can_packed_is_ext_id(&sc_frame);
+					%<message>.Remote = GO_communication_can_packed_is_rtr(&sc_frame);
+					*(uint64_t *)&%<message>.Data[0] = *(uint64_t *)&sc_frame.data[0];
+					%foreach callIdx = NumSFcnSysOutputCalls
+						%if LibIsEqual(SFcnSystemOutputCall[callIdx].BlockToCall,"unconnected")
+							%continue
+						%endif
+						%<LibBlockExecuteFcnCall(block, callIdx)>\
+					%endforeach
+				}
+			}
+		%endif
+	%endif
+%endfunction
+
+%% Function: Terminate =========================================================
+%function Terminate(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%assign module_id_par = CanKey(block)
+		%<CloseCanSocket(module_id_par)>
+	%endif
+%endfunction

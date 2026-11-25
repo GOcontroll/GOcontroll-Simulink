@@ -1,0 +1,3 @@
+[submodule "blockset/GOcontroll-CodeBase"]
+	path = blockset/GOcontroll-CodeBase
+	url = https://github.com/GOcontroll/GOcontroll-CodeBase.git

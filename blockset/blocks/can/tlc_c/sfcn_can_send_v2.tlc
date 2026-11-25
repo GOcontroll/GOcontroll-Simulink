@@ -1,0 +1,90 @@
+%% GOcontroll 2025 http://www.gocontroll.com All rights reserved
+%% File : sfcn_can_send_v2.tlc
+%% Brief : TLC for the CAN send block - both Linux (SocketCAN) and STM (FDCAN).
+
+%implements sfcn_can_send_v2 "C"
+
+%include "go_platform.tlc"
+%include "can_common.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%<LibAddToCommonIncludes("GO_communication_can.h")>
+		%if !SLibCodeGenForSim()
+			%<LibAddToCommonIncludes("can_message.h")>
+		%endif
+	%elseif ISEQUAL(platform, "STM")
+		%if !SLibCodeGenForSim()
+			%<LibAddToCommonIncludes("can_message.h")>
+			%<LibAddToCommonIncludes("GO_communication_can.h")>
+			%<LibAddToCommonIncludes("fdcan.h")>
+		%endif
+	%endif
+%endfunction
+
+%% Function: BlockInstanceSetup ================================================
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%assign module_id_par = CanKey(block)
+		%<ClaimCanMode(block, module_id_par, "classic")>
+		%<CreateCanSocket(module_id_par)>
+	%endif
+%endfunction
+
+%% Function: Start =============================================================
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%assign module_id_par = CanKey(block)
+		%<InitCanSocket(module_id_par, CanIfName(block))>
+	%endif
+%endfunction
+
+%% Function: Outputs ===========================================================
+%function Outputs(block, system) Output
+	%if !SLibCodeGenForSim()
+		%assign platform = get_platform()
+		%assign message = LibBlockInputSignal(0, "", "", 0)
+		%assign module_id_par = CanKey(block)
+		%if ISEQUAL(platform, "Linux")
+			{
+				struct can_frame sc_frame;
+				sc_frame.can_dlc = %<message>.Length;
+				*(uint64_t *)&sc_frame.data[0] = *(uint64_t *)&%<message>.Data[0];
+				sc_frame.can_id = %<message>.ID;
+				if (%<message>.Extended)
+					sc_frame.can_id |= CAN_EFF_FLAG;
+				if (%<message>.Remote)
+					sc_frame.can_id |= CAN_RTR_FLAG;
+				send(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0);
+			}
+		%elseif ISEQUAL(platform, "STM")
+			{
+				FDCAN_TxHeaderTypeDef header = {0};
+				header.DataLength          = %<message>.Length;
+				header.Identifier          = %<message>.ID;
+				header.IdType              = %<message>.Extended ? FDCAN_EXTENDED_ID : FDCAN_STANDARD_ID;
+				header.TxFrameType         = %<message>.Remote ? FDCAN_REMOTE_FRAME : FDCAN_DATA_FRAME;
+				header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+				header.BitRateSwitch       = FDCAN_BRS_OFF;
+				header.FDFormat            = FDCAN_CLASSIC_CAN;
+				header.TxEventFifoControl  = FDCAN_NO_TX_EVENTS;
+				header.MessageMarker       = 0;
+				can_busload_count_frame(%<module_id_par>u, (uint8_t)%<message>.Length, %<message>.Extended != 0);
+				HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan%<module_id_par>, &header, %<message>.Data);
+			}
+		%endif
+	%endif
+%endfunction
+
+%% Function: Terminate =========================================================
+%function Terminate(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "Linux")
+		%assign module_id_par = CanKey(block)
+		%<CloseCanSocket(module_id_par)>
+	%endif
+%endfunction

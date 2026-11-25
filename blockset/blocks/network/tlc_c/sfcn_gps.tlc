@@ -1,0 +1,142 @@
+%%***************************************************************************************
+%% file         sfcn_gps.tlc
+%% brief        Target Language Compiler file that contains the code generation specifics
+%%              for an S-function with the same name.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%% Copyright 2025 (c) by GOcontroll http://www.gocontroll.com All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%%
+%%***************************************************************************************
+
+%implements sfcn_gps "C"
+
+%include "go_platform.tlc"
+
+%% Function: BlockTypeSetup ==========================================================
+%%
+%% Purpose:
+%%      Add the GPS header to the generated code includes.
+%%
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%<LibAddToCommonIncludes("GO_gps.h")>
+	%else
+		%<LibAddToCommonIncludes("pthread.h")>
+		%<LibAddToCommonIncludes("gps.h")>
+		%openfile variables
+			pthread_t gps_thread;
+			struct gps_data gps_data = {0};
+			static pthread_mutex_t gps_data_lock = PTHREAD_MUTEX_INITIALIZER;
+			struct gps_thread_args gps_thread_args = {&gps_data, &gps_data_lock, 1};
+		%closefile variables
+		%<LibSetSourceFileSection(LibGetModelDotCFile(), "Declarations", variables)>
+	%endif
+%endfunction
+
+%% Function: BlockInstanceSetup ======================================================
+%%
+%% Purpose:
+%%      Enforce that only one GPS block is present in the model.
+%%
+%function BlockInstanceSetup(block, system) void
+	%if EXISTS(::gps)
+		%<LibBlockReportError(block, "Only one gps block can be in the model")>
+	%else
+		%assign ::gps = 1
+	%endif
+%endfunction
+
+%% Function: Start ==========================================================
+%%
+%% Purpose:
+%%      Code generation for initialization.
+%%
+%function Start(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%openfile tmpBuf
+		struct gps_data gps_data;
+		%closefile tmpBuf
+		%assign srcFile = LibGetModelDotCFile()
+		%<LibSetSourceFileSection(srcFile, "UserTop", tmpBuf)>
+		GO_gps_initialize();
+	%else
+		pthread_create(&gps_thread, NULL, readGpsThread, &gps_thread_args);
+	%endif
+%endfunction
+
+%% Function: Outputs ==========================================================
+%%
+%% Purpose:
+%%      Code generation for signal output.
+%%
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		GO_gps_read(&gps_data);
+		%<LibBlockOutputSignal(0, "", "", 0)> = gps_data.longitude;
+		%<LibBlockOutputSignal(1, "", "", 0)> = gps_data.latitude;
+		%<LibBlockOutputSignal(2, "", "", 0)> = gps_data.altitude;
+		%<LibBlockOutputSignal(3, "", "", 0)> = gps_data.velocity;
+		%<LibBlockOutputSignal(4, "", "", 0)> = gps_data.year;
+		%<LibBlockOutputSignal(5, "", "", 0)> = gps_data.month;
+		%<LibBlockOutputSignal(6, "", "", 0)> = gps_data.day;
+		%<LibBlockOutputSignal(7, "", "", 0)> = gps_data.hour;
+		%<LibBlockOutputSignal(8, "", "", 0)> = gps_data.minute;
+		%<LibBlockOutputSignal(9, "", "", 0)> = gps_data.second;
+		%<LibBlockOutputSignal(10, "", "", 0)> = gps_data.valid;
+	%else
+		pthread_mutex_lock(&gps_data_lock);
+		%<LibBlockOutputSignal(0, "", "", 0)> = gps_data.longitude;
+		%<LibBlockOutputSignal(1, "", "", 0)> = gps_data.latitude;
+		%<LibBlockOutputSignal(2, "", "", 0)> = gps_data.altitude;
+		%<LibBlockOutputSignal(3, "", "", 0)> = gps_data.velocity;
+		%<LibBlockOutputSignal(4, "", "", 0)> = gps_data.year;
+		%<LibBlockOutputSignal(5, "", "", 0)> = gps_data.month;
+		%<LibBlockOutputSignal(6, "", "", 0)> = gps_data.day;
+		%<LibBlockOutputSignal(7, "", "", 0)> = gps_data.hour;
+		%<LibBlockOutputSignal(8, "", "", 0)> = gps_data.minute;
+		%<LibBlockOutputSignal(9, "", "", 0)> = gps_data.second;
+		%<LibBlockOutputSignal(10, "", "", 0)> = gps_data.valid;
+		pthread_mutex_unlock(&gps_data_lock);
+	%endif
+%endfunction
+
+%% Function: Terminate ==========================================================
+%%
+%% Purpose:
+%%      Code generation for termination.
+%%
+%function Terminate(block, system) Output
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		GO_gps_terminate();
+	%else
+		gps_thread_args.thread_run = 0;
+		pthread_join(gps_thread, NULL);
+	%endif
+%endfunction
+
+%%******************************* end of sfcn_gps.tlc ***************************

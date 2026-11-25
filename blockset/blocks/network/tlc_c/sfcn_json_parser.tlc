@@ -1,0 +1,141 @@
+%%***************************************************************************************
+%% file         sfcn_json_parser.tlc
+%% brief        TLC for the JSON Parser block.
+%%              Generates inline C code that searches a null-terminated JSON string for
+%%              each configured key and extracts the associated numeric value using strtod.
+%%
+%%              Parsed values are stored in a per-instance static array so that outputs
+%%              retain their last known value across model steps and when a key is absent
+%%              from the incoming JSON.  The static array is copied to the output signals
+%%              every step regardless of new_data, which prevents Simulink from treating
+%%              the outputs as temporary (rtb_) stack variables.
+%%
+%%              RTWdata fields expected (set by the mask Initialization callback):
+%%                num_signals  - number of output signals / keys (string "1".."8")
+%%                buf_size     - internal parse buffer capacity in bytes (string, e.g. "256")
+%%                key_0 .. key_(N-1) - JSON key name strings (0-indexed)
+%%
+%%              STM target only.
+%%
+%%---------------------------------------------------------------------------------------
+%%                          C O P Y R I G H T
+%%---------------------------------------------------------------------------------------
+%%  Copyright 2025 (c) by GOcontroll      http://www.gocontroll.com     All rights reserved
+%%
+%%---------------------------------------------------------------------------------------
+%%                            L I C E N S E
+%%---------------------------------------------------------------------------------------
+%% Permission is hereby granted, free of charge, to any person obtaining a copy of this
+%% software and associated documentation files (the "Software"), to deal in the Software
+%% without restriction, including without limitation the rights to use, copy, modify, merge,
+%% publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+%% persons to whom the Software is furnished to do so, subject to the following conditions:
+%%
+%% The above copyright notice and this permission notice shall be included in all copies or
+%% substantial portions of the Software.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+%% INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+%% PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+%% FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+%% OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+%% DEALINGS IN THE SOFTWARE.
+%%
+%%***************************************************************************************
+
+%implements sfcn_json_parser "C"
+
+%include "go_platform.tlc"
+
+%% Function: BlockTypeSetup ============================================================
+%function BlockTypeSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%<LibAddToCommonIncludes("string.h")>
+		%<LibAddToCommonIncludes("stdlib.h")>
+	%endif
+%endfunction
+
+%% Function: BlockInstanceSetup ========================================================
+%% Declares a static array to hold the last parsed value for each key.
+%% Zero-initialised by C; retains its value across model steps.
+%%
+%function BlockInstanceSetup(block, system) void
+	%assign platform = get_platform()
+	%if ISEQUAL(platform, "STM")
+		%assign num_signals = CAST("Number", block.RTWdata.num_signals)
+		%assign id      = block.Identifier
+		%assign srcFile = LibGetModelDotCFile()
+		%openfile defs
+static real_T json_parser_%<id>_vals[%<num_signals>];
+		%closefile defs
+		%<LibSetSourceFileSection(srcFile, "Definitions", defs)>
+	%endif
+%endfunction
+
+%% Function: Outputs ===================================================================
+%% When new_data == 1, parsed key values are stored in the per-instance static array.
+%% Every step the static array is written to the output signals, so the downstream
+%% blocks always receive the last known value rather than a stale stack variable.
+%%
+%function Outputs(block, system) Output
+	%assign platform = get_platform()
+	%if !ISEQUAL(platform, "STM")
+		%<LibBlockReportError(block, "The JSON Parser block is only supported on the Moduline S1 target.")>
+	%endif
+
+	%assign num_signals = CAST("Number", block.RTWdata.num_signals)
+	%assign buf_size    = block.RTWdata.buf_size
+	%assign id          = block.Identifier
+
+    {
+        /* Update stored values only when a new MQTT message has arrived */
+        if (%<LibBlockInputSignal(0, "", "", 0)>) {
+            char     json_buf[%<buf_size>];
+            uint16_T json_len = %<LibBlockInputSignal(1, "", "", 0)>;
+            const char *kpos;
+
+            /* Clamp length and copy payload into a null-terminated local buffer */
+            if (json_len > (uint16_T)(sizeof(json_buf) - 1u))
+                json_len = (uint16_T)(sizeof(json_buf) - 1u);
+            memcpy(json_buf, %<LibBlockInputSignalAddr(2, "", "", 0)>, (size_t)json_len);
+            json_buf[json_len] = '\0';
+
+		%foreach idx = num_signals
+			%% Resolve the key name for this index from RTWdata (0-indexed)
+			%if idx == 0
+				%assign key = block.RTWdata.key_0
+			%elseif idx == 1
+				%assign key = block.RTWdata.key_1
+			%elseif idx == 2
+				%assign key = block.RTWdata.key_2
+			%elseif idx == 3
+				%assign key = block.RTWdata.key_3
+			%elseif idx == 4
+				%assign key = block.RTWdata.key_4
+			%elseif idx == 5
+				%assign key = block.RTWdata.key_5
+			%elseif idx == 6
+				%assign key = block.RTWdata.key_6
+			%elseif idx == 7
+				%assign key = block.RTWdata.key_7
+			%endif
+
+            /* Key: "%<key>" */
+            kpos = strstr(json_buf, "\"%<key>\":");
+            if (kpos != NULL) {
+                kpos += sizeof("\"%<key>\":") - 1u;
+                while (*kpos == ' ' || *kpos == '\t') kpos++;
+                json_parser_%<id>_vals[%<idx>] = (real_T)strtod(kpos, NULL);
+            }
+		%endforeach
+        }
+
+        /* Always publish the retained values to the output signals */
+		%foreach idx = num_signals
+        %<LibBlockOutputSignal(idx, "", "", 0)> = json_parser_%<id>_vals[%<idx>];
+		%endforeach
+    }
+%endfunction
+
+%%****************************** end of sfcn_json_parser.tlc **************************

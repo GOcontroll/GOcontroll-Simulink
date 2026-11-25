@@ -1,0 +1,32 @@
+%% GOcontroll 2025 http://www.gocontroll.com All rights reserved
+%% File : go_platform.tlc
+%% Brief : Platform detection for GOcontroll targets.
+%%         Returns "STM" for the Moduline S1 (STM32H5) target,
+%%         "Linux" for the Moduline L4 / M1 / HMI1 targets.
+%%         The target -> platform mapping itself lives in go_target_platform.m,
+%%         so TLC and the MATLAB build hooks always agree.
+
+%function get_platform()
+	%if EXISTS(::gocontroll_platform)
+		%return ::gocontroll_platform
+	%else
+		%assign modelname = CompiledModel.Name
+		%assign target = FEVAL("get_param", modelname, "tlcGOcontrollTarget")
+		%assign ::gocontroll_platform = FEVAL("go_target_platform", target)
+		%return ::gocontroll_platform
+	%endif
+%endfunction
+
+%% Stops code generation when a block is used on a platform it does not support.
+%% Platform is "Linux" (Moduline M1, L4, HMI1) or "STM" (Moduline S1). The masks
+%% report the same rule earlier, through go_block_platform_check.m.
+%function RequirePlatform(block, Platform) void
+	%if !ISEQUAL(get_platform(), Platform)
+		%if ISEQUAL(Platform, "Linux")
+			%assign plname = "the Linux controllers (Moduline M1, L4, HMI1)"
+		%else
+			%assign plname = "the Moduline S1"
+		%endif
+		%<LibBlockReportError(block, "This block is for %<plname> only and cannot be used in a model for another controller.")>
+	%endif
+%endfunction

@@ -1,95 +1,103 @@
-[![View Climate Data Store Toolbox on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/168916-gocontroll-simulink)
-
 # GOcontroll-Simulink
-A Matlab/Simulink toolbox for working with GOcontroll Moduline controllers, it contains a blockset to access the hardware and a toolchain to compile it.  
-This is the branch made with Matlab 2023b+, it will not work for 2018b, see the 2018b branch for that version.
 
-## Upgrading from the 2018b blockset/installing
+The MATLAB Simulink blockset for the GOcontroll Moduline controllers: the block libraries,
+the Embedded Coder target and two model templates.
 
-Notice: Change the default addon location so it contains no spaces. Make really doesn't like spaces in file paths.  
-This can be done in the **HOME** tab of **Matlab** -> **preferences** (environment section) -> **MATLAB** -> **Add-Ons**.  
-Change the installation folder to something like "MATLAB*your matlab version*_addons", do this for all your Matlab installations.  
-This way it is also easier to maintain version compatibility between toolboxes and Matlab. For more info see [the help page](https://nl.mathworks.com/help/matlab/matlab_env/get-add-ons.html).  
-For Windows users it is especially recommended to change this folder to a shorter path. Windows by default has a 256 character file path limit and there have been issues because of this, it should be fine as long as your username part of the path is shorter than 20 characters.  
+| Controller | Platform |
+|---|---|
+| Moduline S1 | STM32, FreeRTOS |
+| Moduline M1, L4, HMI1 | Linux (ARM64) |
 
-To update your project to the 2023b+ blockset you can do these steps:
-1. Copy your project so we have a test version for the new blockset without changing your current version.
-2. Install the GOcontroll-Simulink blockset through either the mltbx downloaded from the github.com releases page or through the Matlab add-on explorer.
-3. In your model, right click on an open space and open the 'Model Properties' menu, select the Callbacks tab, in either PreLoadFcn or PostLoadFcn remove the call to 'librarySetup' as this script will now disturb the newly installed toolbox.
-4. Restart Matlab for good measure, now there are some potential breaking changes to check.
-5. If you are using any output module monitor blocks, check these as they've had a change in this version, this causes the signals to no longer be attached to the correct outputs of the block.
-6. Check if the CAN blocks are linked correctly to the library, if there is some issue here check [the changelog](blockset/ert_linux_target_version.m) of V3.4.0.
+This repository is the blockset only. **To start a project, use
+[GOcontroll-Simulink-Starter](https://github.com/GOcontroll/GOcontroll-Simulink-Starter)**: a
+ready project folder that carries this repository as a git submodule. Your models stay in your
+own repository and you update the blockset with one git command.
 
-This blockset contains some new blocks, biggest of which are the UDP blocks and the new CAN blocks. These new blocks have examples included in the library that you can refer to. It is possible to use the new and old CAN blocks together, if one bus only has old or only has new blocks it will be good, mixing old and new blocks on one bus seems to work aswell but it is not recommended.
+Documentation: the [GOcontroll knowledge base](https://gocontroll.com/knowledge-base/).
 
-## Important notice for users upgrading to this blockset with an older controller
+## What you need
 
-For licensing reasons one library required for building the model must be dynamically linked in, this means that ./blockset/lib/IIO/libiio.so.0 must be uploaded to the target controller to /usr/lib/  
-If your controller is running release 0.5.0 or higher you are not affected and can ignore this.  
-To check what release your controller is running see /etc/controller_update/current-release.txt or run the identify command and look for the repo release field (all on the controller).
+- **MATLAB R2023b or later**, with Simulink, Embedded Coder, MATLAB Coder and Simulink Coder.
+  The libraries and templates are saved in R2023b.
+- **Git.**
+- **A compiler**, with its `bin` folder on the system `PATH` (or its folder filled in once in
+  `blockset/utility_functions/getInstallationLocation.m`):
 
-## GOcontroll Moduline IV toolchain setup
+  | For | Compiler | Name the blockset calls |
+  |---|---|---|
+  | Moduline S1 | Arm GNU Toolchain, bare metal | `arm-none-eabi-gcc` |
+  | Moduline M1, L4, HMI1 (*Compiler* = GCC) | Arm GNU Toolchain for 64 bit Linux | `aarch64-none-linux-gnu-gcc` |
+  | Moduline M1, L4, HMI1 (*Compiler* = Zig) | Zig | `zig` |
 
-To compile the Linux based blockset for GOcontroll Moduline IV/Mini/Display, some initial steps needs to be made:
-- To compile some necessary mex files on Windows you may need to install the "MATLAB Support for MinGW-w64 C/C++/Fortran Compiler" add-on from the Matlab add-on explorer.
-- To compile some necessary mex files on Mac you need to install and activate some Xcode programs. To install the proper components run `xcode-select --install` and `defaults write com.apple.dt.Xcode IDEXcodeVersionForAgreedToGMLicense 12.0` where 12.0 has to be replaced with your xcode version.
+## Using the blockset in a project
 
-## Setting up a new project
-There are two ways to set up a project, using a rolling release or a locked version.  
-A project set up using the Rolling release method will use the installed version of the blockset.  
-So when the blockset is updated through the Add-On manager, all projects using this will automatically use the new version.  
-  
-The locked version method creates a project that is locked to the version of the blockset that is installed at the point of project creation.  
-This makes sure there will never be a sudden breaking change that has to be dealt with, but makes getting updates much more difficult.
+The recommended layout keeps the blockset in a subfolder of your project:
 
-### Rolling release
-1. Install the addon from the Matlab addon explorer
-2. In the 'HOME' tab of Matlab, from the 'New' dropdown menu, select 'Simulink Model'
-3. Make a new Simulink model with the 'GOcontroll Linux' template
-4. Save the model
-5. Build
-
-### Locked version
-1. The add-on must be installed through the addon store to install the compilers and such
-2. If you are using git as your version control, init your git project and add this repo as a submodule, you can then check out any version of the blockset with git/update it at will.
-3. Create a Matlab project for your project then in the project tab use the 'References' menu to add a reference to 'GOcontrollSimulink2023b.prj' in the cloned blockset. When working in a team it is recommended to use a relative reference so it will also work on their system.
-
-## Adding a project specific library
-
-To add your own reusable blocks it is possible to create your own library that will be loaded upon startup.  
-**It is not a good idea to modify the existing GOcontroll libraries, as this will cause major issues when you want to update.**
-1. Create a folder in your project that will contain the library.
-2. In Matlab on the 'HOME' tab, select 'Simulink Model' from the 'New' dropdown menu. Select the 'Blank Library' option, place your block(s) in here and save it in this new folder
-3. With the library open, unlock it and then run `set_param('YourLibraryFileName','EnableLBRepository','on');` and then save it
-4. In this folder create a file called 'slblocks.m'
-5. In this file should be the following with the 2 name fields replaced with relevant values for you:
-```matlab
-function blkStruct = slblocks()
-	Browser.Library = 'YourLibraryFileName'; %no file extension, so 'Library.mdl' would be 'Library'
-	Browser.Name = 'VisualLibraryName'; %this name will show up in the Library Browser
-	blkStruct.Browser = Browser;
-end
 ```
-6. Add this folder to the path of your project so it gets properly loaded. This is done in the 'PROJECT' tab of Matlab, from this tab select 'Project Path'. Then use either 'Add Folder' or 'Add with Subfolders' to add your new folder to the path
+MyProject/                      your own repository
+├── MyModel.slx                 your models
+├── startup.m                   puts the blockset on the MATLAB path
+├── librarySetup.m              forwards to the blockset
+└── GOcontroll-Simulink/        this repository, as a submodule
+    └── blockset/
+        └── GOcontroll-CodeBase/    the C code base, a submodule of this repository
+```
 
-for more info see the [Matlab documentation](https://nl.mathworks.com/help/simulink/ug/adding-libraries-to-the-library-browser.html).
+[GOcontroll-Simulink-Starter](https://github.com/GOcontroll/GOcontroll-Simulink-Starter) is
+exactly this layout. To add the blockset to an existing repository instead:
 
-## Developing the blockset
+```
+git submodule add https://github.com/GOcontroll/GOcontroll-Simulink.git GOcontroll-Simulink
+git submodule update --init --recursive
+```
 
-Since this blockset is intended to support 2023b and up, it is best to do any development in 2023b.  
-This way there is no risk of accidentally adding unsupport features. All files like the blockset also need to be saved in the 2023b format.  
+and copy `startup.m` and `librarySetup.m` from the starter into the root of your project.
 
-To develop for this project, fork/clone it, then open the Matlab project in the repo.  
-This will disable the installed version and allow you to work with the one that is tracked in git.
+Then:
 
-Never commit +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx, in theory this should work out fine, but as it is a binary file it will cause annoying merge conflicts. Revert/discard changes before comitting.  
-This file will get automatically updated to your local situation everytime the Matlab project is opened.  
-To force this run `git update-index --skip-worktree +GOcontroll_Simulink_2023b_dev/getInstallationLocation.mlx` in the repository.  
-This will make sure this file doesn't show up in `git status` for example.
+1. Start MATLAB in the project folder. `startup.m` puts the blockset on the path.
+2. *New > Simulink Model*, group **GOcontroll**: choose the template **GOcontroll Moduline S1**
+   or **GOcontroll Moduline M1 / L4 / HMI1**, and save the model in the project folder.
+3. Choose the controller under *Configuration Parameters > Code Generation > GOcontroll
+   options > Target*.
+4. Build (Ctrl+B) with the project folder as MATLAB's current folder.
 
-## Support
+A build writes `<model>_<major>.<minor>.<patch>` with the extensions `.elf`, `.a2l` and `.map`
+(Moduline S1 also `.srec` and `.bin`) into `build/` next to the model. The version comes from
+the **Software version** block in the model.
 
-Please let us know when interface blocks are not working properly. You can contact us at support@gocontroll.com  
-Or make a pull request with changes to fix issues that you are experiencing.
+For the Linux controllers, `ManualUpload <model> <controller address>` in the MATLAB command
+window sends the newest `.elf` and `.a2l` to the controller.
 
-The [changelog](/blockset/ert_linux_target_version.m) can be found in blockset/ert_linux_target_version.m
+## Updating the blockset
+
+In a project that carries this repository as a submodule:
+
+```
+git submodule update --remote GOcontroll-Simulink
+git submodule update --init --recursive
+```
+
+The first command fetches the newest blockset; the second puts the code base inside it on the
+version that belongs to that blockset. Restart MATLAB afterwards. Your project records which version of the blockset it uses; commit the changed submodule
+together with your models once they build with the new version.
+
+## Cloning this repository on its own
+
+```
+git clone --recurse-submodules https://github.com/GOcontroll/GOcontroll-Simulink.git
+```
+
+The blockset relies on [GOcontroll-CodeBase](https://github.com/GOcontroll/GOcontroll-CodeBase),
+which is a submodule in `blockset/GOcontroll-CodeBase`. Without `--recurse-submodules`, run
+`git submodule update --init --recursive` afterwards.
+
+## Earlier versions
+
+Blockset 4.x is on the branch [`gps`](https://github.com/GOcontroll/GOcontroll-Simulink/tree/gps)
+(release V4.6.0). Version 5 has a different folder layout and one target for all controllers;
+a model made with 4.x has to be moved to a new model made from a template.
+
+## License
+
+MIT, see [LICENSE](LICENSE). The model templates carry a disclaimer: read it before use.

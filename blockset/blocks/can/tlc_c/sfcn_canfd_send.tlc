@@ -1,0 +1,93 @@
+%% GOcontroll 2026 http://www.gocontroll.com All rights reserved
+%% File : sfcn_canfd_send.tlc
+%% Brief : TLC for the CAN FD send block - Linux (SocketCAN) only.
+%%         Sends the CAN_FD_MESSAGE_BUS on its input: as a classic CAN frame when
+%%         its ProtocolMode is CAN, as a CAN FD frame when it is CAN FD.
+
+%implements sfcn_canfd_send "C"
+
+%include "go_platform.tlc"
+%include "can_common.tlc"
+
+%% Function: BlockTypeSetup ====================================================
+%function BlockTypeSetup(block, system) void
+	%if ISEQUAL(get_platform(), "Linux")
+		%<LibAddToCommonIncludes("GO_communication_can.h")>
+	%endif
+%endfunction
+
+%% Function: BlockInstanceSetup ================================================
+%function BlockInstanceSetup(block, system) void
+	%if !ISEQUAL(get_platform(), "Linux")
+		%<LibBlockReportError(block, "The CAN FD Send block is for the Linux controllers (Moduline M1, L4, HMI1) only.")>
+	%endif
+	%assign module_id_par = CanKey(block)
+	%<ClaimCanMode(block, module_id_par, "fd")>
+	%<CreateCanSocket(module_id_par)>
+%endfunction
+
+%% Function: Start =============================================================
+%function Start(block, system) Output
+	%assign module_id_par = CanKey(block)
+	%<InitCanSocket(module_id_par, CanIfName(block))>
+	%<EnableCanFd(module_id_par)>
+%endfunction
+
+%% Function: Outputs ===========================================================
+%function Outputs(block, system) Output
+	%if !SLibCodeGenForSim()
+		%assign module_id_par = CanKey(block)
+		%assign message = LibBlockInputSignal(0, "", "", 0)
+		if (can_%<module_id_par> != -1) {
+			uint32_T can_id = %<message>.ID;
+			if (%<message>.Extended) {
+				can_id |= CAN_EFF_FLAG;
+			}
+			if (%<message>.ProtocolMode == 0U) {
+				/* classic CAN frame */
+				struct can_frame sc_frame;
+				uint8_T len = %<message>.Length;
+				if (len > 8U) {
+					len = 8U;
+				}
+				memset(&sc_frame, 0, sizeof(sc_frame));
+				if (%<message>.Remote) {
+					can_id |= CAN_RTR_FLAG;
+				}
+				sc_frame.can_id = can_id;
+				sc_frame.can_dlc = len;
+				memcpy(&sc_frame.data[0], &%<message>.Data[0], len);
+				send(can_%<module_id_par>, &sc_frame, sizeof(sc_frame), 0);
+			} else {
+				/* CAN FD frame; a length between two valid lengths is rounded up, padded with zeros */
+				static const uint8_T canfd_len[16] = {0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 8U, 12U, 16U, 20U, 24U, 32U, 48U, 64U};
+				struct canfd_frame fd_frame;
+				uint8_T len = %<message>.Length;
+				uint8_T dlc = 0U;
+				if (len > 64U) {
+					len = 64U;
+				}
+				while (dlc < 15U && canfd_len[dlc] < len) {
+					dlc++;
+				}
+				memset(&fd_frame, 0, sizeof(fd_frame));
+				fd_frame.can_id = can_id;
+				fd_frame.len = canfd_len[dlc];
+				if (%<message>.BRS) {
+					fd_frame.flags |= CANFD_BRS;
+				}
+				if (%<message>.ESI) {
+					fd_frame.flags |= CANFD_ESI;
+				}
+				memcpy(&fd_frame.data[0], &%<message>.Data[0], len);
+				send(can_%<module_id_par>, &fd_frame, sizeof(fd_frame), 0);
+			}
+		}
+	%endif
+%endfunction
+
+%% Function: Terminate =========================================================
+%function Terminate(block, system) Output
+	%assign module_id_par = CanKey(block)
+	%<CloseCanSocket(module_id_par)>
+%endfunction

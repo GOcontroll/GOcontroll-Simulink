@@ -1,0 +1,14 @@
+%function mem_diag_type_setup() void
+	%<LibAddToCommonIncludes("GO_memory.h")>
+%endfunction
+
+%function mem_diag_start() Output
+	%if EXISTS(::memory_diag_init) == 0
+		%assign ::memory_diag_init = 1
+		%openfile tmpBuf
+		GO_memory_diagnostic_initialize();
+		%closefile tmpBuf
+
+		%<LibMdlStartCustomCode(tmpBuf, "execution")>
+	%endif
+%endfunction
