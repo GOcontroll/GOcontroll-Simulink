@@ -44,7 +44,7 @@ function ManualUpload(modelname, ip, options)
 %   to build. The Node-RED nodes for Simulink signals look for GOcontroll_Linux.elf; use
 %   remoteName="GOcontroll_Linux" when the model has another name and you use those nodes.
 %
-%   Command form:  ManualUpload MyModel 192.168.1.19
+%   Command form:  ManualUpload MyModel 192.168.19.85
 %
 %   The Moduline S1 is not programmed this way.
 
