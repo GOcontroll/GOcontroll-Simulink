@@ -221,7 +221,8 @@ switch hookMethod
 				addTMFTokens(buildInfo, '|>OC<|', [zigpath ' oc'],'LINK_INFO');
 				addTMFTokens(buildInfo, '|>OD<|', '','LINK_INFO');
 				addTMFTokens(buildInfo, '|>SZ<|', '','LINK_INFO');
-				addCompileFlags(buildInfo, '-mcpu=cortex_a53 -gdwarf64');
+				% GOCONTROLL_LINUX selects the Linux code of the CodeBase, as with GCC.
+				addCompileFlags(buildInfo, '-mcpu=cortex_a53 -gdwarf64 -DGOCONTROLL_LINUX');
 			else
 				error("No valid compiler selected");
 			end
