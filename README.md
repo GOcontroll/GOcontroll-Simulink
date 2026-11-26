@@ -32,7 +32,7 @@ Documentation: the [GOcontroll knowledge base](https://gocontroll.com/knowledge-
 
   A compiler is looked up in this order: a folder filled in in
   `blockset/utility_functions/getInstallationLocation.m`, then the compilers installed with
-  `GOcontrollInstallCompilers` (`%LOCALAPPDATA%\GOcontroll	c` on Windows,
+  `GOcontrollInstallCompilers` (`%LOCALAPPDATA%\GOcontroll\tc` on Windows,
   `~/.gocontroll/tc` elsewhere), then the system `PATH`.
 
 ## Using the blockset in a project
