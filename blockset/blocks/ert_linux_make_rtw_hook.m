@@ -491,6 +491,21 @@ switch hookMethod
 				end
 			end
 			disp(['### Build artefacts in build/ are named ' outputName '.*']);
+
+			% Upload the build to the controller when the option Upload asks for it.
+			% An upload that fails leaves the build as it is: the artefacts are in build/.
+			if strcmp(get_param(modelName, 'tlcAutoUpload'), 'Auto upload')
+				try
+					if strcmp(go_target_platform(LinuxTarget), 'STM')
+						ManualUpload(modelName, get_param(modelName, 'tlcUploadS1Controller'));
+					else
+						ManualUpload(modelName, XCPaddress, port=num2str(get_param(modelName, 'tlcUploadPort')));
+					end
+				catch uploadError
+					warning('GOcontroll:uploadFailed', ...
+						'### The build is ready in build/, but it was not uploaded: %s', uploadError.message);
+				end
+			end
 		end
 
 

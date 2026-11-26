@@ -30,7 +30,19 @@
 
 function [version] = GOcontroll_Simulink_version()
 
-version = 'GOcontroll V5.0.0';
+version = 'GOcontroll V5.0.1';
+
+%% V5.0.1 Update 26-11-2026:
+% The upload after a build is back: the option Upload (Do not upload / Auto upload) in
+%   Configuration Parameters > Code Generation > GOcontroll options. It is off by default
+% Linux controllers: upload to the XCP address through the go-upload-server, with the new
+%   option Upload port (8001)
+% Moduline S1: upload over Bluetooth (go_s1_upload). The blockset packs the .bin for the
+%   controller that is connected and follows it until it has programmed the application.
+%   The option S1 controller names the controller by serial number or Bluetooth address
+%   when more than one is in range. Packages are not signed: a controller that carries a
+%   public key is still flashed with the GOcontroll Suite
+% ManualUpload <model> also uploads a Moduline S1 build, over Bluetooth
 
 %% V5.0.0 Update 25-11-2026:
 % Add the Moduline S1 (STM32H5) next to the Linux controllers: one system target file

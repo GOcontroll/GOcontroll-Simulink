@@ -1,6 +1,7 @@
 %%***************************************************************************************
 %% file         ManualUpload.m
-%% brief        Uploads a built Linux application and its a2l file to a controller.
+%% brief        Uploads the newest build of a model to a controller: a Linux controller
+%%              over the network, a Moduline S1 over Bluetooth.
 %%
 %%---------------------------------------------------------------------------------------
 %%                          C O P Y R I G H T
@@ -29,12 +30,15 @@
 %%***************************************************************************************
 
 function ManualUpload(modelname, ip, options)
-% MANUALUPLOAD Upload a model and its a2l file to a Linux controller (Moduline M1, L4, HMI1)
-%   that runs the go-upload-server.
+% MANUALUPLOAD Upload the newest build of a model to a controller.
 %
-%   MANUALUPLOAD(MODEL, ADDRESS) uploads the newest build of MODEL to ADDRESS, port 8001.
 %   The build is taken from the folder build/ next to the model (or in the current folder),
-%   where a build leaves <MODEL>_<major>.<minor>.<patch>.elf and .a2l.
+%   where a build leaves <MODEL>_<major>.<minor>.<patch>.elf, .a2l and, for the Moduline S1,
+%   .bin.
+%
+%   Linux controllers (Moduline M1, L4, HMI1), to the go-upload-server on the controller:
+%
+%   MANUALUPLOAD(MODEL, ADDRESS) uploads the elf and the a2l to ADDRESS, port 8001.
 %
 %   MANUALUPLOAD(MODEL, ADDRESS, port=PORT) uses another port.
 %
@@ -44,13 +48,22 @@ function ManualUpload(modelname, ip, options)
 %   to build. The Node-RED nodes for Simulink signals look for GOcontroll_Linux.elf; use
 %   remoteName="GOcontroll_Linux" when the model has another name and you use those nodes.
 %
-%   Command form:  ManualUpload MyModel 192.168.19.85
+%   Moduline S1, over Bluetooth:
 %
-%   The Moduline S1 is not programmed this way.
+%   MANUALUPLOAD(MODEL) programs the Moduline S1 that is in range.
+%
+%   MANUALUPLOAD(MODEL, CONTROLLER) programs the Moduline S1 with that serial number or
+%   Bluetooth address. See go_s1_upload.
+%
+%   Command form:  ManualUpload MyModel 192.168.19.85
+%                  ManualUpload MyS1Model
+%
+%   A build can do this by itself: the option Upload in Configuration Parameters > Code
+%   Generation > GOcontroll options.
 
 arguments
 	modelname {mustBeTextScalar}
-	ip {mustBeTextScalar}
+	ip {mustBeTextScalar} = ''
 	options.port {mustBeTextScalar} = '8001'
 	options.remoteName {mustBeTextScalar} = ''
 end
@@ -63,16 +76,12 @@ end
 
 % A model that is open tells us its folder and its platform
 searchDirs = {fullfile(pwd, 'build'), pwd};
+platform = '';
 if bdIsLoaded(modelname)
 	try
-		target = get_param(getActiveConfigSet(modelname), 'tlcGOcontrollTarget');
-		if strcmp(go_target_platform(target), 'STM')
-			error('ManualUpload:notLinux', ...
-				['''%s'' is built for the %s. ManualUpload is for the Linux controllers ' ...
-				 '(Moduline M1, L4, HMI1) only.'], modelname, target);
-		end
-	catch ME
-		if strcmp(ME.identifier, 'ManualUpload:notLinux'), rethrow(ME); end
+		platform = go_target_platform(get_param(getActiveConfigSet(modelname), 'tlcGOcontrollTarget'));
+	catch
+		% not a GOcontroll model: the build decides below
 	end
 	modelDir = fileparts(get_param(modelname, 'FileName'));
 	if ~isempty(modelDir)
@@ -85,6 +94,21 @@ if isempty(elfPath)
 	error('ManualUpload:noElf', ...
 		'Could not find the elf that belongs with %s. Build the model first; looked in: %s', ...
 		modelname, strjoin(unique(searchDirs, 'stable'), ', '));
+end
+
+% Only a build for the Moduline S1 leaves a .bin next to the elf
+binPath = [elfPath(1:end-4) '.bin'];
+if isempty(platform)
+	if isfile(binPath), platform = 'STM'; else, platform = 'Linux'; end
+end
+if strcmp(platform, 'STM')
+	go_s1_upload(binPath, controller=ip);
+	return
+end
+
+if isempty(ip)
+	error('ManualUpload:noAddress', ...
+		'Give the address of the controller: ManualUpload %s <address>, for example 192.168.19.85.', modelname);
 end
 % the a2l of the same build sits next to the elf under the same name
 a2lPath = [elfPath(1:end-4) '.a2l'];

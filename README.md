@@ -72,8 +72,34 @@ A build writes `<model>_<major>.<minor>.<patch>` with the extensions `.elf`, `.a
 (Moduline S1 also `.srec` and `.bin`) into `build/` next to the model. The version comes from
 the **Software version** block in the model.
 
-For the Linux controllers, `ManualUpload <model> <controller address>` in the MATLAB command
-window sends the newest `.elf` and `.a2l` to the controller.
+## Uploading to the controller
+
+From the MATLAB command window, with the newest build in `build/`:
+
+| Controller | Command | How |
+|---|---|---|
+| Moduline M1, L4, HMI1 | `ManualUpload <model> <controller address>` | The `.elf` and `.a2l` go to the `go-upload-server` on the controller (port 8001; `port=` for another) |
+| Moduline S1 | `ManualUpload <model>` | The `.bin` is packed for the controller and sent over Bluetooth; the controller programs it and restarts |
+
+Or let every build do it (since 5.0.1): *Configuration Parameters > Code Generation > GOcontroll
+options > Upload > Auto upload*. It is off by default. A Linux controller is reached at the
+*XCP address* and the *Upload port*. An upload that fails leaves the build in `build/` and
+shows a warning.
+
+For the Moduline S1 (new in 5.0.1):
+
+- Bluetooth must be on, on a Windows or macOS computer, and the controller powered and within a
+  few metres. Only one host can be connected to a controller: disconnect the phone app and the
+  GOcontroll Suite first.
+- With one Moduline S1 in range nothing has to be chosen. With more than one, name the controller
+  by the serial number on its label or by its Bluetooth address: the option *S1 controller*, or
+  `ManualUpload <model> A4CG-B034-A003-A002`.
+- The package carries the App ID the controller reports and the version of the build. It is
+  **not signed**: a controller that takes signed software only refuses it, and the upload says so
+  before anything is sent.
+
+`test/go_s1_upload_test.m` checks the package and the upload without a controller:
+`runtests('test/go_s1_upload_test.m')` in the blockset folder, after `librarySetup`.
 
 ## Updating the blockset
 

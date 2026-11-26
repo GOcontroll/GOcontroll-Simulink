@@ -54,7 +54,7 @@
   rtwoptions(1).prompt        = 'GOcontroll options';
   rtwoptions(1).type          = 'Category';
   rtwoptions(1).enable        = 'on';
-  rtwoptions(1).default       = 8;   % items 2..9
+  rtwoptions(1).default       = 11;  % items 2..12
   rtwoptions(1).popupstrings  = '';
   rtwoptions(1).tlcvariable   = '';
   rtwoptions(1).tooltip       = '';
@@ -142,16 +142,52 @@
   rtwoptions(8).tooltip       = 'Remove slprj/, <model>_generated_code/ and <model>.slxc after a successful build';
 
   % -----------------------------------------------------------------------
-  % (9) Platform lock  [not shown in the dialog]
+  % (9) Upload  [always visible]
+  % 'Auto upload': a successful build puts the application on the controller
+  % (ManualUpload from the after_make hook): a Linux controller at the XCP address
+  % through its go-upload-server, a Moduline S1 over Bluetooth.
+  % 'Do not upload' is the first entry on purpose: a model saved before this
+  % option existed falls back to the first entry, and must not start uploading.
+  % -----------------------------------------------------------------------
+  rtwoptions(9).prompt        = 'Upload';
+  rtwoptions(9).type          = 'Popup';
+  rtwoptions(9).default       = 'Do not upload';
+  rtwoptions(9).popupstrings  = 'Do not upload|Auto upload';
+  rtwoptions(9).tlcvariable   = 'tlcAutoUpload';
+  rtwoptions(9).tooltip       = ['Auto upload: after a successful build the application is uploaded to the controller. ' ...
+                                 'Moduline M1 / L4 / HMI1: to the XCP address, through the go-upload-server on the controller. ' ...
+                                 'Moduline S1: over Bluetooth.'];
+
+  % -----------------------------------------------------------------------
+  % (10) Upload port  [Linux only]
+  % -----------------------------------------------------------------------
+  rtwoptions(10).prompt       = 'Upload port';
+  rtwoptions(10).type         = 'Edit';
+  rtwoptions(10).default      = '8001';
+  rtwoptions(10).tlcvariable  = 'tlcUploadPort';
+  rtwoptions(10).tooltip      = 'Port of the go-upload-server on the Linux target; the address is the XCP address';
+
+  % -----------------------------------------------------------------------
+  % (11) S1 controller  [STM only]
+  % -----------------------------------------------------------------------
+  rtwoptions(11).prompt       = 'S1 controller';
+  rtwoptions(11).type         = 'Edit';
+  rtwoptions(11).default      = '';
+  rtwoptions(11).tlcvariable  = 'tlcUploadS1Controller';
+  rtwoptions(11).tooltip      = ['Serial number (as on the label) or Bluetooth address of the Moduline S1 to upload to. ' ...
+                                 'Empty: the Moduline S1 that is in range; with more than one in range the upload stops and lists them.'];
+
+  % -----------------------------------------------------------------------
+  % (12) Platform lock  [not shown in the dialog]
   % Empty: every Target can be selected. 'Linux' or 'STM': the model belongs to
   % that platform; the Target callback refuses a Target of the other platform and
   % the build stops on one (go_platform_lock_check). The model templates set it.
   % -----------------------------------------------------------------------
-  rtwoptions(9).prompt        = 'Platform lock';
-  rtwoptions(9).type          = 'NonUI';
-  rtwoptions(9).default       = '';
-  rtwoptions(9).tlcvariable   = 'tlcGOcontrollPlatformLock';
-  rtwoptions(9).makevariable  = '';
+  rtwoptions(12).prompt       = 'Platform lock';
+  rtwoptions(12).type         = 'NonUI';
+  rtwoptions(12).default      = '';
+  rtwoptions(12).tlcvariable  = 'tlcGOcontrollPlatformLock';
+  rtwoptions(12).makevariable = '';
 
   %% Callback fired when the Code Generation panel is shown.
   %% Applies default solver settings and updates option visibility.

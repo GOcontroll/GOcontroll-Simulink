@@ -24,10 +24,12 @@ function go_sync_target_options(mdl)
     isStm = strcmp(go_target_platform(get_param(cs, 'tlcGOcontrollTarget')), 'STM');
 
     % Linux-specific options (greyed out when the Moduline S1 is selected)
-    linuxOnly = {'tlcLinuxPriority', 'tlcXcpTcpAddress', 'tlcXcpTcpPort'};
+    linuxOnly = {'tlcLinuxPriority', 'tlcXcpTcpAddress', 'tlcXcpTcpPort', 'tlcUploadPort'};
     for k = 1:numel(linuxOnly)
         cs.setPropEnabled(linuxOnly{k}, ~isStm);
     end
+    % Moduline S1 only: which controller a Bluetooth upload goes to
+    cs.setPropEnabled('tlcUploadS1Controller', isStm);
 
     % Word sizes of the platform (Hardware Implementation pane)
     go_target_hardware(mdl);

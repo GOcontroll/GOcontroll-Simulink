@@ -35,6 +35,9 @@ function ert_gocontroll_target_changed_callback_handler(varargin)
     slConfigUISetEnabled(hDlg, hSrc, 'tlcLinuxPriority', ~isStm);
     slConfigUISetEnabled(hDlg, hSrc, 'tlcXcpTcpAddress', ~isStm);
     slConfigUISetEnabled(hDlg, hSrc, 'tlcXcpTcpPort',    ~isStm);
+    slConfigUISetEnabled(hDlg, hSrc, 'tlcUploadPort',    ~isStm);
+    % Moduline S1 only: which controller a Bluetooth upload goes to
+    slConfigUISetEnabled(hDlg, hSrc, 'tlcUploadS1Controller', isStm);
 
     % Word sizes of the platform (Hardware Implementation pane)
     slConfigUISetVal(hDlg, hSrc, 'ProdHWDeviceType', go_target_hardware(target));

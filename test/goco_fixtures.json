@@ -1,0 +1,26 @@
+{
+  "_about": "From GOcontroll-Suite test/fixtures/goco/fixtures.json: packages made by the Python implementation of the GOcontroll Deployment Tool (firmware_package.py). payload_b64 is the image as a zlib stream; unsigned_b64 the whole unsigned package for that App ID and version.",
+  "payload_b64": "eNpjYGRiZmFlY+fg5OLm4eXjFxAUEhYRFROXkJSSlpGVk1dQVFJWUVVT19DU0tbR1dM3MDQyNjE1M7ewtLK2sbWzd3B0cnZxdXP38PTy9vH18w8IDAoOCQ0Lj4iMio6JjYtPSExKTklNS8/IzMrOyc3LLygsKi4pLSuvqKyqrqmtq29obGpuaW1r7+js6u7p7eufMHHS5ClTp02fMXPW7Dlz581fsHDR4iVLly1fsXLV6jVr163fsHHT5i1bt23fsXPX7j179+0/cPDQ4SNHjx0/cfLU6TNnz52/cPHS5StXr12/cfPW7Tt3791/8PDR4ydPnz1/8fLV6zdv373/8PHT5y9fv33/8fPX7z9///1nGPX/qP9HsP9HwSgYqiBsyoUuveD/px4cFrCLuvaNPWvvNL6NP5amlrNwH2TqL9AelR+VH5UflR+u8gC/bSg2",
+  "cases": [
+    {
+      "app_id": "GOCO",
+      "version": "1.2.3",
+      "unsigned_b64": "R09DTwJHT0NPICAgIAECA1ABAAC8CwAAcmhG+kkKhjhHJhqFdc6VEBLzMskv8lFJRNZ2elCXlC4vY3jaY2BkYmZhZWPn4OTi5uHl4xcQFBIWERUTl5CUkpaRlZNXUFRSVlFVU9fQ1NLW0dXTNzA0MjYxNTO3sLSytrG1s3dwdHJ2cXVz9/D08vbx9fMPCAwKDgkNC4+IjIqOiY2LT0hMSk5JTUvPyMzKzsnNyy8oLCouKS0rr6isqq6pratvaGxqbmlta+/o7Oru6e3rnzBx0uQpU6dNnzFz1uw5c+fNX7Bw0eIlS5ctX7Fy1eo1a9et37Bx0+YtW7dt37Fz1+49e/ftP3Dw0OEjR48dP3Hy1OkzZ8+dv3Dx0uUrV69dv3Hz1u07d+/df/Dw0eMnT589f/Hy1es3b9+9//Dx0+cvX799//Hz1+8/f//9Zxj1/6j/R7D/R8EoGKogbMqFLr3g/6ceHBawi7r2jT1r7zS+jT+WppazcB9k6i/QHpUflR+VH5UfrvIAv20oNg=="
+    },
+    {
+      "app_id": "ABCDEFGH",
+      "version": "0.0.1",
+      "unsigned_b64": "R09DTwJBQkNERUZHSAAAAVABAAC8CwAAcmhG+kkKhjhHJhqFdc6VEBLzMskv8lFJRNZ2elCXlC5P3HjaY2BkYmZhZWPn4OTi5uHl4xcQFBIWERUTl5CUkpaRlZNXUFRSVlFVU9fQ1NLW0dXTNzA0MjYxNTO3sLSytrG1s3dwdHJ2cXVz9/D08vbx9fMPCAwKDgkNC4+IjIqOiY2LT0hMSk5JTUvPyMzKzsnNyy8oLCouKS0rr6isqq6pratvaGxqbmlta+/o7Oru6e3rnzBx0uQpU6dNnzFz1uw5c+fNX7Bw0eIlS5ctX7Fy1eo1a9et37Bx0+YtW7dt37Fz1+49e/ftP3Dw0OEjR48dP3Hy1OkzZ8+dv3Dx0uUrV69dv3Hz1u07d+/df/Dw0eMnT589f/Hy1es3b9+9//Dx0+cvX799//Hz1+8/f//9Zxj1/6j/R7D/R8EoGKogbMqFLr3g/6ceHBawi7r2jT1r7zS+jT+WppazcB9k6i/QHpUflR+VH5UfrvIAv20oNg=="
+    },
+    {
+      "app_id": "ABCDEFGHI",
+      "version": "255.0.7",
+      "unsigned_b64": "R09DTwRBQkNERUZHSEkgICAgICAgICAgICAgICAgICAgICAgIP8AB1ABAAC8CwAAcmhG+kkKhjhHJhqFdc6VEBLzMskv8lFJRNZ2elCXlC7XY3jaY2BkYmZhZWPn4OTi5uHl4xcQFBIWERUTl5CUkpaRlZNXUFRSVlFVU9fQ1NLW0dXTNzA0MjYxNTO3sLSytrG1s3dwdHJ2cXVz9/D08vbx9fMPCAwKDgkNC4+IjIqOiY2LT0hMSk5JTUvPyMzKzsnNyy8oLCouKS0rr6isqq6pratvaGxqbmlta+/o7Oru6e3rnzBx0uQpU6dNnzFz1uw5c+fNX7Bw0eIlS5ctX7Fy1eo1a9et37Bx0+YtW7dt37Fz1+49e/ftP3Dw0OEjR48dP3Hy1OkzZ8+dv3Dx0uUrV69dv3Hz1u07d+/df/Dw0eMnT589f/Hy1es3b9+9//Dx0+cvX799//Hz1+8/f//9Zxj1/6j/R7D/R8EoGKogbMqFLr3g/6ceHBawi7r2jT1r7zS+jT+WppazcB9k6i/QHpUflR+VH5UfrvIAv20oNg=="
+    },
+    {
+      "app_id": "GOCONTROLL-DEPLOY-TEST-APP-32CHR",
+      "version": "2.10.100",
+      "unsigned_b64": "R09DTwRHT0NPTlRST0xMLURFUExPWS1URVNULUFQUC0zMkNIUgIKZFABAAC8CwAAcmhG+kkKhjhHJhqFdc6VEBLzMskv8lFJRNZ2elCXlC7eWHjaY2BkYmZhZWPn4OTi5uHl4xcQFBIWERUTl5CUkpaRlZNXUFRSVlFVU9fQ1NLW0dXTNzA0MjYxNTO3sLSytrG1s3dwdHJ2cXVz9/D08vbx9fMPCAwKDgkNC4+IjIqOiY2LT0hMSk5JTUvPyMzKzsnNyy8oLCouKS0rr6isqq6pratvaGxqbmlta+/o7Oru6e3rnzBx0uQpU6dNnzFz1uw5c+fNX7Bw0eIlS5ctX7Fy1eo1a9et37Bx0+YtW7dt37Fz1+49e/ftP3Dw0OEjR48dP3Hy1OkzZ8+dv3Dx0uUrV69dv3Hz1u07d+/df/Dw0eMnT589f/Hy1es3b9+9//Dx0+cvX799//Hz1+8/f//9Zxj1/6j/R7D/R8EoGKogbMqFLr3g/6ceHBawi7r2jT1r7zS+jT+WppazcB9k6i/QHpUflR+VH5UfrvIAv20oNg=="
+    }
+  ]
+}
