@@ -20,14 +20,20 @@ Documentation: the [GOcontroll knowledge base](https://gocontroll.com/knowledge-
 - **MATLAB R2023b or later**, with Simulink, Embedded Coder, MATLAB Coder and Simulink Coder.
   The libraries and templates are saved in R2023b.
 - **Git.**
-- **A compiler**, with its `bin` folder on the system `PATH` (or its folder filled in once in
-  `blockset/utility_functions/getInstallationLocation.m`):
+- **A compiler** for the controller. `GOcontrollInstallCompilers` in the MATLAB Command Window
+  downloads and installs the tested versions for the current user, where the build finds them
+  without any `PATH` setting:
 
-  | For | Compiler | Name the blockset calls |
-  |---|---|---|
-  | Moduline S1 | Arm GNU Toolchain, bare metal | `arm-none-eabi-gcc` |
-  | Moduline M1, L4, HMI1 (*Compiler* = GCC) | Arm GNU Toolchain for 64 bit Linux | `aarch64-none-linux-gnu-gcc` |
-  | Moduline M1, L4, HMI1 (*Compiler* = Zig) | Zig | `zig` |
+  | For | Command | Compiler | Name the blockset calls |
+  |---|---|---|---|
+  | Moduline S1 | `GOcontrollInstallCompilers S1` | Arm GNU Toolchain arm-none-eabi 14.2.rel1 | `arm-none-eabi-gcc` |
+  | Moduline M1, L4, HMI1 (*Compiler* = GCC) | `GOcontrollInstallCompilers Linux` | GCC 9.2-2019.12 aarch64-none-linux-gnu | `aarch64-none-linux-gnu-gcc` |
+  | Moduline M1, L4, HMI1 (*Compiler* = Zig) | `GOcontrollInstallCompilers Zig` | Zig 0.14.1 | `zig` |
+
+  A compiler is looked up in this order: a folder filled in in
+  `blockset/utility_functions/getInstallationLocation.m`, then the compilers installed with
+  `GOcontrollInstallCompilers` (`%LOCALAPPDATA%\GOcontroll	c` on Windows,
+  `~/.gocontroll/tc` elsewhere), then the system `PATH`.
 
 ## Using the blockset in a project
 
