@@ -72,6 +72,13 @@ A build writes `<model>_<major>.<minor>.<patch>` with the extensions `.elf`, `.a
 (Moduline S1 also `.srec` and `.bin`) into `build/` next to the model. The version comes from
 the **Software version** block in the model.
 
+With *GOcontroll options > Use precompiled binary* (the default) the first build compiles the
+CodeBase and keeps its objects in `build/codebase_objs/<platform>-<compiler>/`; later builds
+link them and compile only the model and `GO_xcp.c`, which carries the station ID of each
+build. When a CodeBase file, the compiler or its flags change,
+the next build compiles the CodeBase again by itself. *Always recompile* compiles it in every
+build. `test/go_codebase_cache_test.m` tests the cache.
+
 ## Uploading to the controller
 
 From the MATLAB command window, with the newest build in `build/`:
@@ -113,6 +120,12 @@ git -C GOcontroll-Simulink submodule update --init --recursive
 The first command fetches the newest blockset; the second puts the code base inside it on the
 version that belongs to that blockset. Restart MATLAB afterwards. Your project records which version of the blockset it uses; commit the changed submodule
 together with your models once they build with the new version.
+
+Keep one copy of the blockset in MATLAB. When MATLAB also reaches another one, such as the
+GOcontroll-Simulink Add-On or another clone on the MATLAB path, Simulink can take the system
+target file and the blocks from that copy, and options of this version are missing.
+`librarySetup` then warns and names the other copy; uninstall it or remove it from the path,
+and restart MATLAB. `test/go_other_blocksets_test.m` tests this check.
 
 ## Cloning this repository on its own
 

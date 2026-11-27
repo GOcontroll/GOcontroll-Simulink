@@ -237,6 +237,10 @@ LIBS += |>EXPAND_LIBRARY_LOCATION<|/|>EXPAND_LIBRARY_NAME<|.a |>END_EXPAND_LIBRA
 
 LIBS += $(EXT_LIB) $(S_FUNCTIONS_LIB)
 
+# CodeBase objects from build/codebase_objs/ (Use precompiled binary), linked as they are;
+# empty when this build compiles the CodeBase. Set by ert_linux_make_rtw_hook.
+CODEBASE_OBJS = |>CODEBASE_OBJS<|
+
 
 #|---------------------------------------------------------------------------------------
 #| Source files
@@ -286,7 +290,7 @@ $(PRODUCT): $(BIN_PATH)/$(MODEL_NAME).elf
 
 $(BIN_PATH)/$(MODEL_NAME).elf: clean $(OBJS) $(LIBS) $(SHARED_LIB) $(SRC_DEP) $(MODELREF_LINK_LIBS)
 	$(ECHO) ### Linking $(notdir $@)
-	@$(CC) -Wl,--start-group $(LINK_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -lc -lm -Wl,--end-group\
+	@$(CC) -Wl,--start-group $(LINK_OBJS) $(CODEBASE_OBJS) $(MODELREF_LINK_LIBS) $(SHARED_LIB) $(LIBS) -lc -lm -Wl,--end-group\
 		-o $@ $(LINKER_FLAGS)
 	$(ECHO) ### Created $(MODEL_NAME).elf
 else

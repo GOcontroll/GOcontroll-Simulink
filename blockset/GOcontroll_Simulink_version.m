@@ -43,6 +43,16 @@ version = 'GOcontroll V5.0.1';
 %   when more than one is in range. Packages are not signed: a controller that carries a
 %   public key is still flashed with the GOcontroll Suite
 % ManualUpload <model> also uploads a Moduline S1 build, over Bluetooth
+% librarySetup warns when MATLAB also reaches another copy of the blockset - the
+%   GOcontroll-Simulink Add-On, another clone on the path - and names it with its version
+%   (go_other_blocksets): Simulink could take the target file and the blocks from that copy
+% Use precompiled binary also works for the Moduline M1, L4 and HMI1: the CodeBase is
+%   compiled once and later builds link its objects from build/codebase_objs/<platform>-
+%   <compiler>/, so models for the S1 and for a Linux controller can share a folder
+% The CodeBase cache is made again by itself when a CodeBase file, the compiler or its
+%   flags change, also for the Moduline S1: an updated or edited CodeBase is no longer
+%   linked from an older cache (go_codebase_cache)
+% Linux controllers: GO_board.c builds without the -Wformat-truncation warning
 
 %% V5.0.0 Update 25-11-2026:
 % Add the Moduline S1 (STM32H5) next to the Linux controllers: one system target file

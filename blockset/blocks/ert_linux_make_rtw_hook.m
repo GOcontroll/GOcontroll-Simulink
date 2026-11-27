@@ -84,11 +84,14 @@ function ert_linux_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,b
 
 persistent stationID;
 persistent model_path;
-persistent codebase_src_dirs_stm gccpath_stm;
+% The CodeBase cache to fill in after_make, when before_make compiled the CodeBase
+% (go_codebase_cache); empty when the build links the cached objects.
+persistent codebase_cache;
 switch hookMethod
 	case 'error'
 		fprintf('########################### ERROR\n');
 		if isappdata(0, 'GOcontrollBuildRunning'), rmappdata(0, 'GOcontrollBuildRunning'); end
+		codebase_cache = [];
 		% Called if an error occurs anywhere during the build.  If no error occurs
 		% during the build, then this hook will not be called.  Valid arguments
 		% at this stage are hookMethod and modelName. This enables cleaning up
@@ -205,8 +208,11 @@ switch hookMethod
 				addTMFTokens(buildInfo, '|>OC<|', makeToolPath(gccpath, 'aarch64-none-linux-gnu-objcopy'),'LINK_INFO');
 				addTMFTokens(buildInfo, '|>OD<|', makeToolPath(gccpath, 'aarch64-none-linux-gnu-objdump'),'LINK_INFO');
 				addTMFTokens(buildInfo, '|>SZ<|', makeToolPath(gccpath, 'aarch64-none-linux-gnu-size'),   'LINK_INFO');
-				addCompileFlags(buildInfo, '-mcpu=cortex-a53 -Wa,-adhlns="$@.lst" -Wno-maybe-uninitialized -gdwarf -DGOCONTROLL_LINUX');
+				compileFlags = '-mcpu=cortex-a53 -Wa,-adhlns="$@.lst" -Wno-maybe-uninitialized -gdwarf -DGOCONTROLL_LINUX';
+				addCompileFlags(buildInfo, compileFlags);
 				addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map')
+				cacheKey      = 'Linux-GCC';
+				cacheSettings = [gccpath ' ' compileFlags];
 			elseif (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'Zig'))
 				if (~strcmp(computer(), "MACA64")) %if not apple silicon it is x86
 					zigpath = getInstallationLocation('Zig-x86');
@@ -222,7 +228,10 @@ switch hookMethod
 				addTMFTokens(buildInfo, '|>OD<|', '','LINK_INFO');
 				addTMFTokens(buildInfo, '|>SZ<|', '','LINK_INFO');
 				% GOCONTROLL_LINUX selects the Linux code of the CodeBase, as with GCC.
-				addCompileFlags(buildInfo, '-mcpu=cortex_a53 -gdwarf64 -DGOCONTROLL_LINUX');
+				compileFlags = '-mcpu=cortex_a53 -gdwarf64 -DGOCONTROLL_LINUX';
+				addCompileFlags(buildInfo, compileFlags);
+				cacheKey      = 'Linux-Zig';
+				cacheSettings = [zigpath ' ' compileFlags];
 			else
 				error("No valid compiler selected");
 			end
@@ -234,11 +243,14 @@ switch hookMethod
 			% The CodeBase no longer carries prebuilt libraries (OAES, libiio, JSON-C) and
 			% needs none of them. GO_communication_mqtt.c is left out: on Linux it needs
 			% libmosquitto, and the MQTT blocks of this blockset are for the Moduline S1 only.
-			codeFiles = dir(fullfile(codepath, '*.c'));
-			codeFiles = {codeFiles.name};
-			codeFiles = codeFiles(~strcmp(codeFiles, 'GO_communication_mqtt.c'));
-			addSourceFiles(buildInfo, codeFiles, codepath);
-			addSourceFiles(buildInfo, '*.c', modulepath);
+			codebase_cache = addCodeBase(buildInfo, modelName, struct( ...
+				'buildDir',   fullfile(model_path, 'build'), ...
+				'key',        cacheKey, ...
+				'codeRoot',   codepath, ...
+				'srcDirs',    {{codepath, modulepath}}, ...
+				'exclude',    {{'GO_communication_mqtt.c'}}, ...
+				'buildFiles', {{which('ert_linux_make_rtw_hook'), fullfile(path, '..', 'ert', 'ert_linux_target_64.tmf')}}, ...
+				'settings',   cacheSettings));
 
 
 		elseif (strcmp(target, 'STM'))
@@ -251,8 +263,11 @@ switch hookMethod
 				addTMFTokens(buildInfo, '|>OC<|', makeToolPath(gccpath, 'arm-none-eabi-objcopy'),'LINK_INFO');
 				addTMFTokens(buildInfo, '|>OD<|', makeToolPath(gccpath, 'arm-none-eabi-objdump'),'LINK_INFO');
 				addTMFTokens(buildInfo, '|>SZ<|', makeToolPath(gccpath, 'arm-none-eabi-size'),   'LINK_INFO');
-				addCompileFlags(buildInfo, '-mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wall -Wno-maybe-uninitialized -g -DGOCONTROLL_STM');
+				compileFlags = '-mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wall -Wno-maybe-uninitialized -g -DGOCONTROLL_STM';
+				addCompileFlags(buildInfo, compileFlags);
 				addLinkFlags(buildInfo, '-Wl,-Map,$(BIN_PATH)/$(MODEL_NAME).map -Wl,--gc-sections -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float')
+				cacheKey      = 'STM-GCC';
+				cacheSettings = [gccpath ' ' compileFlags];
 			elseif (strcmp(get_param(modelName, 'tlcLinuxCompiler'), 'Zig'))
 				error("not implemented (yet?) switch to gcc compiler");
 			else
@@ -286,74 +301,26 @@ switch hookMethod
 			addSourceFiles(buildInfo, '*.s', fullfile(corepath, 'Startup'));
 			addLinkFlags(buildInfo, ['-T' fullfile(stmpath, 'STM32H573RITX_FLASH.ld')]);
 
-			% Reuse pre-compiled CodeBase library when available; compile on first build.
-			gccpath_stm = gccpath;
-			cbaseSourceDirs = {
-				codepath,
-				modulepath,
-				stmpath,
-				fullfile(corepath, 'Src'),
-				fullfile(driverspath, 'STM32H5xx_HAL_Driver', 'Src'),
-				rtospath,
-				fullfile(rtospath, 'CMSIS_RTOS_V2'),
-				fullfile(rtospath, 'portable', 'MemMang'),
-				fullfile(rtospath, 'portable', 'GCC', 'ARM_CM33_NTZ', 'non_secure'),
-				fullfile(seggerpath, 'Src'),
-			};
-			usePrecompiled = strcmp(get_param(modelName, 'tlcUsePrecompiledLib'), 'Use precompiled binary');
-			objCacheDir = fullfile(model_path, 'build', 'codebase_objs');
-			cachedObjs = dir(fullfile(objCacheDir, '*.obj'));
-			hasPrecompiled = usePrecompiled && ~isempty(cachedObjs);
-			if ~hasPrecompiled
-				if ~usePrecompiled
-					disp('### Precompiled binary disabled -- compiling CodeBase from source...');
-				else
-					disp('### No cached CodeBase objects found -- compiling CodeBase (first build only)...');
-				end
-				codebase_src_dirs_stm = cbaseSourceDirs;
-				addSourceFiles(buildInfo, '*.c', codepath);
-				addSourceFiles(buildInfo, '*.c', modulepath);
-				addSourceFiles(buildInfo, '*.c', stmpath);
-				addSourceFiles(buildInfo, '*.c', fullfile(corepath, 'Src'));
-				removeSourceFiles(buildInfo, 'main.c');
-				addSourceFiles(buildInfo, '*.c', fullfile(driverspath, 'STM32H5xx_HAL_Driver', 'Src'));
-				addSourceFiles(buildInfo, '*.c', rtospath);
-				addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'CMSIS_RTOS_V2'));
-				addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'MemMang'));
-				addSourceFiles(buildInfo, '*.c', fullfile(rtospath, 'portable', 'GCC', 'ARM_CM33_NTZ', 'non_secure'));
-				addSourceFiles(buildInfo, '*.c', fullfile(seggerpath, 'Src'));
-			else
-				codebase_src_dirs_stm = {};
-				disp(['### Found ' num2str(numel(cachedObjs)) ' cached CodeBase objects -- skipping source compile.']);
-				% Remove stale CodeBase sources from buildInfo (do not compile them again)
-				for d = 1:numel(cbaseSourceDirs)
-					files = dir(fullfile(cbaseSourceDirs{d}, '*.c'));
-					for k = 1:numel(files)
-						removeSourceFiles(buildInfo, files(k).name);
-					end
-				end
-				% Sources that include SYS_config.h carry this build's station ID, so they
-				% are compiled every build instead of taken from the cache.
-				% A cache made before this rule still holds their objects; those
-				% are removed, otherwise they are linked twice.
-				perBuildSrcs = findPerBuildSources(cbaseSourceDirs);
-				for k = 1:numel(perBuildSrcs)
-					staleObj = fullfile(objCacheDir, regexprep(perBuildSrcs(k).name, '\.c$', '.obj'));
-					if isfile(staleObj)
-						delete(staleObj);
-						disp(['### Removed ' regexprep(perBuildSrcs(k).name, '\.c$', '.obj') ' from the CodeBase cache (compiled every build)']);
-					end
-				end
-				cachedObjs = dir(fullfile(objCacheDir, '*.obj'));
-				% Link each cached .obj directly -- avoids the --whole-archive trick
-				% and prevents multiple-definition errors caused by .a double-linking.
-				for k = 1:numel(cachedObjs)
-					addLinkObjects(buildInfo, cachedObjs(k).name, objCacheDir, 1000, true, true);
-				end
-				for k = 1:numel(perBuildSrcs)
-					addSourceFiles(buildInfo, perBuildSrcs(k).name, perBuildSrcs(k).folder);
-				end
-			end
+			% The CodeBase is compiled once and taken from build/codebase_objs/STM-GCC/ after
+			% that (Use precompiled binary). main.c of the Core is left out: the model has its own.
+			codebase_cache = addCodeBase(buildInfo, modelName, struct( ...
+				'buildDir',   fullfile(model_path, 'build'), ...
+				'key',        cacheKey, ...
+				'codeRoot',   codepath, ...
+				'srcDirs',    {{ ...
+					codepath, ...
+					modulepath, ...
+					stmpath, ...
+					fullfile(corepath, 'Src'), ...
+					fullfile(driverspath, 'STM32H5xx_HAL_Driver', 'Src'), ...
+					rtospath, ...
+					fullfile(rtospath, 'CMSIS_RTOS_V2'), ...
+					fullfile(rtospath, 'portable', 'MemMang'), ...
+					fullfile(rtospath, 'portable', 'GCC', 'ARM_CM33_NTZ', 'non_secure'), ...
+					fullfile(seggerpath, 'Src')}}, ...
+				'exclude',    {{'main.c'}}, ...
+				'buildFiles', {{which('ert_linux_make_rtw_hook'), fullfile(path, '..', 'ert', 'ert_stm_target_32.tmf')}}, ...
+				'settings',   cacheSettings));
 
 		else
 			error("No valid target selected");
@@ -380,35 +347,10 @@ switch hookMethod
 			versionSuffix = getVersionSuffix(modelName);
 			outputName = [modelName versionSuffix];
 
-			% Cache CodeBase .obj files for reuse in subsequent builds
-			if ~isempty(codebase_src_dirs_stm)
-				objCacheDir = fullfile(buildDir, 'codebase_objs');
-				if ~exist(objCacheDir, 'dir')
-					mkdir(objCacheDir);
-				else
-					% Clear previous cache so stale objects do not accumulate
-					delete(fullfile(objCacheDir, '*.obj'));
-				end
-				copied = 0;
-				perBuildSrcs = findPerBuildSources(codebase_src_dirs_stm);
-				for d = 1:numel(codebase_src_dirs_stm)
-					files = dir(fullfile(codebase_src_dirs_stm{d}, '*.c'));
-					for k = 1:numel(files)
-						if strcmp(files(k).name, 'main.c'); continue; end
-						if any(strcmp(files(k).name, {perBuildSrcs.name})); continue; end
-						objName = [files(k).name(1:end-2) '.obj'];
-						if isfile(objName)
-							copyfile(objName, fullfile(objCacheDir, objName));
-							copied = copied + 1;
-						end
-					end
-				end
-				if copied > 0
-					disp(['### Cached ' num2str(copied) ' CodeBase objects to build/codebase_objs/']);
-				else
-					warning('### No CodeBase .obj files found to cache');
-				end
-				codebase_src_dirs_stm = {};
+			% This build compiled the CodeBase: keep its objects for the next builds.
+			if ~isempty(codebase_cache)
+				go_codebase_cache('store', codebase_cache, pwd);
+				codebase_cache = [];
 			end
 
 			% Adding the memory addresses to the ASAP2 file
@@ -550,20 +492,54 @@ blockArray = find_system(modelName, 'RegExp', 'on', 'FollowLinks', 'on', 'LookUn
 nrOfCANreceiveBlocks = length(blockArray);
 end
 
-%% CodeBase sources that depend on the build %%
-% Returns the CodeBase .c files that include SYS_config.h. That header is written
-% again every build (station ID, XCP port, CAN buffer size), so an object compiled
-% from one of these files must never come from the codebase_objs cache: the binary
-% would then report the station ID of an older build and no longer match the a2l.
-function srcs = findPerBuildSources(srcDirs)
-srcs = struct('name', {}, 'folder', {});
-for d = 1:numel(srcDirs)
-	files = dir(fullfile(srcDirs{d}, '*.c'));
-	for k = 1:numel(files)
-		if contains(fileread(fullfile(files(k).folder, files(k).name)), 'SYS_config.h')
-			srcs(end+1) = struct('name', files(k).name, 'folder', files(k).folder); %#ok<AGROW>
-		end
+%% The CodeBase in the build %%
+% Use precompiled binary: links the objects from the cache of this platform and
+% compiler when they were made from the CodeBase as it is now, and compiles only the
+% sources that include SYS_config.h. Otherwise all CodeBase sources are compiled, and
+% the returned cache is filled in after_make. The sources that include SYS_config.h
+% are compiled in every build: see go_codebase_cache.
+function pending = addCodeBase(buildInfo, modelName, spec)
+cache = go_codebase_cache('open', spec);
+allSources = [cache.sources, cache.perBuild];
+
+% When the generated code is up to date, Simulink reuses the build information of the
+% previous build, with the CodeBase that build added. Start from no CodeBase at all.
+% The cached objects go through the TMF token CODEBASE_OBJS and not through
+% addLinkObjects: a link object cannot be taken out of the build information again.
+for k = 1:numel(allSources)
+	removeSourceFiles(buildInfo, allSources(k).name);
+end
+removeTMFTokens(buildInfo, '|>CODEBASE_OBJS<|');
+linked = buildInfo.LinkObj;
+if ~isempty(linked) && any(contains({linked.Path}, 'codebase_objs'))
+	error('GOcontroll:codebaseLinkObjects', ...
+		['### The build information of %s still links CodeBase objects the way blockset 5.0.0 ' ...
+		 'did. Delete the folder slprj and the code folder of the model (%s_generated_code or ' ...
+		 '%s_ert_rtw) next to the model, then build again.'], modelName, modelName, modelName);
+end
+
+usePrecompiled = strcmp(get_param(modelName, 'tlcUsePrecompiledLib'), 'Use precompiled binary');
+if usePrecompiled && cache.usable
+	disp(['### Linking ' num2str(numel(cache.sources)) ' CodeBase objects from build/codebase_objs/' spec.key '/ -- skipping source compile.']);
+	% Each cached .obj is linked directly, inside the --start-group of the link: no
+	% --whole-archive trick and no multiple-definition errors of an archive linked twice.
+	objs = cellfun(@(name) ['"' fullfile(cache.dir, regexprep(name, '\.c$', '.obj')) '"'], ...
+		{cache.sources.name}, 'UniformOutput', false);
+	addTMFTokens(buildInfo, '|>CODEBASE_OBJS<|', strjoin(objs, ' '), 'LINK_INFO');
+	sources = cache.perBuild;
+	pending = [];
+else
+	if ~usePrecompiled
+		disp('### Precompiled binary disabled -- compiling CodeBase from source...');
+	else
+		disp(['### Compiling CodeBase from source (' cache.reason ')...']);
 	end
+	addTMFTokens(buildInfo, '|>CODEBASE_OBJS<|', '', 'LINK_INFO');
+	sources = allSources;
+	pending = cache;
+end
+if ~isempty(sources)
+	addSourceFiles(buildInfo, {sources.name}, {sources.folder});
 end
 end
 

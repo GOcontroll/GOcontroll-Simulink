@@ -71,6 +71,15 @@ if needPath
     addpath(repoRoot, '-end');
 end
 
+% Warn when MATLAB also reaches another copy of the blockset - an Add-On, another clone on
+% the path, a library loaded from it: Simulink could take the target file and the blocks
+% from that copy. Before the libraries are loaded, so a library from that copy is seen.
+% Only a warning: the check never stops a model from opening.
+try
+    go_other_blocksets(repoRoot);
+catch
+end
+
 % Explicitly load libraries so Simulink can resolve all library links
 if ~bdIsLoaded('GOcontroll_Moduline_Target')
     load_system('GOcontroll_Moduline_Target');

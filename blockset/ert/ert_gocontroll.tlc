@@ -129,7 +129,9 @@
   rtwoptions(7).default       = 'Use precompiled binary';
   rtwoptions(7).popupstrings  = 'Use precompiled binary|Always recompile';
   rtwoptions(7).tlcvariable   = 'tlcUsePrecompiledLib';
-  rtwoptions(7).tooltip       = 'STM target: use the cached libGOcontroll_CodeBase.a when available, or recompile the CodeBase on every build';
+  rtwoptions(7).tooltip       = ['Use precompiled binary: the CodeBase is compiled once and kept in build/codebase_objs/; ' ...
+                                 'later builds link it until a CodeBase file, the compiler or its flags change. ' ...
+                                 'Always recompile: the CodeBase is compiled in every build.'];
 
   % -----------------------------------------------------------------------
   % (8) Delete build files  [always visible]
