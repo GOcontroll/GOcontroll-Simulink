@@ -53,6 +53,8 @@ version = 'GOcontroll V5.0.1';
 %   flags change, also for the Moduline S1: an updated or edited CodeBase is no longer
 %   linked from an older cache (go_codebase_cache)
 % Linux controllers: GO_board.c builds without the -Wformat-truncation warning
+% XCP: measuring more than 31 bytes of signals over TCP or UDP (for example with HANtune) no
+%   longer crashes the application, and a second FREE_DAQ no longer aborts it (CodeBase)
 
 %% V5.0.0 Update 25-11-2026:
 % Add the Moduline S1 (STM32H5) next to the Linux controllers: one system target file
